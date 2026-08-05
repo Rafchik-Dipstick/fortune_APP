@@ -120,6 +120,13 @@ def validate_plan(plan: dict, canonical_order: list[str]) -> None:
             raise ValueError(f"{key} needs four nonnegative integer crop margins.")
         if entry.get("edgeTreatment") not in allowed_treatments:
             raise ValueError(f"{key} has an invalid edgeTreatment.")
+        retained_dark_edges = entry.get("retainedDarkEdges", [])
+        if (
+            not isinstance(retained_dark_edges, list)
+            or len(set(retained_dark_edges)) != len(retained_dark_edges)
+            or any(side not in SIDES for side in retained_dark_edges)
+        ):
+            raise ValueError(f"{key} has invalid retainedDarkEdges.")
 
 
 def normalize_card(card: dict, plan: dict) -> dict:

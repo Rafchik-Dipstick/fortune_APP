@@ -14,7 +14,11 @@
     "major-06-lovers": { "crop": [28, 26, 28, 24], "edgeTreatment": "LIGHT_GUTTER" },
     "major-07-chariot": { "crop": [28, 29, 28, 27], "edgeTreatment": "LIGHT_GUTTER" },
     "major-08-strength": { "crop": [27, 21, 27, 0], "edgeTreatment": "DARK_GUTTER" },
-    "major-09-hermit": { "crop": [0, 0, 0, 0], "edgeTreatment": "NONE" },
+    "major-09-hermit": {
+      "crop": [0, 0, 0, 0],
+      "edgeTreatment": "NONE",
+      "retainedDarkEdges": ["top"]
+    },
     "major-10-wheel-of-fortune": { "crop": [0, 0, 0, 0], "edgeTreatment": "NONE" },
     "major-11-justice": { "crop": [0, 0, 0, 0], "edgeTreatment": "NONE" },
     "major-12-hanged-man": { "crop": [35, 33, 35, 33], "edgeTreatment": "DARK_GUTTER" },
@@ -25,12 +29,20 @@
     "major-17-star": { "crop": [0, 0, 0, 0], "edgeTreatment": "NONE" },
     "major-18-moon": { "crop": [29, 27, 29, 26], "edgeTreatment": "LIGHT_GUTTER" },
     "major-19-sun": { "crop": [0, 0, 0, 0], "edgeTreatment": "NONE" },
-    "major-20-judgement": { "crop": [0, 0, 0, 0], "edgeTreatment": "NONE" },
+    "major-20-judgement": {
+      "crop": [0, 0, 0, 0],
+      "edgeTreatment": "NONE",
+      "retainedDarkEdges": ["top"]
+    },
     "major-21-world": { "crop": [27, 25, 27, 29], "edgeTreatment": "DARK_GUTTER" },
 
     "wands-ace": { "crop": [38, 34, 38, 36], "edgeTreatment": "DARK_GUTTER" },
     "wands-02": { "crop": [0, 0, 0, 0], "edgeTreatment": "NONE" },
-    "wands-03": { "crop": [0, 0, 0, 0], "edgeTreatment": "NONE" },
+    "wands-03": {
+      "crop": [0, 0, 0, 0],
+      "edgeTreatment": "NONE",
+      "retainedDarkEdges": ["top"]
+    },
     "wands-04": { "crop": [35, 33, 35, 33], "edgeTreatment": "DARK_GUTTER" },
     "wands-05": { "crop": [0, 0, 0, 0], "edgeTreatment": "NONE" },
     "wands-06": { "crop": [28, 26, 28, 0], "edgeTreatment": "LIGHT_GUTTER" },
@@ -40,7 +52,11 @@
     "wands-10": { "crop": [21, 18, 21, 18], "edgeTreatment": "DARK_GUTTER" },
     "wands-page": { "crop": [0, 0, 0, 0], "edgeTreatment": "NONE" },
     "wands-knight": { "crop": [40, 37, 40, 37], "edgeTreatment": "DARK_GUTTER" },
-    "wands-queen": { "crop": [19, 15, 19, 17], "edgeTreatment": "LIGHT_GUTTER" },
+    "wands-queen": {
+      "crop": [19, 15, 19, 17],
+      "edgeTreatment": "LIGHT_GUTTER",
+      "retainedDarkEdges": ["top"]
+    },
     "wands-king": { "crop": [40, 28, 40, 35], "edgeTreatment": "LIGHT_GUTTER" },
 
     "cups-ace": { "crop": [24, 37, 34, 29], "edgeTreatment": "LIGHT_GUTTER" },
@@ -48,7 +64,11 @@
     "cups-03": { "crop": [28, 38, 28, 35], "edgeTreatment": "DARK_GUTTER" },
     "cups-04": { "crop": [0, 0, 0, 0], "edgeTreatment": "NONE" },
     "cups-05": { "crop": [30, 28, 30, 34], "edgeTreatment": "DARK_GUTTER" },
-    "cups-06": { "crop": [0, 0, 0, 0], "edgeTreatment": "NONE" },
+    "cups-06": {
+      "crop": [0, 0, 0, 0],
+      "edgeTreatment": "NONE",
+      "retainedDarkEdges": ["top"]
+    },
     "cups-07": { "crop": [19, 37, 26, 24], "edgeTreatment": "DARK_GUTTER" },
     "cups-08": { "crop": [29, 26, 29, 0], "edgeTreatment": "DARK_GUTTER" },
     "cups-09": { "crop": [0, 0, 0, 0], "edgeTreatment": "NONE" },
@@ -67,7 +87,11 @@
     "swords-07": { "crop": [31, 31, 31, 35], "edgeTreatment": "DARK_GUTTER" },
     "swords-08": { "crop": [27, 24, 27, 25], "edgeTreatment": "LIGHT_GUTTER" },
     "swords-09": { "crop": [23, 21, 23, 17], "edgeTreatment": "DARK_GUTTER" },
-    "swords-10": { "crop": [0, 0, 0, 0], "edgeTreatment": "NONE" },
+    "swords-10": {
+      "crop": [0, 0, 0, 0],
+      "edgeTreatment": "NONE",
+      "retainedDarkEdges": ["bottom"]
+    },
     "swords-page": { "crop": [0, 0, 0, 0], "edgeTreatment": "NONE" },
     "swords-knight": { "crop": [16, 25, 27, 23], "edgeTreatment": "LIGHT_GUTTER" },
     "swords-queen": { "crop": [0, 0, 0, 0], "edgeTreatment": "NONE" },

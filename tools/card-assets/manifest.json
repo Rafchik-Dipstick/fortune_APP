@@ -3,6 +3,7 @@
   "promptTemplateVersion": "full-deck-nocturnal-celestial-v1-unreviewed",
   "promptSourcePath": "tools/card-assets/prompts/full-deck-v1.json",
   "expectedCardCount": 78,
+  "normalizationVersion": "frame-gutter-crop-v1",
   "cards": [
     {
       "key": "major-00-fool",
@@ -3904,6 +3905,5 @@
         }
       }
     }
-  ],
-  "normalizationVersion": "frame-gutter-crop-v1"
+  ]
 }

@@ -18,6 +18,8 @@ Production exception: on 2026-08-05, the product owner explicitly authorized gen
 
 Generation completion record: all 78 canonical source illustrations have now been generated, individually inspected, checksum-bound to their exact prompts, and recorded in `tools/card-assets/manifest.json`. Per-card count, glyph, framing, and composition deviations remain open in the manifest; 78/78 generation completeness does not constitute style lock, source acceptance, accessibility approval, or coded-frame/device approval.
 
+Mechanical normalization record: all 78 archival sources now have an explicit edge-review/crop decision in `tools/card-assets/crop-plan.v1.json` and a source-bound 1024 × 1536 RGB bundle candidate under `tools/card-assets/normalized`. Labeled group contact sheets were reviewed and all continuous light bands were removed. Six retained dark-edge readings are explicitly allowlisted because full-resolution inspection identifies painted sky, foreground, or frame outline rather than exterior canvas. This normalization does not change any `GENERATED_UNREVIEWED` status or replace the required Expo device/human review.
+
 ## Visual constants
 
 - Original nocturnal Art Nouveau and celestial illustration language; never imitate a named artist.
@@ -34,15 +36,15 @@ The deck should vary subject, pose, camera distance, horizon, environment, suit 
 
 ## Composition targets
 
-| Attribute       | Draft target                                                                             |
-| --------------- | ---------------------------------------------------------------------------------------- |
-| Source ratio    | Approximately 2:3 portrait; current proofs are 848 × 1264 and inside validator tolerance |
-| Shipping target | Approximately 1024 × 1536 after device-informed normalization                            |
-| Subject         | One immediately readable focal subject or symbolic grouping                              |
-| Safe area       | Essential faces, hands, suit objects, and card-defining counts stay away from crop edges |
-| Background      | Supports depth and symbolism without overwhelming the subject or code-rendered frame     |
-| Contrast        | Subject remains distinguishable at compact size in the dark UI                           |
-| Text boundary   | All semantic labels remain code-rendered outside the generated illustration              |
+| Attribute        | Draft target                                                                                 |
+| ---------------- | -------------------------------------------------------------------------------------------- |
+| Source ratio     | Approximately 2:3 portrait; current proofs are 848 × 1264 and inside validator tolerance     |
+| Bundle candidate | 1024 × 1536 RGB PNG after deterministic edge-review normalization; optimization remains open |
+| Subject          | One immediately readable focal subject or symbolic grouping                                  |
+| Safe area        | Essential faces, hands, suit objects, and card-defining counts stay away from crop edges     |
+| Background       | Supports depth and symbolism without overwhelming the subject or code-rendered frame         |
+| Contrast         | Subject remains distinguishable at compact size in the dark UI                               |
+| Text boundary    | All semantic labels remain code-rendered outside the generated illustration                  |
 
 ## Proof observations to validate on device
 

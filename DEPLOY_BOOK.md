@@ -699,3 +699,24 @@ git diff --check
 ```
 
 Deployment impact: 14 local Pentacles bundle candidates and manifest metadata only. No source checksum, runtime import, API, credential, entitlement, human approval, or deployed state changed.
+
+### 2026-08-06 — Full-deck crop gate and Expo proof integration
+
+- Completed deterministic normalization at 78/78 source-bound 1024 × 1536 RGB PNGs and preserved every immutable generation source/checksum.
+- Hardened the validator so every unreviewed light or dark edge band fails CI. Six reviewed dark-edge exceptions remain explicit: Hermit top sky, Judgement top sky, Three of Wands top sky, Queen of Wands frame outline, Six of Cups top sky, and Ten of Swords lower foreground with sword tips.
+- Confirmed all continuous light/white edge depths are zero across the normalized deck and every other dark edge depth is zero.
+- Switched the three Phase 2 Expo review fixtures—Fool, Queen of Cups, and Three of Wands—from archival sources to their normalized bundle candidates.
+- Updated the art-direction record, mobile asset guidance, and Phase 2 evidence matrix to distinguish immutable sources, normalized candidates, and still-open human/device approval.
+- No card review status was promoted; internal generated ornamentation, source-selection deviations, accessibility text, and compact/regular real-device presentation remain open for the product owner's Expo review.
+
+Verification required before commit:
+
+```text
+corepack npm run asset:sync
+corepack npm run asset:validate
+corepack npm run check
+git diff --check
+git status --short
+```
+
+Deployment impact: the development Expo proof now renders normalized art for its three fixture cards, and the full normalized deck is locally bundle-ready. No production deployment, API, credential, entitlement, source checksum, or human approval changed.

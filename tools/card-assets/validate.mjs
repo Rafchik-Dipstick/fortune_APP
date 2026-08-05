@@ -125,6 +125,13 @@ for (const [key, cropEntry] of Object.entries(cropPlan.cards)) {
     ['NONE', 'LIGHT_GUTTER', 'DARK_GUTTER', 'MIXED_GUTTER'].includes(cropEntry.edgeTreatment),
     `Card crop plan ${key} has an invalid edge treatment.`,
   );
+  const retainedDarkEdges = cropEntry.retainedDarkEdges ?? [];
+  assert(
+    Array.isArray(retainedDarkEdges) &&
+      new Set(retainedDarkEdges).size === retainedDarkEdges.length &&
+      retainedDarkEdges.every((side) => cropPlan.cropOrder.includes(side)),
+    `Card crop plan ${key} has invalid retained dark edges.`,
+  );
 }
 
 const cardKeys = new Set();
@@ -285,9 +292,20 @@ for (const [index, card] of manifest.cards.entries()) {
         `${prefix} needs ${classification} edge data.`,
       );
       for (const side of cropPlan.cropOrder) {
+        const edgeDepth = edgeBands[side];
         assert(
-          Number.isInteger(edgeBands[side]) && edgeBands[side] >= 0,
+          Number.isInteger(edgeDepth) && edgeDepth >= 0,
           `${prefix} ${classification} ${side} edge depth must be a nonnegative integer.`,
+        );
+        const retainedDarkEdge =
+          classification === 'dark' && (cropEntry.retainedDarkEdges ?? []).includes(side);
+        assert(
+          edgeDepth === 0 || retainedDarkEdge,
+          `${prefix} has an unreviewed ${classification} ${side} edge band.`,
+        );
+        assert(
+          !retainedDarkEdge || edgeDepth > 0,
+          `${prefix} retained ${side} dark-edge review is stale.`,
         );
       }
     }
