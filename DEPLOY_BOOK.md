@@ -444,3 +444,24 @@ git diff --check
 ```
 
 Deployment impact: asset-production catalog, provenance tooling, and documentation only. No new image is created by this commit, and no review status, production bundle, API, credential, or deployed state changes.
+
+### 2026-08-05 — Full-deck Major Arcana generation checkpoint 1
+
+- Generated five new Major Arcana sources through Google Vertex ADC: The Magician, The High Priestess, The Empress, The Emperor, and The Hierophant.
+- All five are 848 × 1264 RGB PNGs below the 4 MB source limit, have unique SHA-256 checksums, and are bound to their exact prompts in the 78-card manifest.
+- Inspected every source at high detail. All have readable central subjects and no visible words, signatures, or watermarks.
+- Each source includes a prominent generated ornamental border despite the prompt exclusion. This is recorded per card as an open coded-frame issue; no asset was promoted beyond `GENERATED_UNREVIEWED`.
+- The Empress crown does not expose a confidently countable twelve-star set at inspection size, so its note also flags that symbolic-count question for review.
+- The sixth request, The Lovers, returned Google `429 RESOURCE_EXHAUSTED`; no output was written, the batch stopped immediately, and no automatic retry or alternate model request was made.
+- After synchronization, the full-deck manifest validates at 8/78 generated sources (the original three proofs plus five new cards).
+
+Verification required before commit:
+
+```text
+corepack npm run asset:sync
+corepack npm run asset:validate
+corepack npm run check
+git diff --check
+```
+
+Deployment impact: five unreviewed source illustrations, their draft accessibility/provenance metadata, and documentation only. The mobile bundle still imports only the three Phase 2 proofs; no review status, API, credential, entitlement, or deployed state changed.

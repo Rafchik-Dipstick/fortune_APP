@@ -24,6 +24,101 @@
       "reviewNotes": "Visual inspection found no text or watermark and a clear central silhouette. Human editorial, compact/regular device review, and final normalization remain open."
     },
     {
+      "key": "major-01-magician",
+      "promptKey": "major-01-magician",
+      "promptTextSha256": "6cbd32e19b127bfb8845be7d8e703b6ae4222d874f9492a1f6d5ac5cdd535e6b",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-01-magician.png",
+      "bundledPath": "tools/card-assets/source/major-01-magician.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2047073,
+      "sha256": "4d42edb411ca6e9f268403a800206a658188eb0a81ccfffd4c282cb3ac057302",
+      "localizedAltText": {
+        "en": "A poised creator raises a luminous wand above a table holding a cup, sword, and pentacle disk."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, a clear central figure, raised wand, infinity ribbon, and readable cup/sword/pentacle objects. A strong generated ornamental border may compete with the code-rendered frame and requires device review."
+    },
+    {
+      "key": "major-02-high-priestess",
+      "promptKey": "major-02-high-priestess",
+      "promptTextSha256": "5a7338d0c1f542d6e5572b7e53db72c7a740539e6468e14398ba1d46067b78b3",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-02-high-priestess.png",
+      "bundledPath": "tools/card-assets/source/major-02-high-priestess.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2116490,
+      "sha256": "350f34658f39209287ef8839bdc283b36e46825cf7699c215cab785dacecfda0",
+      "localizedAltText": {
+        "en": "A serene guardian holds a silver scroll between dark and pale pillars before a pomegranate veil."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, two contrasting pillars, a blank silver scroll, pomegranates, and a readable seated figure. A full generated ornamental border may compete with the code-rendered frame and requires device review."
+    },
+    {
+      "key": "major-03-empress",
+      "promptKey": "major-03-empress",
+      "promptTextSha256": "cbd90f0f872845a5ed333f2e736b26871be10bbc95ebae6283b3635562130429",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-03-empress.png",
+      "bundledPath": "tools/card-assets/source/major-03-empress.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1995136,
+      "sha256": "7f5c582d23d5e24ed12efe3b6a93af30f75ec10d54d947b12b0edca2560dc750",
+      "localizedAltText": {
+        "en": "A crowned ruler rests among wheat, roses, and flowing water beneath twelve small stars."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark and clear wheat, roses, water, crown, and central ruler. The exact twelve-star crown count is not confidently readable, and the generated ornamental border requires coded-frame review."
+    },
+    {
+      "key": "major-04-emperor",
+      "promptKey": "major-04-emperor",
+      "promptTextSha256": "2a41de829e103669571ecf2b8c99fba6f81ed677fe98a63bba92cff86eb75b99",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-04-emperor.png",
+      "bundledPath": "tools/card-assets/source/major-04-emperor.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1779391,
+      "sha256": "e2f50bbb758eea774ee9b25107aa19878f361ecde92831065ae88562f92bbd4c",
+      "localizedAltText": {
+        "en": "A steady sovereign sits on a ram-carved stone throne before distant violet mountains."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, a clear sovereign, geometric throne, multiple ram motifs, square mantle, and violet mountains. A strong generated ornamental border may compete with the code-rendered frame and requires device review."
+    },
+    {
+      "key": "major-05-hierophant",
+      "promptKey": "major-05-hierophant",
+      "promptTextSha256": "c0dca62dddefea730065bd630a8460bada5019d39d0ff22187effcf816eed53f",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-05-hierophant.png",
+      "bundledPath": "tools/card-assets/source/major-05-hierophant.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1873272,
+      "sha256": "6a614ba57407948bf1cd80961fc75c08e05f15deeda86174b508d877052aaea6",
+      "localizedAltText": {
+        "en": "An elder teacher welcomes two students beneath a celestial arch beside crossed golden keys."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, a dignified elder teacher, exactly two adult students, crossed keys, and flowering staffs. A strong generated ornamental border may compete with the code-rendered frame and requires device review."
+    },
+    {
       "key": "wands-03",
       "promptKey": "wands-03",
       "promptTextSha256": "fd205db19297d9e43d3db1ea9a1248b27f3aada3a7c95368ca43f048749af7e6",
