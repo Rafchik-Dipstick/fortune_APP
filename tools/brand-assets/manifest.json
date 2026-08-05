@@ -1,9 +1,12 @@
 {
   "schemaVersion": 1,
   "promptTemplateVersion": "phase2-brand-mark-v1-draft",
+  "promptSourcePath": "tools/brand-assets/prompts/phase2-brand-mark.json",
   "assets": [
     {
       "key": "fortuneness-mark",
+      "promptKey": "fortuneness-mark",
+      "promptTextSha256": "42f2e15c13d25362e89323923b20cab606d812b4af8c4bea0754bfdf8024f565",
       "roles": ["APP_ICON_CANDIDATE", "SPLASH_MARK_CANDIDATE"],
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",

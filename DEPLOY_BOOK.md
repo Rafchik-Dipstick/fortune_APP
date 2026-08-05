@@ -310,3 +310,23 @@ git diff --check
 ```
 
 Deployment impact: one locally bundled, unreviewed development brand proof and native asset configuration were added. A new native build is required to see the icon/splash; no signed build, store record, credential, human approval, or production deployment changed.
+
+### 2026-08-05 — Phase 2 prompt provenance and review rubrics
+
+- Added immutable JSON prompt catalogs containing the exact text used for all three tarot proofs and the brand-mark proof.
+- Added prompt source paths, stable prompt keys, and SHA-256 prompt-text checksums to the corresponding manifests.
+- Extended both validators to enforce prompt catalog schema/version alignment, repository-scoped source paths, referenced prompt completeness, unique references, exact prompt checksums, and absence of unreferenced prompt entries.
+- Added a human editorial/safety rubric covering card/orientation/intention fit, possibility language, consequential-decision safety, interpersonal boundaries, emotional safety, copy structure, distinctness, English quality, alt text, and approval evidence.
+- Added the unlocked Phase 2 art-direction draft covering palette, line language, controlled variation, composition targets, proof-specific device questions, rejection conditions, and the style-lock record.
+- Linked the rubrics from the Phase 2 acceptance matrix. Passing automation remains insufficient for `APPROVED` status.
+
+Verification required before commit:
+
+```text
+corepack npm run asset:validate
+corepack npm run brand:validate
+corepack npm run check
+git diff --check
+```
+
+Deployment impact: validation and documentation only. No image was regenerated, no review status was promoted, and no deployment, credential, build, or production state changed.

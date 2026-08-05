@@ -57,6 +57,8 @@ Run every page/state in English and the debug-only length-expanded pseudo-locale
 
 No item can be marked approved by automated generation or by the coding agent.
 
+Review against `docs/phase2-editorial-safety-rubric.md` and `docs/phase2-art-direction-draft.md`; exact generated prompts are checksum-bound through the card and brand manifests.
+
 | Item                                    | Mechanical status                                                        | Required human decision                                                   | Status           |
 | --------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------- | ---------------- |
 | The Fool illustration                   | Generated, manifested, checksum-valid, visually inspected in source form | Review coded frame at compact/regular sizes; approve imagery and alt text | READY FOR REVIEW |

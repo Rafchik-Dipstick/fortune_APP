@@ -36,17 +36,59 @@ assert(
   typeof manifest.promptTemplateVersion === 'string' && manifest.promptTemplateVersion.length > 0,
   'Brand manifest needs a promptTemplateVersion.',
 );
+assert(
+  typeof manifest.promptSourcePath === 'string' && manifest.promptSourcePath.length > 0,
+  'Brand manifest needs a promptSourcePath.',
+);
 assert(Array.isArray(manifest.assets) && manifest.assets.length > 0, 'Brand assets are required.');
+
+const normalizedPromptSourcePath = normalizeRepositoryPath(manifest.promptSourcePath);
+assert(
+  !normalizedPromptSourcePath.startsWith('../') && !normalizedPromptSourcePath.startsWith('/'),
+  'Brand promptSourcePath must stay inside the repository.',
+);
+const promptCatalog = JSON.parse(
+  await readFile(resolve(repositoryRoot, manifest.promptSourcePath), 'utf8'),
+);
+assert(promptCatalog.schemaVersion === 1, 'Brand prompt catalog schemaVersion must be 1.');
+assert(
+  promptCatalog.promptTemplateVersion === manifest.promptTemplateVersion,
+  'Brand prompt catalog version must match the brand manifest.',
+);
+assert(
+  promptCatalog.prompts && typeof promptCatalog.prompts === 'object',
+  'Brand prompt catalog prompts are required.',
+);
 
 const keys = new Set();
 const checksums = new Set();
 const manifestedPaths = new Set();
+const referencedPrompts = new Set();
 
 for (const [index, asset] of manifest.assets.entries()) {
   const prefix = `assets[${String(index)}]`;
   assert(typeof asset.key === 'string' && asset.key.length > 0, `${prefix}.key is required.`);
   assert(!keys.has(asset.key), `Duplicate brand asset key: ${asset.key}.`);
   keys.add(asset.key);
+  assert(
+    typeof asset.promptKey === 'string' && asset.promptKey.length > 0,
+    `${prefix}.promptKey is required.`,
+  );
+  assert(
+    !referencedPrompts.has(asset.promptKey),
+    `Duplicate brand prompt reference: ${asset.promptKey}.`,
+  );
+  referencedPrompts.add(asset.promptKey);
+  const prompt = promptCatalog.prompts[asset.promptKey];
+  assert(
+    typeof prompt === 'string' && prompt.length > 0,
+    `${prefix}.promptKey is missing from the prompt catalog.`,
+  );
+  const promptChecksum = createHash('sha256').update(prompt, 'utf8').digest('hex');
+  assert(
+    promptChecksum === asset.promptTextSha256,
+    `${prefix}.promptTextSha256 does not match its prompt.`,
+  );
   assert(Array.isArray(asset.roles) && asset.roles.length > 0, `${prefix}.roles are required.`);
   assert(new Set(asset.roles).size === asset.roles.length, `${prefix}.roles must be unique.`);
   assert(
@@ -101,5 +143,10 @@ for (const generatedPath of generatedFiles) {
     `Generated brand PNG is unmanifested: ${generatedPath}.`,
   );
 }
+
+assert(
+  Object.keys(promptCatalog.prompts).length === referencedPrompts.size,
+  'Brand prompt catalog contains an unreferenced prompt.',
+);
 
 process.stdout.write(`Brand asset manifest is valid (${String(keys.size)} proof recorded).\n`);

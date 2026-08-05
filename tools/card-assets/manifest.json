@@ -1,9 +1,12 @@
 {
   "schemaVersion": 1,
   "promptTemplateVersion": "phase2-nocturnal-celestial-v1-draft",
+  "promptSourcePath": "tools/card-assets/prompts/phase2-proofs.json",
   "cards": [
     {
       "key": "major-00-fool",
+      "promptKey": "major-00-fool",
+      "promptTextSha256": "c6d2bdd21b67f99c7b30b57d2996b79d673735f1b1bc8359d2fba85a3bb7fb3c",
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-00-fool.png",
@@ -21,6 +24,8 @@
     },
     {
       "key": "cups-queen",
+      "promptKey": "cups-queen",
+      "promptTextSha256": "6d31308fbfd8394055476094167c52af5be5d026a8303ddacbe8b2af7092427a",
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/cups-queen.png",
@@ -38,6 +43,8 @@
     },
     {
       "key": "wands-03",
+      "promptKey": "wands-03",
+      "promptTextSha256": "fd205db19297d9e43d3db1ea9a1248b27f3aada3a7c95368ca43f048749af7e6",
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-03.png",
