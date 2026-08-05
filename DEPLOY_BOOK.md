@@ -155,3 +155,19 @@ git diff --check
 Result: clean install audited 735 packages with 0 vulnerabilities and no unreviewed install scripts; all formatting/lint/config/type/build gates and 10 tests passed; Expo Doctor passed 20/20 checks; Metro exported the 1,549-module iOS bundle; introspection confirmed four orientations on iPhone and iPad, `UIRequiresFullScreen=false`, deployment target 16.4, and no `aps-environment` entitlement.
 
 Deployment impact: no EAS project, credentials, remote bundle ID, or API URL was created. The JavaScript iOS bundle can be exported locally, but a signed development IPA and on-device acceptance remain open Phase 0/1 evidence.
+
+### 2026-08-05 — Phase 0 trust-boundary and abuse review
+
+- Added the versioned identity/commerce threat model covering protected assets, seven trust boundaries, global invariants, and 20 abuse/failure cases.
+- Assigned every critical/high control to an implementation phase and named the evidence required to keep the design finding closed.
+- Recorded that no critical/high design gap remains, while every implementation proof remains open and the physical Game Center/StoreKit/reviewer-access gates still block their owning phases.
+- Added explicit review triggers for identity, commerce, allowance, privacy/deletion, platform, and lock/idempotency policy changes.
+
+Verification:
+
+```text
+corepack npm run format:check
+git diff --check
+```
+
+Deployment impact: documentation only. No external account, credential, environment, service, database, or mobile binary changed.
