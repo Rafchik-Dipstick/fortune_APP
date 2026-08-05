@@ -662,3 +662,21 @@ git diff --check
 ```
 
 Deployment impact: 14 local Cups bundle candidates and manifest metadata only. No source checksum, runtime import, API, credential, entitlement, human approval, or deployed state changed.
+
+### 2026-08-06 — Swords crop normalization
+
+- Normalized all 14 Swords sources sequentially to exact 1024 × 1536 RGB PNG bundle candidates without modifying archival images.
+- Reviewed every normalized Swords card in the labeled contact sheet and inspected all edge-band detections at source/full resolution where classification was ambiguous.
+- Removed residual 1–10 px exterior frame bands from Ace, Three, Four, Seven, Eight, Nine, and King after the initial pass.
+- Ten of Swords keeps its dark lower foreground: a full-resolution review confirmed that the area contains ground shading and sword tips, so it is illustration content rather than a removable border.
+- All 14 normalized Swords files validate below 4 MB with unique checksums and source-bound crop records; review status remains `GENERATED_UNREVIEWED`.
+
+Verification required before commit:
+
+```text
+corepack npm run asset:validate
+corepack npm run format:check
+git diff --check
+```
+
+Deployment impact: 14 local Swords bundle candidates and manifest metadata only. No source checksum, runtime import, API, credential, entitlement, human approval, or deployed state changed.
