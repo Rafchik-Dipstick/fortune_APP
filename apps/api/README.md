@@ -1,6 +1,15 @@
 # Fortuneness API
 
-This workspace owns the Node.js API that will run on Railway. Phase 1 establishes its compile/test boundary and safe environment template. Express startup, request middleware, `/health`, and Railway deployment arrive in Phase 3; Prisma schema and migrations arrive in Phase 4.
+This workspace owns the Node.js API that will run on Railway. Phase 3 provides validated startup, request middleware, PostgreSQL-backed `/health`, graceful shutdown, and configuration-as-code. Prisma schema and migrations arrive in Phase 4.
+
+Build and start locally from the repository root after providing the variables in `.env.example` through the process environment:
+
+```text
+corepack npm run build --workspace @fortuneness/api
+corepack npm run start --workspace @fortuneness/api
+```
+
+The process listens on Railway's injected `PORT`, reports ready only after `SELECT 1` succeeds, stops reporting ready as soon as shutdown begins, and closes HTTP/database resources on `SIGTERM` or `SIGINT`. Railway must be configured to read `/apps/api/railway.json`; no service has been linked or deployed yet.
 
 Planned source boundaries follow the canonical specification:
 

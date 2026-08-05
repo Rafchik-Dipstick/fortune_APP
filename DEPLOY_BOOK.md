@@ -786,3 +786,25 @@ git diff --check
 ```
 
 Deployment impact: local HTTP policy and request/error handling only. No public route, database connection, credential, Railway configuration, or deployed service changed.
+
+### 2026-08-06 — Phase 3 health, startup, and graceful shutdown
+
+- Added a bounded PostgreSQL pool used by the Phase 3 runtime and a `SELECT 1` readiness probe; database connection details and failures never enter the health response.
+- Added `GET /health` with explicit process/database states, HTTP 200 only when both are ready, HTTP 503 while the database is unavailable or the process is draining, and exemption from the public request-rate budget.
+- Added a runtime composer and compiled process entry that consumes validated environment values, binds to Railway's injected port on all interfaces, and does not log secret-bearing startup values.
+- Added idempotent graceful shutdown for `SIGTERM` and `SIGINT`: readiness fails first, the listener drains, PostgreSQL closes, and a bounded timeout force-closes remaining connections with a failed exit status.
+- Added deterministic API build/start commands and Railway configuration-as-code using the current official Railpack, health-check, restart, overlap, and draining keys; the checked-in JSON passes Railway's live JSON schema. External service linkage remains an owner action.
+- Added focused readiness and shutdown coverage, including safe database failure, drain state, health rate-limit exclusion, duplicate shutdown signals, and dependency cleanup.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: the API now has a production-shaped local startup and checked-in Railway service configuration, but nothing was deployed. Railway projects, PostgreSQL services, variables, proxy-hop evidence, and the custom config path remain external Phase 0/3 gates.

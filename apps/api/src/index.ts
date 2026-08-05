@@ -4,7 +4,15 @@ export {
   parseApiEnvironment,
   type ApiEnvironment,
 } from './config/environment.js';
+export { ApiReadiness, type ApiReadinessSnapshot } from './health/readiness.js';
+export { createApiRuntime, type ApiRuntime } from './runtime.js';
 export { startApiServer, type ApiServerOptions } from './server.js';
+export {
+  createGracefulShutdown,
+  registerShutdownSignals,
+  type GracefulShutdownOptions,
+  type ShutdownApi,
+} from './shutdown.js';
 
 export const apiWorkspace = {
   healthPath: '/health',

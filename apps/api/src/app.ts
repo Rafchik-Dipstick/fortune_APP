@@ -4,6 +4,8 @@ import { rateLimit } from 'express-rate-limit';
 import helmet from 'helmet';
 
 import { type ApiEnvironment } from './config/environment.js';
+import { type ApiReadiness } from './health/readiness.js';
+import { registerHealthRoute } from './health/route.js';
 import { type ApiLogger, createApiLogger } from './logging/logger.js';
 import {
   ApiHttpError,
@@ -23,6 +25,7 @@ export interface CreateApiAppOptions {
   environment: ApiEnvironment;
   logger?: ApiLogger;
   rateLimit?: ApiRateLimitOptions;
+  readiness: ApiReadiness;
   requestIdFactory?: RequestIdFactory;
 }
 
@@ -81,6 +84,7 @@ export const createApiApp = (options: CreateApiAppOptions): Express => {
       },
       legacyHeaders: false,
       limit: rateLimitOptions.max,
+      skip: (request) => request.path === '/health',
       standardHeaders: 'draft-8',
       windowMs: rateLimitOptions.windowMs,
     }),
@@ -93,6 +97,7 @@ export const createApiApp = (options: CreateApiAppOptions): Express => {
     }),
   );
 
+  registerHealthRoute(app, options.readiness);
   options.configureRoutes?.(app);
   app.use(notFoundHandler);
   app.use(createErrorHandler(logger));

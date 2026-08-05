@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 
 import { createApiApp } from './app.js';
 import { type ApiEnvironment } from './config/environment.js';
+import { ApiReadiness } from './health/readiness.js';
 
 const testEnvironment: ApiEnvironment = {
   corsOrigins: ['https://preview.fortuneness.app'],
@@ -17,19 +18,28 @@ const testEnvironment: ApiEnvironment = {
 };
 
 const silentLogger = pino({ enabled: false });
+const readyReadiness = new ApiReadiness(async () => Promise.resolve());
+
+const createTestApp = (
+  options: Omit<Parameters<typeof createApiApp>[0], 'environment' | 'logger' | 'readiness'> = {},
+) =>
+  createApiApp({
+    ...options,
+    environment: testEnvironment,
+    logger: silentLogger,
+    readiness: readyReadiness,
+  });
 
 describe('createApiApp', () => {
   it('creates isolated applications without opening a listener', async () => {
-    const firstApp = createApiApp({
-      environment: testEnvironment,
-      logger: silentLogger,
+    const firstApp = createTestApp({
       configureRoutes: (app) => {
         app.get('/factory-probe', (_request, response) => {
           response.status(204).end();
         });
       },
     });
-    const secondApp = createApiApp({ environment: testEnvironment, logger: silentLogger });
+    const secondApp = createTestApp();
 
     expect(firstApp).not.toBe(secondApp);
     await request(firstApp).get('/factory-probe').expect(204);
@@ -37,7 +47,7 @@ describe('createApiApp', () => {
   });
 
   it('sets security headers and a server-owned request ID', async () => {
-    const app = createApiApp({ environment: testEnvironment, logger: silentLogger });
+    const app = createTestApp();
     const response = await request(app)
       .get('/missing')
       .set('X-Request-ID', 'not-a-uuid')
@@ -53,7 +63,7 @@ describe('createApiApp', () => {
   });
 
   it('keeps a valid caller request ID for end-to-end correlation', async () => {
-    const app = createApiApp({ environment: testEnvironment, logger: silentLogger });
+    const app = createTestApp();
     const requestId = randomUUID();
     const response = await request(app).get('/missing').set('X-Request-ID', requestId).expect(404);
 
@@ -62,7 +72,7 @@ describe('createApiApp', () => {
   });
 
   it('allows only configured browser origins', async () => {
-    const app = createApiApp({ environment: testEnvironment, logger: silentLogger });
+    const app = createTestApp();
     const allowedResponse = await request(app)
       .options('/missing')
       .set('Origin', 'https://preview.fortuneness.app')
@@ -83,7 +93,7 @@ describe('createApiApp', () => {
   });
 
   it('normalizes malformed and oversized JSON errors', async () => {
-    const app = createApiApp({ environment: testEnvironment, logger: silentLogger });
+    const app = createTestApp();
     const malformedResponse = await request(app)
       .post('/missing')
       .set('Content-Type', 'application/json')
@@ -100,9 +110,7 @@ describe('createApiApp', () => {
   });
 
   it('returns the normalized envelope when the global rate limit is exceeded', async () => {
-    const app = createApiApp({
-      environment: testEnvironment,
-      logger: silentLogger,
+    const app = createTestApp({
       rateLimit: { max: 1, windowMs: 60_000 },
     });
 
@@ -115,9 +123,7 @@ describe('createApiApp', () => {
   });
 
   it('hides unexpected errors behind a safe response', async () => {
-    const app = createApiApp({
-      environment: testEnvironment,
-      logger: silentLogger,
+    const app = createTestApp({
       configureRoutes: (configuredApp) => {
         configuredApp.get('/explode', () => {
           throw new Error('database password must never reach the client');
