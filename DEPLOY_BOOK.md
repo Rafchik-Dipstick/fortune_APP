@@ -1,6 +1,6 @@
 # Fortuneness Deploy Book
 
-Last updated: 2026-08-05
+Last updated: 2026-08-06
 
 This is the chronological build, verification, and deployment record for Fortuneness. It is maintained in the same commit as every logical implementation change. Entries are append-only apart from correcting inaccurate instructions, and secrets must never be recorded here.
 
@@ -13,7 +13,8 @@ The canonical product and technical requirements live in [`FORTUNENESS_SPEC.md`]
 | Phase 0 — owner accounts, naming, and risk spikes | Blocked on owner/external actions | Apple, Expo/EAS, Railway, Google ADC, editorial ownership, and reviewer-access decisions remain open.                                |
 | Phase 1 — repository and quality scaffold         | In progress                       | JavaScript/API/mobile scaffold is present; native modules, entitlement evidence, EAS linkage, and signed device builds remain gated. |
 | Phase 2 — design system and adaptive slice        | In progress                       | Coded fixtures are underway; three-card art/content and real-device visual acceptance remain open.                                   |
-| Phases 3–17                                       | Not started                       | Must follow the acceptance order in the specification.                                                                               |
+| Phase 3 — API skeleton and shared contracts       | In progress                       | Express application construction is isolated from process-owned listener startup; environment and HTTP policy follow sequentially.   |
+| Phases 4–17                                       | Not started                       | Must follow the acceptance order in the specification.                                                                               |
 
 ## Phase 0 deployment blockers
 
@@ -720,3 +721,24 @@ git status --short
 ```
 
 Deployment impact: the development Expo proof now renders normalized art for its three fixture cards, and the full normalized deck is locally bundle-ready. No production deployment, API, credential, entitlement, source checksum, or human approval changed.
+
+### 2026-08-06 — Phase 3 Express application boundary
+
+- Added an Express 5 application factory that constructs a fresh, side-effect-free app without opening a network listener.
+- Added a separate process-owned listener function so tests and future route composition do not import startup side effects.
+- Added Supertest coverage proving factory instances are isolated and requestable in memory.
+- Exactly pinned the Express, Supertest, and TypeScript declaration dependencies in the API workspace and lockfile.
+- Kept environment parsing, middleware policy, routes, and deployment startup out of this boundary; they land as subsequent Phase 3 commits.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: local API construction and dependency installation only. No port is opened by importing the package, no route or credential is added, and no Railway service or database is changed.
