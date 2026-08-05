@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+
+# Environment files — examples are safe to commit
+.env
+.env.*
+!.env.example
+
+# Build output and caches
+dist/
+build/
+coverage/
+.expo/
+.expo-shared/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Expo / EAS credentials and local native output
+*.jks
+*.keystore
+*.mobileprovision
+*.p12
+eas-build-*.log
+apps/mobile/ios/
+
+# Local databases, dumps, and scratch data
+*.db
+*.db-journal
+*.dump
+*.sql.bak
+scratch/
+tmp/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+
+# Prisma-local environment
+**/prisma/.env
