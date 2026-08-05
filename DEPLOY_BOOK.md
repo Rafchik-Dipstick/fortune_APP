@@ -330,3 +330,24 @@ git diff --check
 ```
 
 Deployment impact: validation and documentation only. No image was regenerated, no review status was promoted, and no deployment, credential, build, or production state changed.
+
+### 2026-08-05 — Phase 2 development art-review gallery
+
+- Added a development-only Art Review route reachable from development Settings and redirected away in production builds.
+- Displays the brand-mark candidate at 32, 60, and 120-point review sizes with an explicit warning that rounded previews do not replace Apple’s real icon masks.
+- Displays every proof in the actual code-rendered frame as full upright and compact reversed cards, with card key, generated/unreviewed state, and alternative text alongside the crop.
+- Added reviewer prompts for subject legibility, reversal behavior, frame competition, alt-text accuracy, contrast, representation, visual density, and safe margins.
+- Added pure review-width rules and tests proving two compact cards fit a 320-point viewport and regular review sizes cap at 148/340 points.
+- Updated the Phase 2 evidence matrix to include the gallery and the increased automated-test count. The gallery prepares device review but does not record or imply approval.
+
+Verification required before commit:
+
+```text
+corepack npm run check
+cd apps/mobile
+corepack npm exec expo-doctor@latest
+cd ../..
+git diff --check
+```
+
+Deployment impact: development UI and tests only. No production navigation, asset status, approval, server interaction, credential, native capability, or deployed state changed.

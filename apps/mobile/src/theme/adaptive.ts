@@ -1,8 +1,18 @@
 import { useWindowDimensions } from 'react-native';
 
-import { classifyWindow, getHorizontalGutter, getOracleCardWidth } from './adaptive-layout';
+import {
+  classifyWindow,
+  getArtReviewCardWidths,
+  getHorizontalGutter,
+  getOracleCardWidth,
+} from './adaptive-layout';
 
-export { classifyWindow, getHorizontalGutter, getOracleCardWidth } from './adaptive-layout';
+export {
+  classifyWindow,
+  getArtReviewCardWidths,
+  getHorizontalGutter,
+  getOracleCardWidth,
+} from './adaptive-layout';
 
 export function useAdaptiveLayout() {
   const { fontScale, height, width } = useWindowDimensions();
@@ -15,6 +25,7 @@ export function useAdaptiveLayout() {
     windowClass,
     gutter: getHorizontalGutter(width),
     oracleCardWidth: getOracleCardWidth(width),
+    artReviewCardWidths: getArtReviewCardWidths(width),
     isRegular: windowClass === 'regular',
   } as const;
 }

@@ -27,3 +27,13 @@ export function getOracleCardWidth(width: number): number {
   const availableWidth = Math.max(width - getHorizontalGutter(width) * 2, 0);
   return Math.min(availableWidth * 0.84, layout.cardMax);
 }
+
+export function getArtReviewCardWidths(width: number) {
+  const availableWidth = Math.max(width - getHorizontalGutter(width) * 2, 0);
+  const compactWidth = Math.min(Math.max((availableWidth - spacing.sm) / 2, 96), 148);
+
+  return {
+    compact: compactWidth,
+    full: getOracleCardWidth(width),
+  } as const;
+}

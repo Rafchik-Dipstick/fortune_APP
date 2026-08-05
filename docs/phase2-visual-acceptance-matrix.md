@@ -17,12 +17,13 @@ This record prevents local JavaScript checks from being mistaken for iPhone/iPad
 | 320/599/600/899/900/1024-point layout classifications       | Pass                               | `apps/mobile/src/theme/adaptive.test.ts`                 |
 | Default reveal duration remains 600–750 ms                  | Pass at 675 ms                     | `apps/mobile/src/motion/reveal-motion.test.ts`           |
 | Reduce Motion reveal remains 150–250 ms with no perspective | Pass at 200 ms                     | `apps/mobile/src/motion/reveal-motion.test.ts`           |
-| Strict checks, 18 tests, content and asset validation       | Pass                               | `corepack npm run check`                                 |
+| Strict checks, 20 tests, content and asset validation       | Pass                               | `corepack npm run check`                                 |
 | Expo dependency/configuration health                        | Pass, 20/20                        | `cd apps/mobile && corepack npm exec expo-doctor@latest` |
 | iOS JavaScript export including local art                   | Pass                               | `corepack npm run build --workspace @fortuneness/mobile` |
 | Three-card content matrix                                   | Pass, 24/24 ready for review       | `corepack npm run content:validate`                      |
 | ADC art manifest                                            | Complete proof set, 3/3 unreviewed | `corepack npm run asset:validate`                        |
 | Brand mark manifest                                         | Pass, one unreviewed square proof  | `corepack npm run brand:validate`                        |
+| Review-gallery compact/full sizing                          | Pass at 320 and 1024 points        | `apps/mobile/src/theme/adaptive.test.ts`                 |
 
 Automated evidence does not close any physical-device row below.
 
@@ -30,15 +31,15 @@ Automated evidence does not close any physical-device row below.
 
 Run every page/state in English and the debug-only length-expanded pseudo-locale. Essential content must remain readable without horizontal scrolling, clipping, overlap, unsafe-area intrusion, or fixed-height truncation.
 
-| ID     | Width/device class           | Orientation/window              | Required states                                                          | Status  |
-| ------ | ---------------------------- | ------------------------------- | ------------------------------------------------------------------------ | ------- |
-| P2-V01 | 320 pt compact-width fixture | Portrait                        | Oracle ready/loading/error; Reveal; Collection; Shop and sheet; Settings | NOT RUN |
-| P2-V02 | Small supported iPhone       | Portrait and landscape          | Same states; sensor housing and home-indicator safe areas                | NOT RUN |
-| P2-V03 | Large modern iPhone          | Portrait and landscape          | Same states; capped card width and readable line lengths                 | NOT RUN |
-| P2-V04 | iPad                         | Portrait                        | Same states; regular two-column Oracle and centered sheet                | NOT RUN |
-| P2-V05 | iPad                         | Landscape                       | Same states; no excessive stretch or unsafe edges                        | NOT RUN |
-| P2-V06 | iPad Split View              | Compact and intermediate widths | Live reflow across 600/900-point boundaries; sheet fallback              | NOT RUN |
-| P2-V07 | iPad Stage Manager           | Resizable window                | Repeated resizing without stale columns, overlap, or lost controls       | NOT RUN |
+| ID     | Width/device class           | Orientation/window              | Required states                                                     | Status  |
+| ------ | ---------------------------- | ------------------------------- | ------------------------------------------------------------------- | ------- |
+| P2-V01 | 320 pt compact-width fixture | Portrait                        | Oracle states; Reveal; Collection; Shop/sheet; Settings; art review | NOT RUN |
+| P2-V02 | Small supported iPhone       | Portrait and landscape          | Same states; sensor housing and home-indicator safe areas           | NOT RUN |
+| P2-V03 | Large modern iPhone          | Portrait and landscape          | Same states; capped card width and readable line lengths            | NOT RUN |
+| P2-V04 | iPad                         | Portrait                        | Same states; regular two-column Oracle and centered sheet           | NOT RUN |
+| P2-V05 | iPad                         | Landscape                       | Same states; no excessive stretch or unsafe edges                   | NOT RUN |
+| P2-V06 | iPad Split View              | Compact and intermediate widths | Live reflow across 600/900-point boundaries; sheet fallback         | NOT RUN |
+| P2-V07 | iPad Stage Manager           | Resizable window                | Repeated resizing without stale columns, overlap, or lost controls  | NOT RUN |
 
 ## Accessibility and motion matrix
 

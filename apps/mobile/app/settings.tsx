@@ -124,6 +124,25 @@ export default function SettingsScreen() {
             financial, or mental-health advice.
           </AppText>
         </Surface>
+
+        {__DEV__ ? (
+          <Surface>
+            <AppText color="gold" variant="caption">
+              Phase 2 review tools
+            </AppText>
+            <AppText color="textMuted">
+              Inspect every generated card in full upright and compact reversed frames, plus the
+              brand mark at small icon sizes.
+            </AppText>
+            <AppButton
+              label="Open art review"
+              onPress={() => {
+                router.push('/art-review');
+              }}
+              variant="secondary"
+            />
+          </Surface>
+        ) : null}
       </View>
     </Screen>
   );

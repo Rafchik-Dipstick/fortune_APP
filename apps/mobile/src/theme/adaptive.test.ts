@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { classifyWindow, getHorizontalGutter, getOracleCardWidth } from './adaptive-layout';
+import {
+  classifyWindow,
+  getArtReviewCardWidths,
+  getHorizontalGutter,
+  getOracleCardWidth,
+} from './adaptive-layout';
 
 describe('adaptive layout rules', () => {
   it('uses the specification breakpoints', () => {
@@ -19,5 +24,18 @@ describe('adaptive layout rules', () => {
   it('increases gutters with the available window class', () => {
     expect(getHorizontalGutter(320)).toBeLessThan(getHorizontalGutter(700));
     expect(getHorizontalGutter(700)).toBeLessThan(getHorizontalGutter(1024));
+  });
+
+  it('keeps two compact art-review cards inside a 320 point viewport', () => {
+    const viewport = 320;
+    const availableWidth = viewport - getHorizontalGutter(viewport) * 2;
+    const widths = getArtReviewCardWidths(viewport);
+
+    expect(widths.compact * 2 + 12).toBeLessThanOrEqual(availableWidth);
+    expect(widths.full).toBeLessThanOrEqual(availableWidth);
+  });
+
+  it('caps regular art-review cards at their intended sizes', () => {
+    expect(getArtReviewCardWidths(1024)).toEqual({ compact: 148, full: 340 });
   });
 });
