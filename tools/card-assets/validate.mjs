@@ -7,6 +7,9 @@ const toolsDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(toolsDirectory, '..', '..');
 const manifestUrl = new URL('./manifest.json', import.meta.url);
 const manifest = JSON.parse(await readFile(manifestUrl, 'utf8'));
+const cropPlan = JSON.parse(
+  await readFile(new URL('./crop-plan.v1.json', import.meta.url), 'utf8'),
+);
 
 function assert(condition, message) {
   if (!condition) {
@@ -52,6 +55,20 @@ assert(
   manifest.cards.length <= manifest.expectedCardCount,
   'Asset manifest cannot exceed expectedCardCount.',
 );
+assert(cropPlan.schemaVersion === 1, 'Card crop plan schemaVersion must be 1.');
+assert(
+  typeof cropPlan.normalizationVersion === 'string' && cropPlan.normalizationVersion.length > 0,
+  'Card crop plan needs a normalizationVersion.',
+);
+assert(
+  cropPlan.outputWidth * 3 === cropPlan.outputHeight * 2,
+  'Card crop plan output must use an exact 2:3 ratio.',
+);
+assert(
+  JSON.stringify(cropPlan.cropOrder) === JSON.stringify(['left', 'top', 'right', 'bottom']),
+  'Card crop plan order must remain left, top, right, bottom.',
+);
+assert(cropPlan.cards && typeof cropPlan.cards === 'object', 'Card crop plan cards are required.');
 
 const normalizedPromptSourcePath = normalizeRepositoryPath(manifest.promptSourcePath);
 assert(
@@ -93,13 +110,32 @@ for (const key of promptCatalog.cardOrder) {
     `Card prompt catalog is missing ${key}.`,
   );
 }
+assert(
+  JSON.stringify(Object.keys(cropPlan.cards)) === JSON.stringify(promptCatalog.cardOrder),
+  'Card crop plan must contain all 78 cards in canonical order.',
+);
+for (const [key, cropEntry] of Object.entries(cropPlan.cards)) {
+  assert(
+    Array.isArray(cropEntry.crop) &&
+      cropEntry.crop.length === 4 &&
+      cropEntry.crop.every((value) => Number.isInteger(value) && value >= 0),
+    `Card crop plan ${key} needs four nonnegative integer margins.`,
+  );
+  assert(
+    ['NONE', 'LIGHT_GUTTER', 'DARK_GUTTER', 'MIXED_GUTTER'].includes(cropEntry.edgeTreatment),
+    `Card crop plan ${key} has an invalid edge treatment.`,
+  );
+}
 
 const cardKeys = new Set();
 const checksums = new Set();
+const normalizedChecksums = new Set();
 const manifestedPaths = new Set();
+const normalizedPaths = new Set();
 const referencedPrompts = new Set();
 const canonicalCardIndex = new Map(promptCatalog.cardOrder.map((key, index) => [key, index]));
 let previousCanonicalIndex = -1;
+let normalizedCardCount = 0;
 
 for (const [index, card] of manifest.cards.entries()) {
   const prefix = `cards[${String(index)}]`;
@@ -168,6 +204,100 @@ for (const [index, card] of manifest.cards.entries()) {
     `${normalizedSourcePath} must remain within 0.01 of the 2:3 card ratio.`,
   );
 
+  const cropEntry = cropPlan.cards[card.key];
+  const expectedNormalizedPath = `tools/card-assets/normalized/${card.key}.png`;
+  if (card.normalization) {
+    normalizedCardCount += 1;
+    assert(
+      manifest.normalizationVersion === cropPlan.normalizationVersion,
+      'Asset manifest normalizationVersion must match the crop plan.',
+    );
+    assert(
+      card.normalization.version === cropPlan.normalizationVersion,
+      `${prefix}.normalization.version must match the crop plan.`,
+    );
+    assert(
+      card.normalization.sourceSha256 === card.sha256,
+      `${prefix}.normalization.sourceSha256 must match the archival source.`,
+    );
+    const expectedCrop = Object.fromEntries(
+      cropPlan.cropOrder.map((side, cropIndex) => [side, cropEntry.crop[cropIndex]]),
+    );
+    assert(
+      JSON.stringify(card.normalization.crop) === JSON.stringify(expectedCrop),
+      `${prefix}.normalization.crop must match the reviewed crop plan.`,
+    );
+    assert(
+      card.normalization.edgeTreatment === cropEntry.edgeTreatment,
+      `${prefix}.normalization.edgeTreatment must match the crop plan.`,
+    );
+    assert(
+      normalizeRepositoryPath(card.normalization.outputPath) === expectedNormalizedPath,
+      `${prefix}.normalization.outputPath must use its canonical normalized path.`,
+    );
+    assert(
+      normalizeRepositoryPath(card.bundledPath) === expectedNormalizedPath,
+      `${prefix}.bundledPath must use its normalized output.`,
+    );
+
+    const absoluteNormalizedPath = resolve(repositoryRoot, card.normalization.outputPath);
+    const normalizedBuffer = await readFile(absoluteNormalizedPath);
+    const normalizedStat = await stat(absoluteNormalizedPath);
+    const normalizedDimensions = readPngDimensions(normalizedBuffer, expectedNormalizedPath);
+    const normalizedChecksum = createHash('sha256').update(normalizedBuffer).digest('hex');
+    assert(
+      normalizedDimensions.width === cropPlan.outputWidth &&
+        card.normalization.width === cropPlan.outputWidth,
+      `${prefix}.normalization.width must match the crop plan and PNG.`,
+    );
+    assert(
+      normalizedDimensions.height === cropPlan.outputHeight &&
+        card.normalization.height === cropPlan.outputHeight,
+      `${prefix}.normalization.height must match the crop plan and PNG.`,
+    );
+    assert(
+      normalizedDimensions.colorType === 2 && card.normalization.colorMode === 'RGB',
+      `${expectedNormalizedPath} must use RGB PNG encoding.`,
+    );
+    assert(
+      normalizedStat.size === card.normalization.bytes,
+      `${prefix}.normalization.bytes does not match the PNG.`,
+    );
+    assert(
+      card.normalization.bytes <= 4_000_000,
+      `${expectedNormalizedPath} exceeds the 4 MB normalized limit.`,
+    );
+    assert(
+      normalizedChecksum === card.normalization.sha256,
+      `${prefix}.normalization.sha256 does not match the PNG.`,
+    );
+    assert(
+      !normalizedChecksums.has(normalizedChecksum),
+      `Duplicate normalized asset checksum: ${normalizedChecksum}.`,
+    );
+    normalizedChecksums.add(normalizedChecksum);
+    normalizedPaths.add(expectedNormalizedPath);
+
+    for (const classification of ['light', 'dark']) {
+      const edgeBands = card.normalization.edgeBands?.[classification];
+      assert(
+        edgeBands && typeof edgeBands === 'object',
+        `${prefix} needs ${classification} edge data.`,
+      );
+      for (const side of cropPlan.cropOrder) {
+        assert(
+          Number.isInteger(edgeBands[side]) && edgeBands[side] >= 0,
+          `${prefix} ${classification} ${side} edge depth must be a nonnegative integer.`,
+        );
+      }
+    }
+  } else {
+    assert(
+      normalizeRepositoryPath(card.bundledPath) === normalizedSourcePath,
+      `${prefix}.bundledPath must remain on its source until normalization exists.`,
+    );
+  }
+
   assert(
     card.localizedAltText && typeof card.localizedAltText.en === 'string',
     `${prefix}.localizedAltText.en is required.`,
@@ -194,11 +324,35 @@ for (const generatedPath of generatedFiles) {
   );
 }
 
+const normalizedDirectory = resolve(toolsDirectory, 'normalized');
+let normalizedFiles = [];
+try {
+  normalizedFiles = (await readdir(normalizedDirectory, { withFileTypes: true }))
+    .filter((entry) => entry.isFile() && entry.name.toLocaleLowerCase('en').endsWith('.png'))
+    .map((entry) =>
+      normalizeRepositoryPath(relative(repositoryRoot, resolve(normalizedDirectory, entry.name))),
+    );
+} catch (error) {
+  if (error.code !== 'ENOENT') {
+    throw error;
+  }
+}
+for (const normalizedPath of normalizedFiles) {
+  assert(
+    normalizedPaths.has(normalizedPath),
+    `Normalized PNG lacks a manifest entry: ${normalizedPath}.`,
+  );
+}
+assert(
+  normalizedFiles.length === normalizedCardCount,
+  'Normalized PNG count must match normalized manifest entries.',
+);
+
 const generationStatus =
   cardKeys.size === manifest.expectedCardCount
     ? 'full deck complete'
     : 'remaining prompts are planned';
 
 process.stdout.write(
-  `Card asset manifest is valid (${String(cardKeys.size)}/${String(manifest.expectedCardCount)} full-deck sources generated; ${generationStatus}).\n`,
+  `Card asset manifest is valid (${String(cardKeys.size)}/${String(manifest.expectedCardCount)} full-deck sources generated; ${String(normalizedCardCount)}/${String(manifest.expectedCardCount)} normalized; ${generationStatus}).\n`,
 );

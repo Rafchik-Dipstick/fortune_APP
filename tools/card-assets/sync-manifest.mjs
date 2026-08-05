@@ -60,6 +60,9 @@ for (const deckCard of fullDeckCards) {
   const metadata = readPngMetadata(buffer, sourceOutputPath);
   const previous = previousByKey.get(deckCard.key);
   const prompt = promptCatalog.prompts[deckCard.key];
+  const sourceSha256 = createHash('sha256').update(buffer).digest('hex');
+  const normalization =
+    previous?.normalization?.sourceSha256 === sourceSha256 ? previous.normalization : undefined;
 
   cards.push({
     key: deckCard.key,
@@ -68,17 +71,18 @@ for (const deckCard of fullDeckCards) {
     provider: 'google-vertex-adc',
     model: 'gemini-3.1-flash-image',
     sourceOutputPath,
-    bundledPath: sourceOutputPath,
+    bundledPath: normalization?.outputPath ?? sourceOutputPath,
     width: metadata.width,
     height: metadata.height,
     colorMode: metadata.colorMode,
     bytes: fileStat.size,
-    sha256: createHash('sha256').update(buffer).digest('hex'),
+    sha256: sourceSha256,
     localizedAltText: { en: deckCard.altText },
     reviewStatus: previous?.reviewStatus ?? 'GENERATED_UNREVIEWED',
     reviewNotes:
       previous?.reviewNotes ??
       'Generated from the full-deck unreviewed prompt catalog. Human source, coded-frame, accessibility, and device review remain open.',
+    ...(normalization ? { normalization } : {}),
   });
 }
 
@@ -87,6 +91,9 @@ const manifest = {
   promptTemplateVersion: fullDeckPromptTemplateVersion,
   promptSourcePath: 'tools/card-assets/prompts/full-deck-v1.json',
   expectedCardCount: fullDeckCards.length,
+  ...(previousManifest.normalizationVersion
+    ? { normalizationVersion: previousManifest.normalizationVersion }
+    : {}),
   cards,
 };
 

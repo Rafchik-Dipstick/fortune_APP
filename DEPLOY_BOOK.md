@@ -587,3 +587,23 @@ git diff --check
 ```
 
 Deployment impact: validation messaging and documentation only. No source image, prompt, checksum, review status, mobile bundle import, API, credential, entitlement, or deployed state changed.
+
+### 2026-08-06 — Deterministic card-crop normalization tooling
+
+- Confirmed the repository began this pass with no modified, staged, or untracked files; `main` being ahead of `origin/main` is commit divergence, not a dirty worktree.
+- Added a canonical 78-card crop plan recording one visual edge decision per source: no exterior gutter, light/white gutter, dark gutter, or the mixed King of Pentacles artifact.
+- Added a sequential Pillow normalizer that preserves all archival source files and checksums, crops only the reviewed exterior canvas, removes inherited image metadata, and writes exact 1024 × 1536 RGB PNG bundle candidates.
+- Ignored local Python bytecode caches so running the normalizer cannot leave false-positive worktree dirt.
+- Extended manifest sync to preserve normalization records only while their source checksum remains unchanged; a changed archival source automatically invalidates its derived bundle candidate.
+- Extended asset validation to bind crop plan, source checksum, crop rectangle, normalized checksum, exact 2:3 dimensions, RGB encoding, 4 MB limit, edge-band audit, canonical path, and bundle selection.
+- Documented the source/normalized boundary for Expo device review. This mechanical crop pass does not promote any card beyond `GENERATED_UNREVIEWED` or approve internal generated ornamentation.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+corepack npm run asset:validate
+git diff --check
+```
+
+Deployment impact: reproducible local normalization tooling and review metadata only. This commit creates no normalized PNG yet and changes no runtime import, human approval, API, credential, entitlement, or deployed state.

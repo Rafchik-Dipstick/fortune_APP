@@ -1,6 +1,6 @@
 # Mobile assets
 
-The Phase 2 Google ADC proofs live in `tools/card-assets/source` and are registered in `tools/card-assets/manifest.json`. During the visual proof, the mobile fixture imports each registered source directly so there is only one tracked binary and Metro still bundles it locally. A later locked normalization pass may produce dedicated shipping assets after all three cards pass real-device review.
+The immutable Phase 2 Google ADC proofs live in `tools/card-assets/source` and are registered in `tools/card-assets/manifest.json`. Reviewed crop decisions live in `tools/card-assets/crop-plan.v1.json`; `corepack npm run asset:normalize -- --group <group>` creates the 1024 × 1536 RGB bundle candidates under `tools/card-assets/normalized` without replacing archival source checksums. The mobile fixture imports normalized candidates once their manifest entry exists so Expo device review exercises the cropped artwork.
 
 Card labels, symbols, frames, orientation, and reading text remain code-rendered. The final app icon and launch mark remain separate production assets.
 

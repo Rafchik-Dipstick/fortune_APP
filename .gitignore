@@ -13,6 +13,8 @@ coverage/
 .expo/
 .expo-shared/
 *.tsbuildinfo
+__pycache__/
+*.pyc
 
 # Logs
 *.log
