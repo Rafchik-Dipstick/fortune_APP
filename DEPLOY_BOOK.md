@@ -101,3 +101,20 @@ git diff --check
 ```
 
 Deployment impact: no service is deployable yet. CI becomes active when this commit reaches GitHub; it performs read-only checkout and repository quality gates with no deployment credentials.
+
+### 2026-08-05 — Phase 1 API workspace scaffold
+
+- Added the `@fortuneness/api` workspace with strict Node-oriented TypeScript, isolated build output, and a smoke test for the canonical `/health` and `/v1` path reservations.
+- Added the prescribed API source-boundary documentation for database, middleware, routes, services, and utilities.
+- Added `apps/api/.env.example` with placeholders for the configuration contract in specification section 14. Values are development-only examples; all auth and encryption values are visibly non-secret placeholders.
+- Deliberately deferred Express, Prisma, real health readiness, Railway configuration, and deployment commands to their chronological Phase 3/4 owners.
+
+Verification required before commit:
+
+```text
+corepack npm ci
+corepack npm run check
+git diff --check
+```
+
+Deployment impact: the API workspace compiles but has no process entry point and must not be deployed. No environment or database was changed.
