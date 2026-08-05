@@ -505,3 +505,24 @@ git diff --check
 ```
 
 Deployment impact: thirteen unreviewed Wands source illustrations, their accessibility/provenance metadata, and documentation only. The mobile bundle still imports only the three Phase 2 proofs; no review status, API, credential, entitlement, or deployed state changed.
+
+### 2026-08-05 — Full-deck Cups source completion
+
+- Generated and individually inspected the thirteen missing Cups sources through Google Vertex ADC one request at a time; the previously generated Queen of Cups proof remains unchanged.
+- The Cups source set is now complete at 14/14, bringing the canonical full-deck manifest to 50/78 generated sources.
+- Every new source is an 848 × 1264 RGB PNG below the 4 MB source limit, has a unique SHA-256 checksum, and is bound to its exact prompt checksum in the canonical manifest.
+- Source inspection found no visible words, signatures, watermarks, horror, unsafe motion, or sexual content and recorded every generated composition in per-card review notes.
+- Four exact-count deviations remain open for source review: Ace of Cups has three rather than five streams; Four of Cups has five rather than four total cups; Eight of Cups has seven rather than eight cups; and Ten of Cups has nine rather than ten cups.
+- Eight of Cups received one Google quota response; after a serial 60-second cooldown, the single-card retry produced one accepted output. No parallel or alternate-model generation occurred.
+- Generated ornamental edges range from open scenes to strong full frames and remain coded-frame/device-review issues; no source was promoted or added to the runtime bundle.
+
+Verification required before commit:
+
+```text
+corepack npm run asset:sync
+corepack npm run asset:validate
+corepack npm run check
+git diff --check
+```
+
+Deployment impact: thirteen unreviewed Cups source illustrations, their accessibility/provenance metadata, and documentation only. The mobile bundle still imports only the three Phase 2 proofs; no review status, API, credential, entitlement, or deployed state changed.

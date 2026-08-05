@@ -689,6 +689,234 @@
       "reviewNotes": "Source inspection found no text or watermark, a charismatic seated adult king, one tall fiery-flowering staff, a salamander-carved throne, a small safe lizard, and a fiery-gold lion constellation. A full generated ornamental border requires coded-frame and device review."
     },
     {
+      "key": "cups-ace",
+      "promptKey": "cups-ace",
+      "promptTextSha256": "5aa74d31fab2faedc845e83e8e2d7eb2e0ec4262b437467d30c3902929511bbd",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/cups-ace.png",
+      "bundledPath": "tools/card-assets/source/cups-ace.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1924453,
+      "sha256": "a6f46ce31f3f612837bce9c9616ee62d24d550ca011aa306621cacda11994f3b",
+      "localizedAltText": {
+        "en": "A hand holds one overflowing silver cup above lotus water as a white dove descends."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, one hand emerging from a cloud, exactly one moon-silver cup, a lotus pool, and a descending white dove. The image shows three clear streams rather than the requested five, and its full ornamental border requires source and coded-frame review."
+    },
+    {
+      "key": "cups-02",
+      "promptKey": "cups-02",
+      "promptTextSha256": "23a7bd4dc32555be75eeb05380da4fff7a2d751cad24bf3e138d84a0134a80b2",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/cups-02.png",
+      "bundledPath": "tools/card-assets/source/cups-02.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2044151,
+      "sha256": "f5f2cad746541b9a74a83f34b09a5668e0e7c8bf51c4975c3b74f3bf916830eb",
+      "localizedAltText": {
+        "en": "Two adults exchange two silver cups beneath a winged lion emblem and flowering vines."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, two clothed adults meeting as equals, exactly two silver cups, a winged lion emblem, flowering vines, and a moonlit courtyard. The architectural and botanical arch requires coded-frame and device review."
+    },
+    {
+      "key": "cups-03",
+      "promptKey": "cups-03",
+      "promptTextSha256": "eeb835bec01525988397bda259aaa564a486e7a0824e5572687b6c2e4d31803e",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/cups-03.png",
+      "bundledPath": "tools/card-assets/source/cups-03.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2047287,
+      "sha256": "344f3895d0b2cd2a1418aa84a41084555e61206594ec9da69dbb9e68733f0c85",
+      "localizedAltText": {
+        "en": "Three friends raise three silver cups together in a fruit-filled moonlit garden."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, three diverse clothed friends, exactly three raised silver cups, a joyful non-intoxicated tone, fruit, flowers, and a crescent moon. A strong generated botanical full border requires coded-frame and device review."
+    },
+    {
+      "key": "cups-04",
+      "promptKey": "cups-04",
+      "promptTextSha256": "e7677c7a4a72d1edc669ea19c0d138b23b6a5b958befc67aef2f43b2cc3c38cd",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/cups-04.png",
+      "bundledPath": "tools/card-assets/source/cups-04.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2063462,
+      "sha256": "36d11a3f067c05ba80530b5b867f311c97a19e95788c301361a22843763d77cb",
+      "localizedAltText": {
+        "en": "A seated figure considers three cups while a fourth is offered from a cloud."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark and a calm contemplative adult beneath a tree, but four cups appear on the grass plus one offered from a cloud, five total rather than the requested four. The open composition avoids a heavy rectangular internal frame; the cup-count mismatch requires source review."
+    },
+    {
+      "key": "cups-05",
+      "promptKey": "cups-05",
+      "promptTextSha256": "608126371c7996b28a9d702df1a2ffdd44f39d2eacd28f9682edfe62c2d59006",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/cups-05.png",
+      "bundledPath": "tools/card-assets/source/cups-05.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2001247,
+      "sha256": "0111221ac4f4538552b55bf8364337307575404ae82cbedc829e504dcbe8e360",
+      "localizedAltText": {
+        "en": "A cloaked figure stands near three overturned cups and two upright cups beside a bridge."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text, watermark, horror, or graphic distress; a cloaked adult stands beside exactly three gently overturned cups and two upright cups, with a bridge leading to a warmly lit home. A strong generated full border requires coded-frame and device review."
+    },
+    {
+      "key": "cups-06",
+      "promptKey": "cups-06",
+      "promptTextSha256": "92071c154dd0020f913e73c8ab108246e628bcc88accb7038834e3040bba9422",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/cups-06.png",
+      "bundledPath": "tools/card-assets/source/cups-06.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2062673,
+      "sha256": "bab4e516c202f10ff94c115c9e840eb99e95696b7fc5b176d8bec54bf288d0d2",
+      "localizedAltText": {
+        "en": "Two people share flowers among six blossom-filled cups in a peaceful village courtyard."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, two clothed people safely sharing flowers in a village courtyard, and exactly six clearly spaced silver cups filled with white blossoms: four on the well and two on the table. The open scene avoids a heavy rectangular internal frame."
+    },
+    {
+      "key": "cups-07",
+      "promptKey": "cups-07",
+      "promptTextSha256": "75d11c7420789a042d338c747617d347df8bbe47182f5d39bb9434635b0b0dde",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/cups-07.png",
+      "bundledPath": "tools/card-assets/source/cups-07.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1857293,
+      "sha256": "c2f5a9b55d48f0f69da072dca3b4e018de4b33eb2c6256fe96af6163b050788f",
+      "localizedAltText": {
+        "en": "A thoughtful figure faces seven floating cups filled with varied symbolic objects."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text, watermark, or horror; a thoughtful silhouette faces exactly seven distinct floating cups holding a wreath, shell, tower, jewels, serpent, veiled figure, and tiny dragon. A full generated botanical frame requires coded-frame and device review."
+    },
+    {
+      "key": "cups-08",
+      "promptKey": "cups-08",
+      "promptTextSha256": "1241d57d815d7c0b0feff83f70f98ce169ffca47786f6aede5a2864c4924afb5",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/cups-08.png",
+      "bundledPath": "tools/card-assets/source/cups-08.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1859161,
+      "sha256": "6d2d96f80f4ae6c4eae46ee62f7f1d61e5f8aa43047e58e958d253817d660f28",
+      "localizedAltText": {
+        "en": "A cloaked traveler walks toward moonlit mountains beyond eight carefully arranged silver cups."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text, watermark, or distress and a cloaked adult thoughtfully walking toward moonlit mountains, but only seven silver cups appear in the foreground, three above four, rather than the requested eight. The light generated celestial edge and cup-count mismatch require review."
+    },
+    {
+      "key": "cups-09",
+      "promptKey": "cups-09",
+      "promptTextSha256": "e96af9e655c0890962a834d5915268a86afef01c3b5f90b1dab16f9fbd30cf2a",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/cups-09.png",
+      "bundledPath": "tools/card-assets/source/cups-09.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1897006,
+      "sha256": "ebeaf39d3bb6051dda68110e45ca54ded6f5b354a44ed0d884704fdd94d3ec74",
+      "localizedAltText": {
+        "en": "A content host sits before nine silver cups arranged beneath a deep blue canopy."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, a warm and content adult host, and exactly nine clearly separated silver cups in a graceful crescent arrangement beneath a deep blue canopy. The composition avoids a separate heavy rectangular internal frame."
+    },
+    {
+      "key": "cups-10",
+      "promptKey": "cups-10",
+      "promptTextSha256": "800cc8190e7ae2656b910763199a2fac969f97f82fc7b8eb3d37e3f7d39515eb",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/cups-10.png",
+      "bundledPath": "tools/card-assets/source/cups-10.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1916346,
+      "sha256": "8883312ce8d931603c23dd04242a13f2123a42cc85fb24062172385c4adcc64c",
+      "localizedAltText": {
+        "en": "Family and friends gather near a home beneath an arc of ten luminous cups."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark and a warm, diverse multigenerational welcome near a small home, but the constellation-rainbow arc contains nine clearly visible cups rather than the requested ten. The count mismatch and strong generated full frame require source and coded-frame review."
+    },
+    {
+      "key": "cups-page",
+      "promptKey": "cups-page",
+      "promptTextSha256": "a2ed47e942cac43288d1f39f291662b2b4e7a37605c7a98eadbaab03098c6f46",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/cups-page.png",
+      "bundledPath": "tools/card-assets/source/cups-page.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2013549,
+      "sha256": "30d75bf70c3b76a9dc16a7607f63b53b52319f7534ad1412d64195d940794b77",
+      "localizedAltText": {
+        "en": "A curious young adult holds a silver cup containing a small friendly fish beside calm water."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, a curious young adult holding one silver cup, a small friendly fish peeking from it, calm water, and a flowing blue-violet cloak. A thin generated outer edge requires coded-frame and device review."
+    },
+    {
+      "key": "cups-knight",
+      "promptKey": "cups-knight",
+      "promptTextSha256": "3a576187a19690d24c584eedca890e5a8df0e24c87c1a1e82af6c90cced36f44",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/cups-knight.png",
+      "bundledPath": "tools/card-assets/source/cups-knight.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2210744,
+      "sha256": "1223597200c55f617e923b70dbe18dc8197ccb21201d82748243020ad7a956b0",
+      "localizedAltText": {
+        "en": "A rider on a white horse offers one silver cup while crossing a shallow stream."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, an adult rider on a calm white horse offering one silver cup, a shallow stream, winged helmet motifs, and a soft crescent sky. A strong generated full ornamental frame requires coded-frame and device review."
+    },
+    {
       "key": "cups-queen",
       "promptKey": "cups-queen",
       "promptTextSha256": "6d31308fbfd8394055476094167c52af5be5d026a8303ddacbe8b2af7092427a",
@@ -706,6 +934,25 @@
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
       "reviewNotes": "Visual inspection found no text or watermark, a dignified central figure, and a readable cup silhouette. Human editorial, compact/regular device review, and final normalization remain open."
+    },
+    {
+      "key": "cups-king",
+      "promptKey": "cups-king",
+      "promptTextSha256": "58b84794b730c7b2e0d224545fe686346674b622770ffdba253ccb1b38b34c59",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/cups-king.png",
+      "bundledPath": "tools/card-assets/source/cups-king.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2118651,
+      "sha256": "08f9a1c1f6992ac01a104d1e17b52dbb6e102ed70483fca09cff1eeb0267d5b1",
+      "localizedAltText": {
+        "en": "A composed king holds a silver cup and scepter on a stone throne surrounded by calm water."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, a composed adult king on a stone throne surrounded by calm water, exactly one silver cup and one simple lotus scepter, and ships moving safely in the distance. A full generated ornamental frame requires coded-frame and device review."
     }
   ]
 }
