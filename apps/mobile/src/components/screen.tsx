@@ -5,6 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAdaptiveLayout } from '@/theme/adaptive';
 import { colors, layout, spacing } from '@/theme/tokens';
 
+import { CelestialBackdrop } from './celestial-backdrop';
+
 interface ScreenProps {
   children: ReactNode;
   readingWidth?: boolean;
@@ -15,6 +17,7 @@ export function Screen({ children, readingWidth = false }: ScreenProps) {
 
   return (
     <SafeAreaView edges={['top', 'right', 'bottom', 'left']} style={styles.safeArea}>
+      <CelestialBackdrop />
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingHorizontal: gutter }]}
         contentInsetAdjustmentBehavior="automatic"

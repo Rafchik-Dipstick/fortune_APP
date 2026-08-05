@@ -387,3 +387,22 @@ git diff --check
 ```
 
 Deployment impact: development/preview QA behavior and documentation only. Production hard-disables pseudo-localization; no content approval, art status, API behavior, credential, native capability, or deployed state changed.
+
+### 2026-08-05 — Phase 2 celestial page backdrop
+
+- Added a restrained code-native celestial background to the shared safe-area page shell: two mist fields, fine orbital lines, and 12 deterministic star particles behind scrollable content.
+- Capped the particle field in a pure layout module and kept one native-driven field animation instead of independent per-star animation.
+- Pauses the Reanimated field whenever the app is inactive and cancels it on unmount; Reduce Motion removes travel/repetition and uses a static opacity.
+- Observes the iOS Reduce Transparency setting and removes the decorative field entirely, leaving the existing opaque page and surface colors.
+- Hides the whole backdrop from accessibility and pointer handling so it cannot disrupt VoiceOver order or interactions.
+- Added tests for the particle cap/bounds and the Reduce Motion profile, and updated the Phase 2 evidence matrix/test count.
+
+Verification required before commit:
+
+```text
+corepack npm run test --workspace @fortuneness/mobile
+corepack npm run check
+git diff --check
+```
+
+Deployment impact: shared mobile presentation and tests only. No content/art approval, API behavior, stored data, credential, native entitlement, or deployed state changed.
