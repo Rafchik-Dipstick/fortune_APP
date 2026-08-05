@@ -763,3 +763,26 @@ git diff --check
 ```
 
 Deployment impact: startup configuration parsing only. No process entry point consumes the parser yet, no database connection is opened, and no Railway environment or secret is changed.
+
+### 2026-08-06 — Phase 3 HTTP policy and normalized errors
+
+- Composed the Express factory with Helmet defaults, disabled framework disclosure, an explicit CORS allowlist, a 32 KiB JSON body ceiling, and a bounded global rate-limit framework.
+- Bound Express's proxy behavior to the already validated exact hop count; the app never enables broad boolean proxy trust.
+- Added UUID request correlation that preserves only valid caller IDs, returns the selected ID in response headers and error envelopes, and records privacy-minimized structured completion logs.
+- Added a Pino logger with service/environment fields and defensive redaction paths; request logs contain method and path but omit query strings, headers, bodies, IP addresses, and user identifiers.
+- Normalized not-found, denied-origin, malformed JSON, oversized body, rate-limit, and unexpected failures without returning stack traces or internal error text.
+- Added Supertest coverage for isolation, security headers, request IDs, CORS, body limits, rate limiting, and safe unexpected-error handling.
+- Corrected the root ESLint ignore boundary so generated workspace `dist` trees remain outside source linting after a local build.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: local HTTP policy and request/error handling only. No public route, database connection, credential, Railway configuration, or deployed service changed.

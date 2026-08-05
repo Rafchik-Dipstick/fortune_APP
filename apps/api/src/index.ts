@@ -1,4 +1,4 @@
-export { createApiApp } from './app.js';
+export { createApiApp, type ApiRateLimitOptions, type CreateApiAppOptions } from './app.js';
 export {
   InvalidApiEnvironmentError,
   parseApiEnvironment,
