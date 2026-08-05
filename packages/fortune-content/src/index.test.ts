@@ -1,16 +1,89 @@
 import { describe, expect, it } from 'vitest';
 
-import { contentManifestSchema, scaffoldContentManifest } from './index.js';
+import {
+  contentManifestSchema,
+  countWords,
+  developmentContentManifest,
+  developmentSliceExpectations,
+  validateDevelopmentSlice,
+} from './index.js';
 
-describe('content manifest scaffold', () => {
-  it('accepts the explicit empty Phase 1 manifest', () => {
-    expect(contentManifestSchema.parse(scaffoldContentManifest)).toBeDefined();
+describe('development fortune content', () => {
+  it('contains the complete three-card and 24-template matrix', () => {
+    const manifest = validateDevelopmentSlice(developmentContentManifest);
+
+    expect(manifest.cards).toHaveLength(developmentSliceExpectations.cards);
+    expect(manifest.templates).toHaveLength(developmentSliceExpectations.templates);
+    expect(new Set(manifest.cards.map(({ sliceRole }) => sliceRole))).toEqual(
+      new Set(['MAJOR', 'COURT', 'PIP']),
+    );
   });
 
-  it('rejects duplicate card keys', () => {
+  it('keeps message, action, and English alt-text lengths inside the rubric', () => {
+    const manifest = validateDevelopmentSlice(developmentContentManifest);
+
+    for (const template of manifest.templates) {
+      expect(countWords(template.message)).toBeGreaterThanOrEqual(50);
+      expect(countWords(template.message)).toBeLessThanOrEqual(100);
+      expect(countWords(template.action)).toBeGreaterThanOrEqual(10);
+      expect(countWords(template.action)).toBeLessThanOrEqual(25);
+    }
+
+    for (const card of manifest.cards) {
+      expect(countWords(card.localizedAltText.en)).toBeGreaterThanOrEqual(8);
+      expect(countWords(card.localizedAltText.en)).toBeLessThanOrEqual(25);
+    }
+  });
+
+  it('rejects a missing orientation and intention combination', () => {
     const result = contentManifestSchema.safeParse({
-      ...scaffoldContentManifest,
-      cards: [{ key: 'major-00-fool' }, { key: 'major-00-fool' }],
+      ...developmentContentManifest,
+      templates: developmentContentManifest.templates.slice(1),
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects harmful or absolute phrasing', () => {
+    const [firstTemplate, ...remainingTemplates] = developmentContentManifest.templates;
+    expect(firstTemplate).toBeDefined();
+
+    if (!firstTemplate) {
+      return;
+    }
+
+    const result = contentManifestSchema.safeParse({
+      ...developmentContentManifest,
+      templates: [
+        {
+          ...firstTemplate,
+          message:
+            'This reading definitely guarantees a fixed result, regardless of context or choice. The surrounding details cannot change what has already been decided. Treat the message as final proof and ignore any uncertainty that appears. No further reflection is needed because the outcome is inevitable, complete, and beyond reconsideration from this moment onward.',
+        },
+        ...remainingTemplates,
+      ],
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects incomplete alternative text', () => {
+    const [firstCard, ...remainingCards] = developmentContentManifest.cards;
+    expect(firstCard).toBeDefined();
+
+    if (!firstCard) {
+      return;
+    }
+
+    const result = contentManifestSchema.safeParse({
+      ...developmentContentManifest,
+      cards: [
+        {
+          ...firstCard,
+          localizedAltText: { en: 'A traveler.' },
+        },
+        ...remainingCards,
+      ],
     });
 
     expect(result.success).toBe(false);
