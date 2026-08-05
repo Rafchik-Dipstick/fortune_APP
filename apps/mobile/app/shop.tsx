@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
+import { AdaptiveSheet } from '@/components/adaptive-sheet';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
 import { PageHeader } from '@/components/page-header';
@@ -11,6 +13,7 @@ import { spacing } from '@/theme/tokens';
 
 export default function ShopScreen() {
   const router = useRouter();
+  const [termsVisible, setTermsVisible] = useState(false);
 
   return (
     <Screen readingWidth>
@@ -72,7 +75,34 @@ export default function ShopScreen() {
         <AppText color="textMuted" style={styles.disclosure} variant="caption">
           Terms of Use · Privacy Policy · Manage Subscription
         </AppText>
+        <AppButton
+          label="How purchases work"
+          onPress={() => {
+            setTermsVisible(true);
+          }}
+          variant="quiet"
+        />
       </View>
+
+      <AdaptiveSheet
+        onClose={() => {
+          setTermsVisible(false);
+        }}
+        title="How purchases work"
+        visible={termsVisible}
+      >
+        <AppText color="textMuted">
+          Apple presents the localized price and confirms payment. Fortuneness grants benefits only
+          after the server verifies the signed transaction for this account.
+        </AppText>
+        <AppText color="textMuted">
+          A 10 Fortune Pack adds ten spendable credits. Oracle+ Monthly adds ten eligible readings
+          per account day while the verified subscription is active or in grace period.
+        </AppText>
+        <AppText color="textMuted">
+          Restore Purchases checks existing Apple transactions. It does not create a new charge.
+        </AppText>
+      </AdaptiveSheet>
     </Screen>
   );
 }

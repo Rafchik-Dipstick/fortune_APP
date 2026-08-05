@@ -8,7 +8,7 @@ import { colors, layout, radii, spacing } from '@/theme/tokens';
 
 import { AppText } from './app-text';
 
-interface FaceUpCardProps {
+export interface FaceUpCardProps {
   artAltText: string;
   cardName: string;
   illustration?: ImageSourcePropType;

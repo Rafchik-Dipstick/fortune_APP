@@ -230,3 +230,24 @@ git diff --check
 ```
 
 Deployment impact: one local bundled development art proof was added. No production deployment, remote service configuration, or credential changed; two additional ADC proofs, normalization lock, and device approval remain open.
+
+### 2026-08-05 — Phase 2 motion and resilient-state prototypes
+
+- Added a Reanimated card reveal sequence that waits for the fixture reading, uses a 675 ms perspective flip by default, then exposes the complete reading in accessible order.
+- Added the system Reduce Motion path: a 200 ms crossfade, no 3D/parallax transform, no content delay, and immediate accessibility availability.
+- Added pure motion-profile tests that enforce the specification’s 600–750 ms default and 150–250 ms reduced-motion windows.
+- Added an adaptive purchase-information sheet with a compact full-screen fallback and a centered regular-width presentation.
+- Added a non-interrupting Oracle loading skeleton whose pulse stops under Reduce Motion, plus an assertive but recoverable error state that states no allowance was consumed.
+- Added development-only Oracle controls for exercising ready, loading, and error fixtures without exposing a production debug control.
+
+Verification required before commit:
+
+```text
+corepack npm run check
+cd apps/mobile
+corepack npm exec expo-doctor@latest
+cd ../..
+git diff --check
+```
+
+Deployment impact: UI prototypes only. No API call, persistence, allowance mutation, purchase initiation, notification, or production configuration was added.

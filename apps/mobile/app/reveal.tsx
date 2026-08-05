@@ -1,15 +1,14 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
 import { PageHeader } from '@/components/page-header';
+import { RevealCardSequence } from '@/components/reveal-card-sequence';
 import { Screen } from '@/components/screen';
 import { Surface } from '@/components/surface';
-import { TarotCard } from '@/components/tarot-card';
 import { sampleReading } from '@/fixtures/vertical-slice';
 import { useAdaptiveLayout } from '@/theme/adaptive';
-import { spacing } from '@/theme/tokens';
 
 export default function RevealScreen() {
   const router = useRouter();
@@ -32,22 +31,17 @@ export default function RevealScreen() {
         title="A beginning appears"
       />
 
-      <View style={styles.cardWrap}>
-        <TarotCard
-          face="up"
-          faceUp={{
-            artAltText: sampleReading.altText,
-            cardName: sampleReading.name,
-            ...(sampleReading.illustration ? { illustration: sampleReading.illustration } : {}),
-            number: sampleReading.number,
-            orientation: sampleReading.orientation,
-            suitSymbol: sampleReading.suitSymbol,
-          }}
-          width={oracleCardWidth}
-        />
-      </View>
-
-      <View accessibilityLiveRegion="polite" style={styles.reading}>
+      <RevealCardSequence
+        faceUp={{
+          artAltText: sampleReading.altText,
+          cardName: sampleReading.name,
+          ...(sampleReading.illustration ? { illustration: sampleReading.illustration } : {}),
+          number: sampleReading.number,
+          orientation: sampleReading.orientation,
+          suitSymbol: sampleReading.suitSymbol,
+        }}
+        width={oracleCardWidth}
+      >
         <AppText color="gold" variant="caption">
           Growth · Upright
         </AppText>
@@ -81,19 +75,12 @@ export default function RevealScreen() {
             router.replace('/');
           }}
         />
-      </View>
+      </RevealCardSequence>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  cardWrap: {
-    alignItems: 'center',
-    paddingBottom: spacing.xl,
-  },
-  reading: {
-    gap: spacing.lg,
-  },
   affirmation: {
     textAlign: 'center',
   },
