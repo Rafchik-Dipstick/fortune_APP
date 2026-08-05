@@ -119,6 +119,310 @@
       "reviewNotes": "Source inspection found no text or watermark, a dignified elder teacher, exactly two adult students, crossed keys, and flowering staffs. A strong generated ornamental border may compete with the code-rendered frame and requires device review."
     },
     {
+      "key": "major-06-lovers",
+      "promptKey": "major-06-lovers",
+      "promptTextSha256": "206822f190d46767658e836c2a98d3e388892ce4ba809eb51a54edca7251cd31",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-06-lovers.png",
+      "bundledPath": "tools/card-assets/source/major-06-lovers.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1983945,
+      "sha256": "38450a961424a1f728db1c332e7af0b1a06fad8123b95abb0cc53c0a6d1132ad",
+      "localizedAltText": {
+        "en": "Two adults face each other beneath a winged star between fruiting and flame-leaf trees."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, two clothed adults with open hands, a fruiting tree, a flame-leaf tree, and a clear winged star. A generated ornamental border may compete with the code-rendered frame and requires device review."
+    },
+    {
+      "key": "major-07-chariot",
+      "promptKey": "major-07-chariot",
+      "promptTextSha256": "ef055ad32d78616ba01793bd0440ed0e4ce33801c72fc4df88d293f7caeb7a9d",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-07-chariot.png",
+      "bundledPath": "tools/card-assets/source/major-07-chariot.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1961038,
+      "sha256": "271741abfd40a756aba6135c6430b7abb8dab943ff611bcc45bd91d46468ee85",
+      "localizedAltText": {
+        "en": "An armored traveler guides a silver chariot drawn by dark and pale celestial sphinxes."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, a clear armored traveler, gold chariot, road, and one dark and one pale winged feline guardian. The guardians read more as celestial cats than classical sphinxes, and the generated ornamental border requires coded-frame review."
+    },
+    {
+      "key": "major-08-strength",
+      "promptKey": "major-08-strength",
+      "promptTextSha256": "11441946eb705b05d67b4c5409974a79eb0dacbcd4839284e1ceff5205fb84a7",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-08-strength.png",
+      "bundledPath": "tools/card-assets/source/major-08-strength.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2105869,
+      "sha256": "bb7d271f8ab2b34537c865d03978917b5bc3bcd23bd6fdf0fe74643e8b6f6e16",
+      "localizedAltText": {
+        "en": "A calm figure gently meets a peaceful lion beneath an infinity ribbon and flowering vines."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, a calm central figure using both hands, a peaceful lion, a clear infinity ribbon, and flowering vines. The generated ornamental framing remains open for coded-frame and device review."
+    },
+    {
+      "key": "major-09-hermit",
+      "promptKey": "major-09-hermit",
+      "promptTextSha256": "5041f0475caba14e5d3ae88f09416533ab13540d7b48195b7284d73b7d0eddc1",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-09-hermit.png",
+      "bundledPath": "tools/card-assets/source/major-09-hermit.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1899189,
+      "sha256": "da77f16ee682117947d4d3f3f83744f86247fe7a2bea89aa621b41496dbe2d63",
+      "localizedAltText": {
+        "en": "A cloaked elder holds a star-lit lantern and staff on a quiet mountain path."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, a readable cloaked elder, star-lit lantern, simple staff, mountain path, and strong negative space. The illustration avoids a heavy rectangular internal frame but still requires coded-frame and device review."
+    },
+    {
+      "key": "major-10-wheel-of-fortune",
+      "promptKey": "major-10-wheel-of-fortune",
+      "promptTextSha256": "f9fc8650667fd318c42b83637184a768cff7fcbe7a6be79e37957cd59e9e93e1",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-10-wheel-of-fortune.png",
+      "bundledPath": "tools/card-assets/source/major-10-wheel-of-fortune.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1797760,
+      "sha256": "11643e53456d77c300a790231cace19b5d97108b77e3efc4d9fc55996772a954",
+      "localizedAltText": {
+        "en": "An eight-spoked celestial wheel turns among clouds encircled by four gentle winged guardians."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no words or watermark, a clearly countable eight-spoked wheel, and all four winged human/eagle/bull/lion guardians. Small zodiac-like glyphs appear on the spokes and require review against the no-letters rule."
+    },
+    {
+      "key": "major-11-justice",
+      "promptKey": "major-11-justice",
+      "promptTextSha256": "0df633073f740432daad91fcd70fa626f1fbde6f9027715b91ff94ba5ef06041",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-11-justice.png",
+      "bundledPath": "tools/card-assets/source/major-11-justice.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2076595,
+      "sha256": "b8601620e0d018b1b2a12f8544d3e2c4a963252e34488eb6f870bfa7cbbf74d3",
+      "localizedAltText": {
+        "en": "A composed arbiter holds an upright silver sword and balanced golden scales between pillars."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, a composed central arbiter, one upright silver sword, evenly balanced scales, and paired pillars. The celestial arch is less frame-like than earlier sources but still requires coded-frame and device review."
+    },
+    {
+      "key": "major-12-hanged-man",
+      "promptKey": "major-12-hanged-man",
+      "promptTextSha256": "d8cb55d38175e6393c02791cdc1bbb8fd4b868f1cb61eaca17404ec07dd028cc",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-12-hanged-man.png",
+      "bundledPath": "tools/card-assets/source/major-12-hanged-man.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1812310,
+      "sha256": "e4241571270f5bb517095c1e9283fd7985fca18d726a5ee2481de250d812a2be",
+      "localizedAltText": {
+        "en": "A peaceful figure hangs safely from a living tree with a soft halo and bent leg."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text, watermark, injury, or distress; the clothed figure is safely suspended from a living tree, the free leg forms a bent triangle, and the halo is clear. A strong generated ornamental border requires coded-frame review."
+    },
+    {
+      "key": "major-13-death",
+      "promptKey": "major-13-death",
+      "promptTextSha256": "0677d7962593095f1df9d2e97bcb39aea5f3827a71c3859f3d6ab89eebde5869",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-13-death.png",
+      "bundledPath": "tools/card-assets/source/major-13-death.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2184754,
+      "sha256": "1ada34ac143a793d338613f03b48e187b35f510010f5c793196b4894cb01b607",
+      "localizedAltText": {
+        "en": "A silver rider carries a white rose banner through falling leaves toward a bright sunrise."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text, watermark, corpse, gore, fear, or horror; the silver armored rider, white rose banner, autumn leaves, sunrise, and diverse respectful figures are clear. A strong generated ornamental border requires coded-frame review."
+    },
+    {
+      "key": "major-14-temperance",
+      "promptKey": "major-14-temperance",
+      "promptTextSha256": "7bda5255ff6fde34553832007dbaf330c99f13f26374826c14c21e647b02895a",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-14-temperance.png",
+      "bundledPath": "tools/card-assets/source/major-14-temperance.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1920226,
+      "sha256": "74f92fab2a9ee534cc744ab48447c27928286c9824216b2f086104b39465966d",
+      "localizedAltText": {
+        "en": "A winged figure pours water between two cups while standing between stone and luminous water."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, exactly two cups, a continuous silver stream, one foot on stone and one in luminous water, clear wings, and a golden path. A generated floral border requires coded-frame review."
+    },
+    {
+      "key": "major-15-devil",
+      "promptKey": "major-15-devil",
+      "promptTextSha256": "8bae038ab283244a78d8ad1542209fc734b5b188a442384f921298e53aee9db0",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-15-devil.png",
+      "bundledPath": "tools/card-assets/source/major-15-devil.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2031070,
+      "sha256": "bdec3dea780af309ba34aad5316ad5c6e1aa5ab571fc52ad2e65c43f1d7c2d11",
+      "localizedAltText": {
+        "en": "Two adults notice loose flower-vine loops while a shadowed horned statue recedes behind them."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text, watermark, sexuality, or graphic content; two clothed adults notice loose flowering vine loops beneath a guiding star while a horned stone figure stays in shadow. The figure is somewhat imposing and the generated border requires device review."
+    },
+    {
+      "key": "major-16-tower",
+      "promptKey": "major-16-tower",
+      "promptTextSha256": "8474f17e4bbebe310b7f8112854c802885c147b1125322e3905723cb31b9b3be",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-16-tower.png",
+      "bundledPath": "tools/card-assets/source/major-16-tower.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1681024,
+      "sha256": "bc2aee25b9d38e13bab8f3db539f4cfd5441468150738998ccea24a10f25d0dc",
+      "localizedAltText": {
+        "en": "Celestial light opens an empty stone observatory into birds and falling petals beneath storm clouds."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text, watermark, fire, injury, or horror; a clean vertical light beam opens the empty observatory crown into birds and petals while tiny people remain safely distant. The subtle botanical edge still requires coded-frame review."
+    },
+    {
+      "key": "major-17-star",
+      "promptKey": "major-17-star",
+      "promptTextSha256": "c816f699062bca31f33e93c0b89c29b26d1de8047ba71360f22cb00285796f39",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-17-star.png",
+      "bundledPath": "tools/card-assets/source/major-17-star.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2066454,
+      "sha256": "94a89d73ff1acdac063eba2619dddc5da13f1c0b5d6e193e24407949ab2dcc5d",
+      "localizedAltText": {
+        "en": "A kneeling figure pours two vessels beneath one large star and seven smaller stars."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, a clothed kneeling figure, exactly two pouring vessels, one large eight-pointed star, and seven clearly countable smaller stars. The generated botanical border remains open for coded-frame review."
+    },
+    {
+      "key": "major-18-moon",
+      "promptKey": "major-18-moon",
+      "promptTextSha256": "9674755778b72175d744735cd1190377b9564bde08db0626532038cedf30dd16",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-18-moon.png",
+      "bundledPath": "tools/card-assets/source/major-18-moon.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1995243,
+      "sha256": "0e76dec2553d69345fb3871490cc275773ff241e2bbb62b5ea507694f8509fcd",
+      "localizedAltText": {
+        "en": "A winding path crosses between towers as a dog, wolf, and crayfish face the moon."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark; the faced crescent moon, two slender towers, winding path, calm dog and wolf, and small crayfish are all immediately readable. A full generated ornamental frame requires coded-frame review."
+    },
+    {
+      "key": "major-19-sun",
+      "promptKey": "major-19-sun",
+      "promptTextSha256": "2ebbd64fde32cc775c6052cc7275abec2f9f1a9c214fa8496e6ef65d72aff5a3",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-19-sun.png",
+      "bundledPath": "tools/card-assets/source/major-19-sun.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2067214,
+      "sha256": "cda67453cdab3fad93e3c22d4c5ade0343562e1c560e67c298360922f8df136a",
+      "localizedAltText": {
+        "en": "A joyful child rides a white horse past sunflowers beneath a large radiant sun."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark; the joyful clothed child, gentle white horse, sunflowers, flowing warm banner, and large radiant sun are clear and suitable for a general audience. The source avoids a heavy rectangular internal frame."
+    },
+    {
+      "key": "major-20-judgement",
+      "promptKey": "major-20-judgement",
+      "promptTextSha256": "24dcfd12e834654320032e8394988bb0c193e0d6c05a0765c537a22948eb792e",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-20-judgement.png",
+      "bundledPath": "tools/card-assets/source/major-20-judgement.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2061090,
+      "sha256": "33d1922e9cee99baa1404527e2d702622af8136b966e34e6ab52ebb2a736008a",
+      "localizedAltText": {
+        "en": "Diverse figures step from dark boats toward light as a winged herald sounds a trumpet."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text, watermark, horror, or resurrection imagery; diverse clothed adults step from dark boats onto a luminous shore beneath a compassionate winged herald and golden trumpet. The source avoids a heavy rectangular internal frame."
+    },
+    {
+      "key": "major-21-world",
+      "promptKey": "major-21-world",
+      "promptTextSha256": "f8e0571dda6c32276c38f6aa55f057530a40e6c35a212aa222ffeea7e45180b9",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-21-world.png",
+      "bundledPath": "tools/card-assets/source/major-21-world.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1933103,
+      "sha256": "c292360e04c3ad3a5ea3657bfd44e220d2cd39ce74a116fb75a7f9a2f6b0b386",
+      "localizedAltText": {
+        "en": "A joyful dancer holds two wands inside a living wreath surrounded by four winged guardians."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection: joyful clothed dancer, two silver wands, oval living wreath, and all four winged guardians are present; no text, watermark, or heavy rectangular frame observed. Human source, coded-frame, accessibility, and device review remain open."
+    },
+    {
       "key": "wands-03",
       "promptKey": "wands-03",
       "promptTextSha256": "fd205db19297d9e43d3db1ea9a1248b27f3aada3a7c95368ca43f048749af7e6",

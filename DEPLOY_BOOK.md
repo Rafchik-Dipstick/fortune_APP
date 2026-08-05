@@ -465,3 +465,23 @@ git diff --check
 ```
 
 Deployment impact: five unreviewed source illustrations, their draft accessibility/provenance metadata, and documentation only. The mobile bundle still imports only the three Phase 2 proofs; no review status, API, credential, entitlement, or deployed state changed.
+
+### 2026-08-05 — Full-deck Major Arcana source completion
+
+- Generated and individually inspected the remaining sixteen Major Arcana sources, from The Lovers through The World, through Google Vertex ADC one request at a time.
+- The Major Arcana source set is now complete at 22/22; with the two existing Minor Arcana proofs, the full-deck manifest validates at 24/78 generated sources.
+- Every new source is an 848 × 1264 RGB PNG below the 4 MB source limit, has a unique SHA-256 checksum, and is bound to its exact prompt checksum in the canonical manifest.
+- Source inspection confirmed the requested central subject and key symbolic composition for each card and found no visible words, signatures, or watermarks. Per-card observations remain recorded in `tools/card-assets/manifest.json` without promoting any source beyond `GENERATED_UNREVIEWED`.
+- The Wheel of Fortune includes small zodiac-like glyphs that require later no-letter review; The Chariot uses winged dark and pale cats rather than classical sphinxes; several sources include ornamental framing that still needs coded-frame and device review.
+- Google quota responses occurred while generating The Lovers, The Devil, and The World. Each request was handled serially after a cooldown, produced exactly one accepted output, and did not trigger parallel or alternate-model generation.
+
+Verification required before commit:
+
+```text
+corepack npm run asset:sync
+corepack npm run asset:validate
+corepack npm run check
+git diff --check
+```
+
+Deployment impact: sixteen unreviewed Major Arcana source illustrations, their accessibility/provenance metadata, and documentation only. The mobile bundle still imports only the three Phase 2 proofs; no review status, API, credential, entitlement, or deployed state changed.
