@@ -60,5 +60,18 @@ export default tseslint.config(
     files: ['**/*.js', '**/*.cjs', '**/*.mjs'],
     extends: [...tseslint.configs.recommended],
   },
+  {
+    files: ['apps/mobile/plugins/**/*.cjs'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: {
+        module: 'readonly',
+        require: 'readonly',
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
   prettier,
 );

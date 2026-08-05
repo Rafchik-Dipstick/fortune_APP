@@ -8,11 +8,11 @@ The canonical product and technical requirements live in [`FORTUNENESS_SPEC.md`]
 
 ## Current delivery state
 
-| Phase                                             | State                             | Current gate                                                                                          |
-| ------------------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Phase 0 — owner accounts, naming, and risk spikes | Blocked on owner/external actions | Apple, Expo/EAS, Railway, Google ADC, editorial ownership, and reviewer-access decisions remain open. |
-| Phase 1 — repository and quality scaffold         | In progress                       | Establish the monorepo, lock compatible toolchain versions, and make all root checks pass.            |
-| Phases 2–17                                       | Not started                       | Must follow the acceptance order in the specification.                                                |
+| Phase                                             | State                             | Current gate                                                                                                                         |
+| ------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Phase 0 — owner accounts, naming, and risk spikes | Blocked on owner/external actions | Apple, Expo/EAS, Railway, Google ADC, editorial ownership, and reviewer-access decisions remain open.                                |
+| Phase 1 — repository and quality scaffold         | In progress                       | JavaScript/API/mobile scaffold is present; native modules, entitlement evidence, EAS linkage, and signed device builds remain gated. |
+| Phases 2–17                                       | Not started                       | Must follow the acceptance order in the specification.                                                                               |
 
 ## Phase 0 deployment blockers
 
@@ -118,3 +118,40 @@ git diff --check
 ```
 
 Deployment impact: the API workspace compiles but has no process entry point and must not be deployed. No environment or database was changed.
+
+### 2026-08-05 — Phase 1 Expo iPhone/iPad workspace
+
+- Locked Expo SDK `57.0.10`, React Native `0.86.2`, and React `19.2.3` from the current stable Expo template compatibility set.
+- Added the Expo Router app with one root stack, a safe-area/scrolling launch scaffold, dark celestial baseline colors, and an iPhone/iPad-compatible adaptive content width.
+- Configured iOS-only output, `supportsTablet: true`, all orientations, Split View-compatible `requireFullScreen: false`, custom URL scheme, dark splash background, and the Expo SDK 57 minimum iOS deployment target of 16.4.
+- Added development-build dependencies plus Secure Store, SQLite, localization, notifications, TanStack Query, Zustand, Reanimated, gesture handling, and safe-area/screen primitives.
+- Overrode only `xcode`'s transitive `uuid` to patched `11.1.1`, matching the proven reference repository, after npm audit identified the older UUID buffer-bounds advisory in Expo's native project tooling.
+- Added development, preview, and production EAS profiles with explicit environment separation. Production refuses to resolve without an owner-confirmed `APP_BUNDLE_ID`; non-production defaults are isolated placeholders.
+- Declared English in every build and the length-expanded `en-XA` pseudo-locale only in development/preview. Production declares English only and embeds `EXPO_PUBLIC_ENABLE_PSEUDO_LOCALE=false`.
+- Added documented local-module boundaries for Game Center and StoreKit 2 without fabricating unverified Swift code or entitlement evidence before the Phase 0 Mac/device spike.
+- Added mobile config, unit-test, typecheck, and iOS export gates to the root checks.
+- Kept dynamic build-profile helpers self-contained in `app.config.ts` because Expo's config loader transpiles that root file but not imported TypeScript modules; unit tests import the same helpers directly.
+- Used TypeScript 6 path mapping without the deprecated `baseUrl` option after the first mobile typecheck surfaced its TypeScript 7 removal warning as an error.
+- Pinned hoisted `react`/`react-dom` to Expo's `19.2.3` compatibility version and updated `@types/react` to Expo Doctor's expected `19.2.4`, preventing duplicate native React installations in the monorepo.
+- Inspected Expo's native config, confirmed all four iPhone/iPad orientations and Split View support, and removed the explicit notifications config plugin because it added an unused Apple push entitlement; the autolinked notifications module remains available for V1 local reminders.
+- Added Expo System UI at the SDK-compatible version and let Expo own the dark interface-style plist entry instead of duplicating it manually.
+- Added a final local-notifications-only config plugin through Expo's supported `expo/config-plugins` sub-export because the bundled notifications integration still injects `aps-environment`; native introspection must prove that only this unused push entitlement is removed while the local notification module remains linked.
+- Scoped the CommonJS `require()` lint exception to the Expo config-plugin directory only; application and service code retain the strict import rule.
+
+Verification:
+
+```text
+corepack npm ci
+corepack npm install-scripts ls
+corepack npm audit
+corepack npm run check
+cd apps/mobile
+corepack npm exec expo-doctor@latest
+corepack npm exec expo -- config --type introspect --json
+cd ../..
+git diff --check
+```
+
+Result: clean install audited 735 packages with 0 vulnerabilities and no unreviewed install scripts; all formatting/lint/config/type/build gates and 10 tests passed; Expo Doctor passed 20/20 checks; Metro exported the 1,549-module iOS bundle; introspection confirmed four orientations on iPhone and iPad, `UIRequiresFullScreen=false`, deployment target 16.4, and no `aps-environment` entitlement.
+
+Deployment impact: no EAS project, credentials, remote bundle ID, or API URL was created. The JavaScript iOS bundle can be exported locally, but a signed development IPA and on-device acceptance remain open Phase 0/1 evidence.

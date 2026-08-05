@@ -20,7 +20,7 @@ corepack npm ci
 corepack npm run check
 ```
 
-Corepack resolves the exact npm version from `packageManager`. Individual gates are available as `format:check`, `lint`, `typecheck`, `test`, `content:validate`, `asset:validate`, and `build`.
+Corepack resolves the exact npm version from `packageManager`. Individual gates are available as `format:check`, `lint`, `config:check`, `typecheck`, `test`, `content:validate`, `asset:validate`, and `build`.
 
 ## Workspace layout
 
