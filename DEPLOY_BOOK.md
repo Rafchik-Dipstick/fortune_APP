@@ -424,3 +424,23 @@ git diff --check
 ```
 
 Deployment impact: mobile fixture motion behavior and tests only. No persisted preference, content/art approval, API behavior, stored account data, credential, native entitlement, or deployed state changed.
+
+### 2026-08-05 — Full-deck unreviewed generation catalog and provenance tooling
+
+- Product owner explicitly authorized generating all remaining card illustrations before Expo device review; the art-direction draft now records this override to the earlier operational hold, but it does not constitute art, accessibility, or editorial approval.
+- Added a canonical 78-card generation catalog covering all Major Arcana and every Wands, Cups, Swords, and Pentacles rank with a stable asset key, card-specific visible scene, and draft 8–25-word English alt text.
+- Added a consistent full-deck prompt builder that preserves the exact three Phase 2 proof prompts and produces one exact, checksum-bound prompt for every remaining card.
+- Added `corepack npm run asset:prompts` to materialize the complete prompt catalog and `corepack npm run asset:sync` to atomically rebuild source metadata/checksums from generated PNGs without promoting review status.
+- Generation will proceed in logical batches. Each batch remains `GENERATED_UNREVIEWED` until inspected in source/contact sheets and later accepted in coded frames on physical devices.
+
+Verification required before commit:
+
+```text
+corepack npm run asset:prompts
+corepack npm run asset:sync
+corepack npm run asset:validate
+corepack npm run check
+git diff --check
+```
+
+Deployment impact: asset-production catalog, provenance tooling, and documentation only. No new image is created by this commit, and no review status, production bundle, API, credential, or deployed state changes.

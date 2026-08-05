@@ -2,15 +2,19 @@
 
 Status: **DRAFT — UNLOCKED**
 
-Prompt version: `phase2-nocturnal-celestial-v1-draft`
+Full-deck prompt version: `full-deck-nocturnal-celestial-v1-unreviewed`
+
+Seed proof prompt version: `phase2-nocturnal-celestial-v1-draft`
 
 Proof set: The Fool, Queen of Cups, Three of Wands
 
 Generated source manifest: `tools/card-assets/manifest.json`
 
-Exact prompt catalog: `tools/card-assets/prompts/phase2-proofs.json`
+Exact full-deck prompt catalog: `tools/card-assets/prompts/full-deck-v1.json`
 
-This direction may be locked only after all three proofs pass coded-frame review on iPhone and iPad. Generating the remaining 75 cards before that decision is intentionally prohibited.
+This direction may be locked only after all three proofs pass coded-frame review on iPhone and iPad.
+
+Production exception: on 2026-08-05, the product owner explicitly authorized generating the remaining 75 cards before Expo device review. This accelerates production at the accepted risk that some or all unreviewed sources may require regeneration after the style decision. Generation does not lock the direction or promote any asset beyond `GENERATED_UNREVIEWED`.
 
 ## Visual constants
 

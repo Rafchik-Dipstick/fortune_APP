@@ -25,6 +25,8 @@
     "test": "npm run test --workspaces --if-present",
     "content:validate": "npm run validate --workspace @fortuneness/fortune-content",
     "content:review": "npm run review:print --workspace @fortuneness/fortune-content",
+    "asset:prompts": "node tools/card-assets/build-full-deck-prompts.mjs",
+    "asset:sync": "node tools/card-assets/sync-manifest.mjs",
     "asset:validate": "node tools/card-assets/validate.mjs"
   },
   "devDependencies": {

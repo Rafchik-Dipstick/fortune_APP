@@ -30,6 +30,7 @@ function readPngDimensions(buffer, path) {
   return {
     width: buffer.readUInt32BE(16),
     height: buffer.readUInt32BE(20),
+    colorType: buffer.readUInt8(25),
   };
 }
 
@@ -43,6 +44,14 @@ assert(
   'Asset manifest needs a promptSourcePath.',
 );
 assert(Array.isArray(manifest.cards), 'Asset manifest cards must be an array.');
+assert(
+  manifest.expectedCardCount === 78,
+  'Asset manifest expectedCardCount must be the canonical 78-card deck.',
+);
+assert(
+  manifest.cards.length <= manifest.expectedCardCount,
+  'Asset manifest cannot exceed expectedCardCount.',
+);
 
 const normalizedPromptSourcePath = normalizeRepositoryPath(manifest.promptSourcePath);
 assert(
@@ -61,22 +70,55 @@ assert(
   promptCatalog.prompts && typeof promptCatalog.prompts === 'object',
   'Card prompt catalog prompts are required.',
 );
+assert(
+  promptCatalog.expectedCardCount === manifest.expectedCardCount,
+  'Card prompt catalog expectedCardCount must match the asset manifest.',
+);
+assert(
+  Array.isArray(promptCatalog.cardOrder) &&
+    promptCatalog.cardOrder.length === manifest.expectedCardCount,
+  'Card prompt catalog cardOrder must contain all 78 cards.',
+);
+assert(
+  new Set(promptCatalog.cardOrder).size === promptCatalog.cardOrder.length,
+  'Card prompt catalog cardOrder keys must be unique.',
+);
+assert(
+  Object.keys(promptCatalog.prompts).length === manifest.expectedCardCount,
+  'Card prompt catalog must contain exactly 78 prompts.',
+);
+for (const key of promptCatalog.cardOrder) {
+  assert(
+    typeof promptCatalog.prompts[key] === 'string' && promptCatalog.prompts[key].length > 0,
+    `Card prompt catalog is missing ${key}.`,
+  );
+}
 
 const cardKeys = new Set();
 const checksums = new Set();
 const manifestedPaths = new Set();
 const referencedPrompts = new Set();
+const canonicalCardIndex = new Map(promptCatalog.cardOrder.map((key, index) => [key, index]));
+let previousCanonicalIndex = -1;
 
 for (const [index, card] of manifest.cards.entries()) {
   const prefix = `cards[${String(index)}]`;
   assert(typeof card.key === 'string' && card.key.length > 0, `${prefix}.key is required.`);
   assert(!cardKeys.has(card.key), `Duplicate asset manifest card key: ${card.key}.`);
   cardKeys.add(card.key);
+  const cardCanonicalIndex = canonicalCardIndex.get(card.key);
+  assert(cardCanonicalIndex !== undefined, `${prefix}.key is not in canonical cardOrder.`);
+  assert(
+    cardCanonicalIndex > previousCanonicalIndex,
+    'Asset manifest cards must follow canonical cardOrder.',
+  );
+  previousCanonicalIndex = cardCanonicalIndex;
 
   assert(
     typeof card.promptKey === 'string' && card.promptKey.length > 0,
     `${prefix}.promptKey is required.`,
   );
+  assert(card.promptKey === card.key, `${prefix}.promptKey must equal its canonical card key.`);
   assert(
     !referencedPrompts.has(card.promptKey),
     `Duplicate prompt key reference: ${card.promptKey}.`,
@@ -112,6 +154,8 @@ for (const [index, card] of manifest.cards.entries()) {
 
   assert(dimensions.width === card.width, `${prefix}.width does not match the PNG.`);
   assert(dimensions.height === card.height, `${prefix}.height does not match the PNG.`);
+  assert(card.colorMode === 'RGB', `${prefix}.colorMode must be RGB.`);
+  assert(dimensions.colorType === 2, `${normalizedSourcePath} PNG must use RGB color type.`);
   assert(sourceStat.size === card.bytes, `${prefix}.bytes does not match the PNG.`);
   assert(card.bytes <= 4_000_000, `${normalizedSourcePath} exceeds the 4 MB proof limit.`);
   assert(checksum === card.sha256, `${prefix}.sha256 does not match the PNG.`);
@@ -150,11 +194,6 @@ for (const generatedPath of generatedFiles) {
   );
 }
 
-assert(
-  Object.keys(promptCatalog.prompts).length === referencedPrompts.size,
-  'Card prompt catalog contains an unreferenced prompt.',
-);
-
 process.stdout.write(
-  `Card asset manifest is valid (${String(cardKeys.size)}/3 Phase 2 proofs recorded).\n`,
+  `Card asset manifest is valid (${String(cardKeys.size)}/${String(manifest.expectedCardCount)} full-deck sources generated; remaining prompts are planned).\n`,
 );

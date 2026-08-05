@@ -1,7 +1,8 @@
 {
   "schemaVersion": 1,
-  "promptTemplateVersion": "phase2-nocturnal-celestial-v1-draft",
-  "promptSourcePath": "tools/card-assets/prompts/phase2-proofs.json",
+  "promptTemplateVersion": "full-deck-nocturnal-celestial-v1-unreviewed",
+  "promptSourcePath": "tools/card-assets/prompts/full-deck-v1.json",
+  "expectedCardCount": 78,
   "cards": [
     {
       "key": "major-00-fool",
@@ -23,25 +24,6 @@
       "reviewNotes": "Visual inspection found no text or watermark and a clear central silhouette. Human editorial, compact/regular device review, and final normalization remain open."
     },
     {
-      "key": "cups-queen",
-      "promptKey": "cups-queen",
-      "promptTextSha256": "6d31308fbfd8394055476094167c52af5be5d026a8303ddacbe8b2af7092427a",
-      "provider": "google-vertex-adc",
-      "model": "gemini-3.1-flash-image",
-      "sourceOutputPath": "tools/card-assets/source/cups-queen.png",
-      "bundledPath": "tools/card-assets/source/cups-queen.png",
-      "width": 848,
-      "height": 1264,
-      "colorMode": "RGB",
-      "bytes": 1861287,
-      "sha256": "32532d5b5da220b4a2654d783820e3e60986cf334063f113239ac969fee0b39b",
-      "localizedAltText": {
-        "en": "A crowned queen holds an ornate silver cup beside calm water, white lilies, and a crescent moon."
-      },
-      "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Visual inspection found no text or watermark, a dignified central figure, and a readable cup silhouette. Human editorial, compact/regular device review, and final normalization remain open."
-    },
-    {
       "key": "wands-03",
       "promptKey": "wands-03",
       "promptTextSha256": "fd205db19297d9e43d3db1ea9a1248b27f3aada3a7c95368ca43f048749af7e6",
@@ -59,6 +41,25 @@
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
       "reviewNotes": "Visual inspection found no text or watermark and confirmed three distinct flowering staffs, a clear traveler silhouette, and distant ships. Human editorial, compact/regular device review, and final normalization remain open."
+    },
+    {
+      "key": "cups-queen",
+      "promptKey": "cups-queen",
+      "promptTextSha256": "6d31308fbfd8394055476094167c52af5be5d026a8303ddacbe8b2af7092427a",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/cups-queen.png",
+      "bundledPath": "tools/card-assets/source/cups-queen.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1861287,
+      "sha256": "32532d5b5da220b4a2654d783820e3e60986cf334063f113239ac969fee0b39b",
+      "localizedAltText": {
+        "en": "A crowned queen holds an ornate silver cup beside calm water, white lilies, and a crescent moon."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Visual inspection found no text or watermark, a dignified central figure, and a readable cup silhouette. Human editorial, compact/regular device review, and final normalization remain open."
     }
   ]
 }
