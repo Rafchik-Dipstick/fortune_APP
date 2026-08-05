@@ -369,3 +369,21 @@ git diff --check
 ```
 
 Deployment impact: content review tooling, tests, and documentation only. Canonical fortune copy, review status, API behavior, mobile runtime behavior, credentials, and deployment state did not change.
+
+### 2026-08-05 — Phase 2 runtime pseudo-locale QA control
+
+- Added app-level QA locale state so a development or preview build can switch direct and composite visible `AppText` copy between English and the length-expanded `en-XA` pseudo-locale during one review session.
+- Added a Settings switch only when `EXPO_PUBLIC_ENABLE_PSEUDO_LOCALE=true`; the production profile keeps the control unavailable and always resolves to English.
+- Preserved `EXPO_PUBLIC_LOCALE_OVERRIDE=en-XA` as an optional initial state while allowing the reviewer to return to English without rebuilding.
+- Corrected explicit pseudo-localization in the legacy copy helper and added unit coverage for build-profile gating, override resolution, unchanged English, and expanded/wrapped output.
+- Updated the mobile README and Phase 2 evidence matrix so device testers use the runtime control for the required two-locale pass.
+
+Verification required before commit:
+
+```text
+corepack npm run test --workspace @fortuneness/mobile
+corepack npm run check
+git diff --check
+```
+
+Deployment impact: development/preview QA behavior and documentation only. Production hard-disables pseudo-localization; no content approval, art status, API behavior, credential, native capability, or deployed state changed.

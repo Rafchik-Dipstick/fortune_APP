@@ -1,6 +1,7 @@
-import type { ReactNode } from 'react';
+import { Children, type ReactNode } from 'react';
 import { StyleSheet, Text, type TextProps, type TextStyle } from 'react-native';
 
+import { useQaLocale } from '@/i18n/qa-locale';
 import { pseudoLocalize } from '@/i18n/pseudo';
 import { colors, typography } from '@/theme/tokens';
 
@@ -12,6 +13,16 @@ type AppTextProps = Omit<TextProps, 'children'> & {
   variant?: TextVariant;
 };
 
+function localizeTextNodes(children: ReactNode, pseudoLocaleEnabled: boolean): ReactNode {
+  if (typeof children === 'string') {
+    return pseudoLocalize(children, pseudoLocaleEnabled);
+  }
+
+  return Children.map(children, (child) =>
+    typeof child === 'string' ? pseudoLocalize(child, pseudoLocaleEnabled) : child,
+  );
+}
+
 export function AppText({
   children,
   color = 'text',
@@ -19,7 +30,8 @@ export function AppText({
   variant = 'body',
   ...textProps
 }: AppTextProps) {
-  const localizedChildren = typeof children === 'string' ? pseudoLocalize(children) : children;
+  const { locale } = useQaLocale();
+  const localizedChildren = localizeTextNodes(children, locale === 'en-XA');
 
   return (
     <Text

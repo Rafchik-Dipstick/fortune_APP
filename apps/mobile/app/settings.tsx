@@ -7,6 +7,7 @@ import { AppText } from '@/components/app-text';
 import { PageHeader } from '@/components/page-header';
 import { Screen } from '@/components/screen';
 import { Surface } from '@/components/surface';
+import { useQaLocale } from '@/i18n/qa-locale';
 import { colors, spacing } from '@/theme/tokens';
 
 interface SettingRowProps {
@@ -38,6 +39,7 @@ function SettingRow({ description, label, onValueChange, value }: SettingRowProp
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { locale, pseudoLocaleAvailable, setLocale } = useQaLocale();
   const [sound, setSound] = useState(true);
   const [haptics, setHaptics] = useState(true);
   const [reduceMore, setReduceMore] = useState(false);
@@ -124,6 +126,25 @@ export default function SettingsScreen() {
             financial, or mental-health advice.
           </AppText>
         </Surface>
+
+        {pseudoLocaleAvailable ? (
+          <Surface>
+            <AppText color="gold" variant="caption">
+              Phase 2 locale QA
+            </AppText>
+            <SettingRow
+              description="Expands visible copy in this session to expose clipping and wrapping defects."
+              label="Length-expanded pseudo-locale"
+              onValueChange={(enabled) => {
+                setLocale(enabled ? 'en-XA' : 'en');
+              }}
+              value={locale === 'en-XA'}
+            />
+            <AppText color="textMuted" variant="caption">
+              {`Current fixture locale: ${locale}. This control is unavailable in production.`}
+            </AppText>
+          </Surface>
+        ) : null}
 
         {__DEV__ ? (
           <Surface>

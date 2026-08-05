@@ -17,7 +17,7 @@ This record prevents local JavaScript checks from being mistaken for iPhone/iPad
 | 320/599/600/899/900/1024-point layout classifications       | Pass                               | `apps/mobile/src/theme/adaptive.test.ts`                 |
 | Default reveal duration remains 600–750 ms                  | Pass at 675 ms                     | `apps/mobile/src/motion/reveal-motion.test.ts`           |
 | Reduce Motion reveal remains 150–250 ms with no perspective | Pass at 200 ms                     | `apps/mobile/src/motion/reveal-motion.test.ts`           |
-| Strict checks, 22 tests, content and asset validation       | Pass                               | `corepack npm run check`                                 |
+| Strict checks, 26 tests, content and asset validation       | Pass                               | `corepack npm run check`                                 |
 | Expo dependency/configuration health                        | Pass, 20/20                        | `cd apps/mobile && corepack npm exec expo-doctor@latest` |
 | iOS JavaScript export including local art                   | Pass                               | `corepack npm run build --workspace @fortuneness/mobile` |
 | Three-card content matrix                                   | Pass, 24/24 ready for review       | `corepack npm run content:validate`                      |
@@ -25,12 +25,13 @@ This record prevents local JavaScript checks from being mistaken for iPhone/iPad
 | Brand mark manifest                                         | Pass, one unreviewed square proof  | `corepack npm run brand:validate`                        |
 | Review-gallery compact/full sizing                          | Pass at 320 and 1024 points        | `apps/mobile/src/theme/adaptive.test.ts`                 |
 | Canonical editorial review packet                           | Pass, 24 stable review keys        | `corepack npm run content:review`                        |
+| Runtime English/en-XA fixture switch                        | Profile-gated and unit-tested      | Development/preview Settings                             |
 
 Automated evidence does not close any physical-device row below.
 
 ## Required presentation matrix
 
-Run every page/state in English and the debug-only length-expanded pseudo-locale. Essential content must remain readable without horizontal scrolling, clipping, overlap, unsafe-area intrusion, or fixed-height truncation.
+Run every page/state in English and the debug-only length-expanded pseudo-locale. Development/preview Settings can switch between them without changing builds; production hard-disables the control. Essential content must remain readable without horizontal scrolling, clipping, overlap, unsafe-area intrusion, or fixed-height truncation.
 
 | ID     | Width/device class           | Orientation/window              | Required states                                                     | Status  |
 | ------ | ---------------------------- | ------------------------------- | ------------------------------------------------------------------- | ------- |

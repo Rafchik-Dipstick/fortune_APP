@@ -19,6 +19,6 @@ export function getAppCopy(localeOverride: string | undefined): AppCopy {
   }
 
   return Object.fromEntries(
-    Object.entries(englishCopy).map(([key, value]) => [key, pseudoLocalize(value)]),
+    Object.entries(englishCopy).map(([key, value]) => [key, pseudoLocalize(value, true)]),
   ) as AppCopy;
 }
