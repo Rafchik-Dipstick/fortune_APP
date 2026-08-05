@@ -194,6 +194,11 @@ for (const generatedPath of generatedFiles) {
   );
 }
 
+const generationStatus =
+  cardKeys.size === manifest.expectedCardCount
+    ? 'full deck complete'
+    : 'remaining prompts are planned';
+
 process.stdout.write(
-  `Card asset manifest is valid (${String(cardKeys.size)}/${String(manifest.expectedCardCount)} full-deck sources generated; remaining prompts are planned).\n`,
+  `Card asset manifest is valid (${String(cardKeys.size)}/${String(manifest.expectedCardCount)} full-deck sources generated; ${generationStatus}).\n`,
 );

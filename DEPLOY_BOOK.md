@@ -568,3 +568,22 @@ git diff --check
 ```
 
 Deployment impact: fourteen unreviewed Pentacles source illustrations, their accessibility/provenance metadata, and documentation only. The source catalog is complete, but the mobile bundle still imports only the three Phase 2 proofs; no review status, API, credential, entitlement, or deployed state changed.
+
+### 2026-08-05 — Full 78-card source archive validation
+
+- Recorded the completed 78/78 source archive in the Phase 2 art-direction draft while preserving the unlocked style decision and every asset's `GENERATED_UNREVIEWED` status.
+- Updated card-asset validator success output to distinguish a complete source archive from partial generation; a 78/78 run now reports `full deck complete` instead of the stale `remaining prompts are planned` message.
+- The validator continues to enforce canonical order, exact prompt checksums, unique image checksums, 2:3 source ratio, RGB PNG encoding, the 4 MB source limit, alt-text word bounds, manifest coverage for every source PNG, and valid review states.
+- Completion is production readiness evidence only for source generation/provenance. Human source selection, accessibility, coded-frame, device, editorial, and style-lock decisions remain explicitly open.
+
+Verification required before commit:
+
+```text
+corepack npm run asset:prompts
+corepack npm run asset:sync
+corepack npm run asset:validate
+corepack npm run check
+git diff --check
+```
+
+Deployment impact: validation messaging and documentation only. No source image, prompt, checksum, review status, mobile bundle import, API, credential, entitlement, or deployed state changed.

@@ -16,6 +16,8 @@ This direction may be locked only after all three proofs pass coded-frame review
 
 Production exception: on 2026-08-05, the product owner explicitly authorized generating the remaining 75 cards before Expo device review. This accelerates production at the accepted risk that some or all unreviewed sources may require regeneration after the style decision. Generation does not lock the direction or promote any asset beyond `GENERATED_UNREVIEWED`.
 
+Generation completion record: all 78 canonical source illustrations have now been generated, individually inspected, checksum-bound to their exact prompts, and recorded in `tools/card-assets/manifest.json`. Per-card count, glyph, framing, and composition deviations remain open in the manifest; 78/78 generation completeness does not constitute style lock, source acceptance, accessibility approval, or coded-frame/device approval.
+
 ## Visual constants
 
 - Original nocturnal Art Nouveau and celestial illustration language; never imitate a named artist.
