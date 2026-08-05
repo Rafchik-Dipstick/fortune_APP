@@ -742,3 +742,24 @@ git diff --check
 ```
 
 Deployment impact: local API construction and dependency installation only. No port is opened by importing the package, no route or credential is added, and no Railway service or database is changed.
+
+### 2026-08-06 — Phase 3 fail-closed environment parsing
+
+- Added Zod parsing for the API runtime's Phase 3 configuration boundary: environment, port, database URL, proxy-hop count, CORS origins, and log level.
+- Normalized CORS input to unique origin-only HTTP(S) values; paths, query strings, fragments, and non-HTTP schemes fail startup validation.
+- Required production CORS entries to use HTTPS and required a positive explicit `TRUST_PROXY` hop count rather than silently trusting no or arbitrary proxies.
+- Kept validation errors limited to variable names and requirements so malformed secret-bearing values are never echoed.
+- Added focused tests for defaults, typed integer parsing, production proxy policy, malformed origins, PostgreSQL URL enforcement, and error redaction.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: startup configuration parsing only. No process entry point consumes the parser yet, no database connection is opened, and no Railway environment or secret is changed.
