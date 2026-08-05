@@ -626,3 +626,21 @@ git diff --check
 ```
 
 Deployment impact: 22 local Major Arcana bundle candidates and manifest metadata only. No source checksum, runtime import, API, credential, entitlement, human approval, or deployed state changed.
+
+### 2026-08-06 — Wands crop normalization
+
+- Normalized all 14 Wands sources sequentially to exact 1024 × 1536 RGB PNG bundle candidates without modifying archival sources.
+- Reviewed every Wands card together in the normalized contact sheet and checked all four sides for light and dark bands.
+- Removed residual 1–7 px exterior bands from Ace, Four, Seven, Nine, Ten, Knight, and Queen after the first mechanical pass.
+- Three of Wands retains an open dark sky at the top because it is painted scene content, not a canvas gutter; Queen's remaining dark top pixels are the ornamental frame outline exposed after its white gutter was removed.
+- All 14 normalized Wands files validate below 4 MB with unique checksums and source-bound crop records; card review status remains `GENERATED_UNREVIEWED`.
+
+Verification required before commit:
+
+```text
+corepack npm run asset:validate
+corepack npm run format:check
+git diff --check
+```
+
+Deployment impact: 14 local Wands bundle candidates and manifest metadata only. No source checksum, runtime import, API, credential, entitlement, human approval, or deployed state changed.

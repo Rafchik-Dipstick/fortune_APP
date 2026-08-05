@@ -1111,7 +1111,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-ace.png",
-      "bundledPath": "tools/card-assets/source/wands-ace.png",
+      "bundledPath": "tools/card-assets/normalized/wands-ace.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1121,7 +1121,38 @@
         "en": "A hand emerges from a cloud holding one flowering staff above a distant hilltop sanctuary."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark, one hand emerging from clouds, exactly one living flowering staff, new leaves and sparks, and a distant hilltop sanctuary. A strong generated ornamental border requires coded-frame and device review."
+      "reviewNotes": "Source inspection found no text or watermark, one hand emerging from clouds, exactly one living flowering staff, new leaves and sparks, and a distant hilltop sanctuary. A strong generated ornamental border requires coded-frame and device review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "7f392910318adc4dd50c55b9a70dc862795d219d1c048b3bd26e7eeefd5f9ff9",
+        "crop": {
+          "left": 38,
+          "top": 34,
+          "right": 38,
+          "bottom": 36
+        },
+        "edgeTreatment": "DARK_GUTTER",
+        "outputPath": "tools/card-assets/normalized/wands-ace.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2326396,
+        "sha256": "7af343ddcceb395a821c3ec30d82f1319c0b3b2f4a2e8a71f245a62c831b1603",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "wands-02",
@@ -1130,7 +1161,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-02.png",
-      "bundledPath": "tools/card-assets/source/wands-02.png",
+      "bundledPath": "tools/card-assets/normalized/wands-02.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1140,7 +1171,38 @@
         "en": "A traveler holds a starry globe between two flowering staffs above a wide landscape."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark, an inclusive adult traveler, a small starry globe, exactly two upright flowering staffs, and a wide nocturnal landscape. The ornate terrace does not form a separate heavy card frame but still requires coded-frame and device review."
+      "reviewNotes": "Source inspection found no text or watermark, an inclusive adult traveler, a small starry globe, exactly two upright flowering staffs, and a wide nocturnal landscape. The ornate terrace does not form a separate heavy card frame but still requires coded-frame and device review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "72342a36788688700879e69993bafef94f03db8b122ad246b47443b4498a19da",
+        "crop": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "edgeTreatment": "NONE",
+        "outputPath": "tools/card-assets/normalized/wands-02.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2567730,
+        "sha256": "9f4926990556d68d2ae4c7c3a15725a0025eca394ff7cf15572b67353c33708f",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "wands-03",
@@ -1149,7 +1211,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-03.png",
-      "bundledPath": "tools/card-assets/source/wands-03.png",
+      "bundledPath": "tools/card-assets/normalized/wands-03.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1159,7 +1221,38 @@
         "en": "A cloaked figure stands with three flowering staffs above a luminous sea dotted with distant ships."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Visual inspection found no text or watermark and confirmed three distinct flowering staffs, a clear traveler silhouette, and distant ships. Human editorial, compact/regular device review, and final normalization remain open."
+      "reviewNotes": "Visual inspection found no text or watermark and confirmed three distinct flowering staffs, a clear traveler silhouette, and distant ships. Human editorial, compact/regular device review, and final normalization remain open.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "c6983a0c87a868f37bb8f4a662458902c17b6abed4ae03657284a2c2bc9eae3a",
+        "crop": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "edgeTreatment": "NONE",
+        "outputPath": "tools/card-assets/normalized/wands-03.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2476101,
+        "sha256": "53b65d79be948e4d8445ae9ccd61e93cb5b5e814f604247ceb4f1909411491fc",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 58,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "wands-04",
@@ -1168,7 +1261,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-04.png",
-      "bundledPath": "tools/card-assets/source/wands-04.png",
+      "bundledPath": "tools/card-assets/normalized/wands-04.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1178,7 +1271,38 @@
         "en": "Four flowering staffs form a garlanded canopy as friends gather before a garden home."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark, exactly four upright flowering staffs forming an open garland canopy, diverse welcoming friends, and a softly lit garden home. A thin generated outer border requires coded-frame and device review."
+      "reviewNotes": "Source inspection found no text or watermark, exactly four upright flowering staffs forming an open garland canopy, diverse welcoming friends, and a softly lit garden home. A thin generated outer border requires coded-frame and device review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "60980135964f109be9897048e453481d0107d7330fafada2b55c4d8c09d6e377",
+        "crop": {
+          "left": 35,
+          "top": 33,
+          "right": 35,
+          "bottom": 33
+        },
+        "edgeTreatment": "DARK_GUTTER",
+        "outputPath": "tools/card-assets/normalized/wands-04.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2648031,
+        "sha256": "dd74ad9e9e7cbda8b2929988222607b5d99185bb0eb9f7fcab8393c299c6fcbd",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "wands-05",
@@ -1187,7 +1311,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-05.png",
-      "bundledPath": "tools/card-assets/source/wands-05.png",
+      "bundledPath": "tools/card-assets/normalized/wands-05.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1197,7 +1321,38 @@
         "en": "Five adults practice with five flowering staffs in a lively but friendly garden exercise."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text, watermark, violence, or distress; four diverse clothed adults smile through a coordinated exercise with five flowering staffs. The prompt requested five adults, so the participant-count mismatch and decorative edge require source and coded-frame review."
+      "reviewNotes": "Source inspection found no text, watermark, violence, or distress; four diverse clothed adults smile through a coordinated exercise with five flowering staffs. The prompt requested five adults, so the participant-count mismatch and decorative edge require source and coded-frame review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "ed82f6d0ddb766c34102d5acfb2405cc6bdf75e73db97ed157ff1f99a61d1a08",
+        "crop": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "edgeTreatment": "NONE",
+        "outputPath": "tools/card-assets/normalized/wands-05.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2843503,
+        "sha256": "d78324bab7820589b3eae9b41f2171f22f2a590c070c90e9dc33447c3756cc29",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "wands-06",
@@ -1206,7 +1361,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-06.png",
-      "bundledPath": "tools/card-assets/source/wands-06.png",
+      "bundledPath": "tools/card-assets/normalized/wands-06.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1216,7 +1371,38 @@
         "en": "A laurel-crowned rider returns through a welcoming crowd surrounded by six visible staffs."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark, a dignified adult rider holding one laurel-topped staff, and exactly five additional staffs rising from a diverse welcoming crowd. The generated celestial arch requires coded-frame and device review."
+      "reviewNotes": "Source inspection found no text or watermark, a dignified adult rider holding one laurel-topped staff, and exactly five additional staffs rising from a diverse welcoming crowd. The generated celestial arch requires coded-frame and device review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "245bddb340ce27e171d78ecdbb2cabc4da1696723796f0618b1ebd988f0ffef5",
+        "crop": {
+          "left": 28,
+          "top": 26,
+          "right": 28,
+          "bottom": 0
+        },
+        "edgeTreatment": "LIGHT_GUTTER",
+        "outputPath": "tools/card-assets/normalized/wands-06.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2676620,
+        "sha256": "f997e048008f09a290c4abba7f2190ed7ff83a9318f29b10e1994622fd67a9b2",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "wands-07",
@@ -1225,7 +1411,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-07.png",
-      "bundledPath": "tools/card-assets/source/wands-07.png",
+      "bundledPath": "tools/card-assets/normalized/wands-07.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1235,7 +1421,38 @@
         "en": "A steady figure holds one flowering staff above six others rising from a hill."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text, watermark, combat, or distress; a steady adult holds one flowering staff while exactly six more rise from below, seven total. The partial generated celestial arch requires coded-frame and device review."
+      "reviewNotes": "Source inspection found no text, watermark, combat, or distress; a steady adult holds one flowering staff while exactly six more rise from below, seven total. The partial generated celestial arch requires coded-frame and device review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "550b34cbfb52b16be8257bc271459158f8410df45826574941c91e7e6db53b17",
+        "crop": {
+          "left": 46,
+          "top": 46,
+          "right": 46,
+          "bottom": 0
+        },
+        "edgeTreatment": "DARK_GUTTER",
+        "outputPath": "tools/card-assets/normalized/wands-07.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2474500,
+        "sha256": "cf10842eb161f03936af96c68c43cf7509a8d3567e929bbdf7d3b4dcf27045fa",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "wands-08",
@@ -1244,7 +1461,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-08.png",
-      "bundledPath": "tools/card-assets/source/wands-08.png",
+      "bundledPath": "tools/card-assets/normalized/wands-08.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1254,7 +1471,38 @@
         "en": "Eight flowering staffs sweep across an open violet sky above a winding river."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no people, text, or watermark and exactly eight distinct flowering staffs traveling diagonally above a winding river and distant fields. A strong generated full ornamental border requires coded-frame and device review."
+      "reviewNotes": "Source inspection found no people, text, or watermark and exactly eight distinct flowering staffs traveling diagonally above a winding river and distant fields. A strong generated full ornamental border requires coded-frame and device review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "ef53d96b8484c60204c182e58b59a8545ce4a3bfcac814b06000111fcefd49d3",
+        "crop": {
+          "left": 29,
+          "top": 27,
+          "right": 29,
+          "bottom": 27
+        },
+        "edgeTreatment": "LIGHT_GUTTER",
+        "outputPath": "tools/card-assets/normalized/wands-08.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2600695,
+        "sha256": "f2203adadee770985981f4798a1ae6b17509f1f652ec5a56690e319784e492b8",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "wands-09",
@@ -1263,7 +1511,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-09.png",
-      "bundledPath": "tools/card-assets/source/wands-09.png",
+      "bundledPath": "tools/card-assets/normalized/wands-09.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1273,7 +1521,38 @@
         "en": "A bandaged figure rests with one staff before a protective row of eight flowering staffs."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text, watermark, or graphic injury; a resilient bandaged adult rests with one flowering staff while four staffs on each side form an eight-staff garden fence, nine total. The partial generated celestial frame requires coded-frame review."
+      "reviewNotes": "Source inspection found no text, watermark, or graphic injury; a resilient bandaged adult rests with one flowering staff while four staffs on each side form an eight-staff garden fence, nine total. The partial generated celestial frame requires coded-frame review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "b7ed2938af92931d8862a5f8b193fe371439d71aa8588c365087a4ff790f0394",
+        "crop": {
+          "left": 42,
+          "top": 32,
+          "right": 42,
+          "bottom": 39
+        },
+        "edgeTreatment": "DARK_GUTTER",
+        "outputPath": "tools/card-assets/normalized/wands-09.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2959904,
+        "sha256": "52f9b6f0cca838a0818828f1fe17b4fa1a1e3e42bcce891eefca27567acf2b10",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "wands-10",
@@ -1282,7 +1561,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-10.png",
-      "bundledPath": "tools/card-assets/source/wands-10.png",
+      "bundledPath": "tools/card-assets/normalized/wands-10.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1292,7 +1571,38 @@
         "en": "A traveler carries a bundle of ten flowering staffs along a path toward a village."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text, watermark, or distress; a calm adult safely carries a visible bundle of ten flowering staffs toward a lit village. The dense staff bundle needs a device-scale recount, and the full generated ornamental border requires coded-frame review."
+      "reviewNotes": "Source inspection found no text, watermark, or distress; a calm adult safely carries a visible bundle of ten flowering staffs toward a lit village. The dense staff bundle needs a device-scale recount, and the full generated ornamental border requires coded-frame review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "924feb7fdc9945d623d1fbf2a7cd0c2aac8f6a78d8178d01bc572ef57496e636",
+        "crop": {
+          "left": 21,
+          "top": 18,
+          "right": 21,
+          "bottom": 18
+        },
+        "edgeTreatment": "DARK_GUTTER",
+        "outputPath": "tools/card-assets/normalized/wands-10.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 3148704,
+        "sha256": "95b402ea7bf8d1cf7c6d8d766f17dd4141fd5318d2487eef9d902fa5c7ccb874",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "wands-page",
@@ -1301,7 +1611,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-page.png",
-      "bundledPath": "tools/card-assets/source/wands-page.png",
+      "bundledPath": "tools/card-assets/normalized/wands-page.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1311,7 +1621,38 @@
         "en": "A young explorer studies a sprouting staff beside a salamander in a desert garden."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark, an enthusiastic young adult explorer studying one tall sprouting staff, a small salamander, and distant pyramidal hills. The light generated celestial edge requires coded-frame and device review."
+      "reviewNotes": "Source inspection found no text or watermark, an enthusiastic young adult explorer studying one tall sprouting staff, a small salamander, and distant pyramidal hills. The light generated celestial edge requires coded-frame and device review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "65a242d745e17c25cc0ff01e46695c05c39feb4759e9d797838531a207efae08",
+        "crop": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "edgeTreatment": "NONE",
+        "outputPath": "tools/card-assets/normalized/wands-page.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2581512,
+        "sha256": "c8756c854195eb7e6e5ce690bcf5eafecbf3e9241e8470207e6bcf7bacfbd7c3",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "wands-knight",
@@ -1320,7 +1661,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-knight.png",
-      "bundledPath": "tools/card-assets/source/wands-knight.png",
+      "bundledPath": "tools/card-assets/normalized/wands-knight.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1330,7 +1671,38 @@
         "en": "A cloaked rider carries one flowering staff on a chestnut horse before red-violet hills."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark, a controlled adult rider on a forward-moving chestnut horse, one flowering staff, a wind-swept cloak, salamander motifs, and red-violet hills. A full generated ornamental border requires coded-frame and device review."
+      "reviewNotes": "Source inspection found no text or watermark, a controlled adult rider on a forward-moving chestnut horse, one flowering staff, a wind-swept cloak, salamander motifs, and red-violet hills. A full generated ornamental border requires coded-frame and device review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "560d876394ff23ce31e7099db295a48646a82e85b4372feb0b52d9168ab89ce8",
+        "crop": {
+          "left": 40,
+          "top": 37,
+          "right": 40,
+          "bottom": 37
+        },
+        "edgeTreatment": "DARK_GUTTER",
+        "outputPath": "tools/card-assets/normalized/wands-knight.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2342021,
+        "sha256": "810a4587c8d0030f2a9aef7785a68335084c4c295f29ae8fdf39fb1390716947",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "wands-queen",
@@ -1339,7 +1711,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-queen.png",
-      "bundledPath": "tools/card-assets/source/wands-queen.png",
+      "bundledPath": "tools/card-assets/normalized/wands-queen.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1349,7 +1721,38 @@
         "en": "A confident queen holds a flowering staff and sunflower beside a calm black cat."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark, a confident seated adult queen, exactly one flowering staff and one sunflower, a calm black cat, and a warm constellation canopy. A very strong generated full frame requires coded-frame and device review."
+      "reviewNotes": "Source inspection found no text or watermark, a confident seated adult queen, exactly one flowering staff and one sunflower, a calm black cat, and a warm constellation canopy. A very strong generated full frame requires coded-frame and device review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "64329a31a588996bb07106acd0eef6e8646ba3cddc39de5e7ce81900b25a9f43",
+        "crop": {
+          "left": 19,
+          "top": 15,
+          "right": 19,
+          "bottom": 17
+        },
+        "edgeTreatment": "LIGHT_GUTTER",
+        "outputPath": "tools/card-assets/normalized/wands-queen.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2640684,
+        "sha256": "bef44320749c7c83c0a3b778f277e32c1ddc0df0211127ceb59e29bef8d2fb89",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 3,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "wands-king",
@@ -1358,7 +1761,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-king.png",
-      "bundledPath": "tools/card-assets/source/wands-king.png",
+      "bundledPath": "tools/card-assets/normalized/wands-king.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1368,7 +1771,38 @@
         "en": "A charismatic king holds a flowering staff on a salamander-carved throne beside a small lizard."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark, a charismatic seated adult king, one tall fiery-flowering staff, a salamander-carved throne, a small safe lizard, and a fiery-gold lion constellation. A full generated ornamental border requires coded-frame and device review."
+      "reviewNotes": "Source inspection found no text or watermark, a charismatic seated adult king, one tall fiery-flowering staff, a salamander-carved throne, a small safe lizard, and a fiery-gold lion constellation. A full generated ornamental border requires coded-frame and device review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "34adf02af7f456c411d96a69aa34b293c72b2ce8e10b3ddab7bff5f9d47c5e71",
+        "crop": {
+          "left": 40,
+          "top": 28,
+          "right": 40,
+          "bottom": 35
+        },
+        "edgeTreatment": "LIGHT_GUTTER",
+        "outputPath": "tools/card-assets/normalized/wands-king.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2453665,
+        "sha256": "b8751a9c14d7fd138e952734dd153e3e334163537c25d595ebea0cf31c180d62",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "cups-ace",
