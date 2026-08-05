@@ -267,3 +267,24 @@ git diff --check
 ```
 
 Deployment impact: documentation only. No build, service, credential, device, content approval, or production state changed.
+
+### 2026-08-05 — Phase 2 Google ADC art proofs 2 and 3
+
+- Generated Queen of Cups and Three of Wands through the authorized Google Vertex ADC pipeline with `gemini-3.1-flash-image` and the shared draft nocturnal/celestial prompt direction.
+- Visually inspected both sources. Queen of Cups has a dignified central figure, readable cup, moonlit water, lilies, and no text/watermark. Three of Wands has a clear traveler, exactly three flowering staffs, distant ships, and no text/watermark.
+- Registered both 848 × 1264 RGB sources with exact byte sizes, provider/model, output paths, English alternative text, review notes, and SHA-256 checksums.
+- Integrated both sources into the code-rendered Collection card faces, completing the three-card locally bundled proof set without CDN dependencies or duplicate shipping binaries.
+- Updated the Phase 2 evidence matrix from 1/3 to 3/3 generated proofs while preserving `GENERATED_UNREVIEWED`/`READY FOR REVIEW` states and the unlocked prompt-style gate.
+
+Verification required before commit:
+
+```text
+corepack npm run asset:validate
+corepack npm run check
+cd apps/mobile
+corepack npm exec expo-doctor@latest
+cd ../..
+git diff --check
+```
+
+Deployment impact: two locally bundled development art proofs were added. No production deployment, remote configuration, credential, human approval, or final normalization state changed.

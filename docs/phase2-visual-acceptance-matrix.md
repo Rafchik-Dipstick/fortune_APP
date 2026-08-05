@@ -12,16 +12,16 @@ This record prevents local JavaScript checks from being mistaken for iPhone/iPad
 
 ## Automated evidence already available
 
-| Evidence                                                    | Current result                        | Command or source                                        |
-| ----------------------------------------------------------- | ------------------------------------- | -------------------------------------------------------- |
-| 320/599/600/899/900/1024-point layout classifications       | Pass                                  | `apps/mobile/src/theme/adaptive.test.ts`                 |
-| Default reveal duration remains 600–750 ms                  | Pass at 675 ms                        | `apps/mobile/src/motion/reveal-motion.test.ts`           |
-| Reduce Motion reveal remains 150–250 ms with no perspective | Pass at 200 ms                        | `apps/mobile/src/motion/reveal-motion.test.ts`           |
-| Strict checks, 18 tests, content and asset validation       | Pass                                  | `corepack npm run check`                                 |
-| Expo dependency/configuration health                        | Pass, 20/20                           | `cd apps/mobile && corepack npm exec expo-doctor@latest` |
-| iOS JavaScript export including local art                   | Pass                                  | `corepack npm run build --workspace @fortuneness/mobile` |
-| Three-card content matrix                                   | Pass, 24/24 ready for review          | `corepack npm run content:validate`                      |
-| ADC art manifest                                            | Partial, 1/3 generated and unreviewed | `corepack npm run asset:validate`                        |
+| Evidence                                                    | Current result                     | Command or source                                        |
+| ----------------------------------------------------------- | ---------------------------------- | -------------------------------------------------------- |
+| 320/599/600/899/900/1024-point layout classifications       | Pass                               | `apps/mobile/src/theme/adaptive.test.ts`                 |
+| Default reveal duration remains 600–750 ms                  | Pass at 675 ms                     | `apps/mobile/src/motion/reveal-motion.test.ts`           |
+| Reduce Motion reveal remains 150–250 ms with no perspective | Pass at 200 ms                     | `apps/mobile/src/motion/reveal-motion.test.ts`           |
+| Strict checks, 18 tests, content and asset validation       | Pass                               | `corepack npm run check`                                 |
+| Expo dependency/configuration health                        | Pass, 20/20                        | `cd apps/mobile && corepack npm exec expo-doctor@latest` |
+| iOS JavaScript export including local art                   | Pass                               | `corepack npm run build --workspace @fortuneness/mobile` |
+| Three-card content matrix                                   | Pass, 24/24 ready for review       | `corepack npm run content:validate`                      |
+| ADC art manifest                                            | Complete proof set, 3/3 unreviewed | `corepack npm run asset:validate`                        |
 
 Automated evidence does not close any physical-device row below.
 
@@ -59,11 +59,11 @@ No item can be marked approved by automated generation or by the coding agent.
 | Item                                    | Mechanical status                                                        | Required human decision                                                   | Status           |
 | --------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------- | ---------------- |
 | The Fool illustration                   | Generated, manifested, checksum-valid, visually inspected in source form | Review coded frame at compact/regular sizes; approve imagery and alt text | READY FOR REVIEW |
-| Queen of Cups illustration              | Description authored                                                     | Generate through Google ADC, manifest, inspect, and approve               | NOT GENERATED    |
-| Three of Wands illustration             | Description authored                                                     | Generate through Google ADC, manifest, inspect, and approve               | NOT GENERATED    |
+| Queen of Cups illustration              | Generated, manifested, checksum-valid, visually inspected in source form | Review coded frame at compact/regular sizes; approve imagery and alt text | READY FOR REVIEW |
+| Three of Wands illustration             | Generated, manifested, checksum-valid, visually inspected in source form | Review coded frame at compact/regular sizes; approve imagery and alt text | READY FOR REVIEW |
 | 24 English fortune templates            | Complete and validator-clean                                             | Editorial safety, tone, grammar, distinctness, and card/intention fit     | READY FOR REVIEW |
 | Three English illustration descriptions | Complete and validator-clean                                             | Editorial visible-imagery accuracy and 8–25-word final alt text           | READY FOR REVIEW |
-| Draft art prompt/style                  | One proof available                                                      | Lock only after all three cards pass iPhone and iPad coded-frame review   | UNLOCKED         |
+| Draft art prompt/style                  | Three proofs available                                                   | Lock only after all three cards pass iPhone and iPad coded-frame review   | UNLOCKED         |
 
 ## Per-run evidence template
 

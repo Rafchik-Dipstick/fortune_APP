@@ -18,6 +18,40 @@
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
       "reviewNotes": "Visual inspection found no text or watermark and a clear central silhouette. Human editorial, compact/regular device review, and final normalization remain open."
+    },
+    {
+      "key": "cups-queen",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/cups-queen.png",
+      "bundledPath": "tools/card-assets/source/cups-queen.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1861287,
+      "sha256": "32532d5b5da220b4a2654d783820e3e60986cf334063f113239ac969fee0b39b",
+      "localizedAltText": {
+        "en": "A crowned queen holds an ornate silver cup beside calm water, white lilies, and a crescent moon."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Visual inspection found no text or watermark, a dignified central figure, and a readable cup silhouette. Human editorial, compact/regular device review, and final normalization remain open."
+    },
+    {
+      "key": "wands-03",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/wands-03.png",
+      "bundledPath": "tools/card-assets/source/wands-03.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1848628,
+      "sha256": "c6983a0c87a868f37bb8f4a662458902c17b6abed4ae03657284a2c2bc9eae3a",
+      "localizedAltText": {
+        "en": "A cloaked figure stands with three flowering staffs above a luminous sea dotted with distant ships."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Visual inspection found no text or watermark and confirmed three distinct flowering staffs, a clear traveler silhouette, and distant ships. Human editorial, compact/regular device review, and final normalization remain open."
     }
   ]
 }

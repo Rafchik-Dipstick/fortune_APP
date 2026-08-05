@@ -2,7 +2,9 @@ import type { ImageSourcePropType } from 'react-native';
 
 import type { Orientation } from '@fortuneness/shared-types';
 
+import queenOfCupsIllustration from '../../../../tools/card-assets/source/cups-queen.png';
 import theFoolIllustration from '../../../../tools/card-assets/source/major-00-fool.png';
+import threeOfWandsIllustration from '../../../../tools/card-assets/source/wands-03.png';
 
 export interface VerticalSliceCard {
   altText: string;
@@ -33,6 +35,7 @@ export const verticalSliceCards = [
   card({
     altText: 'A calm queen holds a silver cup beside moonlit water and white lilies.',
     arcana: 'MINOR',
+    illustration: queenOfCupsIllustration,
     key: 'cups-queen',
     name: 'Queen of Cups',
     number: 'Q',
@@ -42,6 +45,7 @@ export const verticalSliceCards = [
   card({
     altText: 'Three flowering staffs overlook a luminous sea beneath an open horizon.',
     arcana: 'MINOR',
+    illustration: threeOfWandsIllustration,
     key: 'wands-03',
     name: 'Three of Wands',
     number: 'III',
