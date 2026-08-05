@@ -86,10 +86,10 @@ describe('createApiApp', () => {
     const deniedResponse = await request(app)
       .get('/missing')
       .set('Origin', 'https://untrusted.example')
-      .expect(403);
+      .expect(400);
 
     expect(deniedResponse.headers['access-control-allow-origin']).toBeUndefined();
-    expect(deniedResponse.body.error.code).toBe('ORIGIN_NOT_ALLOWED');
+    expect(deniedResponse.body.error.code).toBe('VALIDATION_FAILED');
   });
 
   it('normalizes malformed and oversized JSON errors', async () => {
@@ -103,10 +103,10 @@ describe('createApiApp', () => {
       .post('/missing')
       .set('Content-Type', 'application/json')
       .send(JSON.stringify({ value: 'x'.repeat(33 * 1024) }))
-      .expect(413);
+      .expect(400);
 
-    expect(malformedResponse.body.error.code).toBe('INVALID_JSON');
-    expect(oversizedResponse.body.error.code).toBe('PAYLOAD_TOO_LARGE');
+    expect(malformedResponse.body.error.code).toBe('VALIDATION_FAILED');
+    expect(oversizedResponse.body.error.code).toBe('VALIDATION_FAILED');
   });
 
   it('returns the normalized envelope when the global rate limit is exceeded', async () => {

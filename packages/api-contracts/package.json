@@ -5,20 +5,35 @@
   "type": "module",
   "description": "Zod schemas shared across Fortuneness API boundaries.",
   "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "types": "./src/index.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./src/index.ts",
+      "development": "./src/index.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
+    },
+    "./openapi": {
+      "types": "./src/openapi.ts",
+      "development": "./src/openapi.ts",
+      "import": "./dist/openapi.js",
+      "default": "./dist/openapi.js"
     }
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "openapi:check": "tsx src/openapi-file.ts --check",
+    "openapi:generate": "tsx src/openapi-file.ts --write",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "9.1.0",
     "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "prettier": "3.9.6",
+    "tsx": "4.20.5"
   }
 }

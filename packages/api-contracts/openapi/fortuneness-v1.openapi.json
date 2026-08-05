@@ -1,0 +1,130 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Fortuneness API",
+    "version": "0.1.0",
+    "description": "Server-authoritative contracts for the Fortuneness iPhone and iPad application."
+  },
+  "servers": [{ "url": "/" }],
+  "tags": [{ "name": "Operations" }],
+  "x-stable-error-codes": [
+    "VALIDATION_FAILED",
+    "AUTH_REQUIRED",
+    "GAME_CENTER_REAUTH_REQUIRED",
+    "GAME_CENTER_UNAVAILABLE",
+    "GAME_CENTER_ID_NOT_PERSISTENT",
+    "GAME_CENTER_PROOF_INVALID",
+    "GAME_CENTER_PROOF_EXPIRED",
+    "ACCOUNT_DELETION_PENDING",
+    "ACCOUNT_PURGED",
+    "NOT_FOUND",
+    "NO_DRAWS_AVAILABLE",
+    "UNVIEWED_READING_PENDING",
+    "CONTENT_UNAVAILABLE",
+    "PRODUCT_NOT_ALLOWED",
+    "TRANSACTION_UNVERIFIED",
+    "TRANSACTION_OWNER_UNKNOWN",
+    "COMMERCE_REVIEW_REQUIRED",
+    "IDEMPOTENCY_KEY_REUSED",
+    "TIME_ZONE_CHANGE_LIMITED",
+    "RETRYABLE_CONFLICT",
+    "RATE_LIMITED",
+    "INTERNAL_ERROR"
+  ],
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "checks": {
+            "type": "object",
+            "properties": {
+              "database": { "type": "string", "enum": ["ready", "not_ready"] },
+              "process": { "type": "string", "enum": ["ready", "not_ready"] }
+            },
+            "required": ["database", "process"],
+            "additionalProperties": false
+          },
+          "status": { "type": "string", "enum": ["ready", "not_ready"] }
+        },
+        "required": ["checks", "status"],
+        "additionalProperties": false
+      },
+      "ApiErrorEnvelope": {
+        "type": "object",
+        "properties": { "error": { "$ref": "#/components/schemas/ApiError" } },
+        "required": ["error"],
+        "additionalProperties": false
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "VALIDATION_FAILED",
+              "AUTH_REQUIRED",
+              "GAME_CENTER_REAUTH_REQUIRED",
+              "GAME_CENTER_UNAVAILABLE",
+              "GAME_CENTER_ID_NOT_PERSISTENT",
+              "GAME_CENTER_PROOF_INVALID",
+              "GAME_CENTER_PROOF_EXPIRED",
+              "ACCOUNT_DELETION_PENDING",
+              "ACCOUNT_PURGED",
+              "NOT_FOUND",
+              "NO_DRAWS_AVAILABLE",
+              "UNVIEWED_READING_PENDING",
+              "CONTENT_UNAVAILABLE",
+              "PRODUCT_NOT_ALLOWED",
+              "TRANSACTION_UNVERIFIED",
+              "TRANSACTION_OWNER_UNKNOWN",
+              "COMMERCE_REVIEW_REQUIRED",
+              "IDEMPOTENCY_KEY_REUSED",
+              "TIME_ZONE_CHANGE_LIMITED",
+              "RETRYABLE_CONFLICT",
+              "RATE_LIMITED",
+              "INTERNAL_ERROR"
+            ]
+          },
+          "message": { "type": "string", "minLength": 1 },
+          "requestId": { "type": "string", "format": "uuid" },
+          "retryable": { "type": "boolean" },
+          "sameKeyRetrySafe": { "type": "boolean" }
+        },
+        "required": ["code", "message", "requestId", "retryable", "sameKeyRetrySafe"],
+        "additionalProperties": false
+      }
+    },
+    "parameters": {}
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "description": "Reports only process and PostgreSQL readiness. It never returns versions, URLs, credentials, or dependency errors.",
+        "summary": "Check API readiness",
+        "tags": ["Operations"],
+        "responses": {
+          "200": {
+            "description": "The process is accepting traffic and PostgreSQL is reachable.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/HealthResponse" } }
+            }
+          },
+          "500": {
+            "description": "An unexpected server failure occurred.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "503": {
+            "description": "The process is draining or PostgreSQL is unavailable.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/HealthResponse" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {}
+}

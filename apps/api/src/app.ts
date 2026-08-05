@@ -2,6 +2,7 @@ import cors from 'cors';
 import express, { type Express } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import helmet from 'helmet';
+import { apiPaths } from '@fortuneness/api-contracts';
 
 import { type ApiEnvironment } from './config/environment.js';
 import { type ApiReadiness } from './health/readiness.js';
@@ -64,9 +65,9 @@ export const createApiApp = (options: CreateApiAppOptions): Express => {
 
         callback(
           new ApiHttpError({
-            code: 'ORIGIN_NOT_ALLOWED',
+            code: 'VALIDATION_FAILED',
             message: 'The request origin is not allowed.',
-            statusCode: 403,
+            statusCode: 400,
           }),
         );
       },
@@ -84,7 +85,7 @@ export const createApiApp = (options: CreateApiAppOptions): Express => {
       },
       legacyHeaders: false,
       limit: rateLimitOptions.max,
-      skip: (request) => request.path === '/health',
+      skip: (request) => request.path === apiPaths.health,
       standardHeaders: 'draft-8',
       windowMs: rateLimitOptions.windowMs,
     }),

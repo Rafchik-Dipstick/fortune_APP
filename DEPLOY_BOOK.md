@@ -808,3 +808,28 @@ git diff --check
 ```
 
 Deployment impact: the API now has a production-shaped local startup and checked-in Railway service configuration, but nothing was deployed. Railway projects, PostgreSQL services, variables, proxy-hop evidence, and the custom config path remain external Phase 0/3 gates.
+
+### 2026-08-06 — Phase 3 shared contracts and OpenAPI drift gate
+
+- Promoted `/health`, readiness payloads, the normalized error envelope, and the specification's complete stable server error-code vocabulary into `@fortuneness/api-contracts` Zod ownership.
+- Removed Phase 3's ad hoc transport error codes; denied origins, malformed JSON, and oversized JSON now use the specification's fixed `400 VALIDATION_FAILED` mapping.
+- Rejected undocumented error codes and free-form `details` at the current contract boundary. Later domain phases must add code-specific strict detail schemas rather than widening this envelope.
+- Made the API validate health and error response bodies against shared schemas at runtime and use the shared health path, preventing implementation and documentation from naming separate routes.
+- Generated a canonical OpenAPI 3.1 document from the Zod registry and added a byte-for-byte drift check to the root quality gate.
+- Updated the Railway build to compile contracts before the API so the production Node process resolves the same package tested in development.
+- Added tests for schema strictness, canonical path ownership, health response coverage, OpenAPI operations/components, and complete stable-code publication.
+
+Verification required before commit:
+
+```text
+corepack npm run openapi:generate
+corepack npm run openapi:check
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: shared schemas, generated API documentation, and CI drift enforcement only. The Railway build order changes, but no service, route deployment, database schema, credential, or external environment changed.

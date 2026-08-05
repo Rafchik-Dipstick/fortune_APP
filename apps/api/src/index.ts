@@ -15,7 +15,8 @@ export {
 } from './shutdown.js';
 
 export const apiWorkspace = {
-  healthPath: '/health',
+  healthPath: apiPaths.health,
   publicApiPrefix: '/v1',
   runtime: 'node',
 } as const;
+import { apiPaths } from '@fortuneness/api-contracts';

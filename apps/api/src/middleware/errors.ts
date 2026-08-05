@@ -1,9 +1,10 @@
 import { type ErrorRequestHandler, type RequestHandler, type Response } from 'express';
+import { apiErrorEnvelopeSchema, type ApiErrorCode } from '@fortuneness/api-contracts';
 
 import { type ApiLogger } from '../logging/logger.js';
 
 interface ApiErrorBody {
-  code: string;
+  code: ApiErrorCode;
   message: string;
   requestId: string;
   retryable: boolean;
@@ -16,13 +17,13 @@ interface ErrorWithHttpMetadata {
 }
 
 export class ApiHttpError extends Error {
-  readonly code: string;
+  readonly code: ApiErrorCode;
   readonly retryable: boolean;
   readonly sameKeyRetrySafe: boolean;
   readonly statusCode: number;
 
   constructor(options: {
-    code: string;
+    code: ApiErrorCode;
     message: string;
     retryable?: boolean;
     sameKeyRetrySafe?: boolean;
@@ -43,12 +44,13 @@ export const sendApiError = (
   requestId: string,
   error: Omit<ApiErrorBody, 'requestId'>,
 ): void => {
-  response.status(statusCode).json({
+  const body = apiErrorEnvelopeSchema.parse({
     error: {
       ...error,
       requestId,
     },
   });
+  response.status(statusCode).json(body);
 };
 
 export const notFoundHandler: RequestHandler = (request, _response, next) => {
@@ -78,8 +80,8 @@ export const createErrorHandler =
     }
 
     if (hasHttpMetadata(error) && error.type === 'entity.too.large') {
-      sendApiError(response, 413, request.requestId, {
-        code: 'PAYLOAD_TOO_LARGE',
+      sendApiError(response, 400, request.requestId, {
+        code: 'VALIDATION_FAILED',
         message: 'The request body exceeds the allowed size.',
         retryable: false,
         sameKeyRetrySafe: false,
@@ -94,7 +96,7 @@ export const createErrorHandler =
       error.type === 'entity.parse.failed'
     ) {
       sendApiError(response, 400, request.requestId, {
-        code: 'INVALID_JSON',
+        code: 'VALIDATION_FAILED',
         message: 'The request body must contain valid JSON.',
         retryable: false,
         sameKeyRetrySafe: false,
