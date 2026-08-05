@@ -351,3 +351,21 @@ git diff --check
 ```
 
 Deployment impact: development UI and tests only. No production navigation, asset status, approval, server interaction, credential, native capability, or deployed state changed.
+
+### 2026-08-05 — Phase 2 canonical editorial review report
+
+- Added a deterministic Markdown editorial report generated directly from the validated canonical content manifest, avoiding a second hand-maintained copy of the 24 templates.
+- Groups cards by canonical sort order and templates by upright/reversed, General/Love/Work/Growth, and variant.
+- Prints stable `cardKey:orientation:intention:variant` review keys, statuses, headlines, messages/actions with word counts, affirmations, card alt text, illustration descriptions, and blank reviewer decision/notes fields.
+- Added `corepack npm run content:review` for reviewers and tests proving all 24 logical keys appear exactly once, output is deterministic, and card sections respect canonical order.
+- Linked the report workflow from the editorial rubric and updated the Phase 2 evidence matrix/test count. Generated output still records no approval by itself.
+
+Verification required before commit:
+
+```text
+corepack npm run content:review
+corepack npm run check
+git diff --check
+```
+
+Deployment impact: content review tooling, tests, and documentation only. Canonical fortune copy, review status, API behavior, mobile runtime behavior, credentials, and deployment state did not change.

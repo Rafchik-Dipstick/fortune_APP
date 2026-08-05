@@ -17,13 +17,14 @@ This record prevents local JavaScript checks from being mistaken for iPhone/iPad
 | 320/599/600/899/900/1024-point layout classifications       | Pass                               | `apps/mobile/src/theme/adaptive.test.ts`                 |
 | Default reveal duration remains 600–750 ms                  | Pass at 675 ms                     | `apps/mobile/src/motion/reveal-motion.test.ts`           |
 | Reduce Motion reveal remains 150–250 ms with no perspective | Pass at 200 ms                     | `apps/mobile/src/motion/reveal-motion.test.ts`           |
-| Strict checks, 20 tests, content and asset validation       | Pass                               | `corepack npm run check`                                 |
+| Strict checks, 22 tests, content and asset validation       | Pass                               | `corepack npm run check`                                 |
 | Expo dependency/configuration health                        | Pass, 20/20                        | `cd apps/mobile && corepack npm exec expo-doctor@latest` |
 | iOS JavaScript export including local art                   | Pass                               | `corepack npm run build --workspace @fortuneness/mobile` |
 | Three-card content matrix                                   | Pass, 24/24 ready for review       | `corepack npm run content:validate`                      |
 | ADC art manifest                                            | Complete proof set, 3/3 unreviewed | `corepack npm run asset:validate`                        |
 | Brand mark manifest                                         | Pass, one unreviewed square proof  | `corepack npm run brand:validate`                        |
 | Review-gallery compact/full sizing                          | Pass at 320 and 1024 points        | `apps/mobile/src/theme/adaptive.test.ts`                 |
+| Canonical editorial review packet                           | Pass, 24 stable review keys        | `corepack npm run content:review`                        |
 
 Automated evidence does not close any physical-device row below.
 

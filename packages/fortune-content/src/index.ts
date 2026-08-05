@@ -6,3 +6,4 @@ export {
 } from './schema.js';
 export type { ContentManifest, FortuneTemplate, TarotCardContent } from './schema.js';
 export { developmentContentManifest } from './development-slice.js';
+export { getTemplateReviewKey, renderEditorialReviewMarkdown } from './review-report.js';

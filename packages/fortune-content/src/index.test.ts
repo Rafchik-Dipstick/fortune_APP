@@ -5,6 +5,8 @@ import {
   countWords,
   developmentContentManifest,
   developmentSliceExpectations,
+  getTemplateReviewKey,
+  renderEditorialReviewMarkdown,
   validateDevelopmentSlice,
 } from './index.js';
 
@@ -87,5 +89,26 @@ describe('development fortune content', () => {
     });
 
     expect(result.success).toBe(false);
+  });
+
+  it('renders one deterministic review block for every logical template key', () => {
+    const manifest = validateDevelopmentSlice(developmentContentManifest);
+    const report = renderEditorialReviewMarkdown(manifest);
+
+    expect(report.match(/\*\*Review key:\*\*/gu)).toHaveLength(
+      developmentSliceExpectations.templates,
+    );
+    for (const template of manifest.templates) {
+      expect(report).toContain(`\`${getTemplateReviewKey(template)}\``);
+    }
+    expect(renderEditorialReviewMarkdown(manifest)).toBe(report);
+  });
+
+  it('orders review sections by canonical card sort order', () => {
+    const manifest = validateDevelopmentSlice(developmentContentManifest);
+    const report = renderEditorialReviewMarkdown(manifest);
+
+    expect(report.indexOf('## The Fool')).toBeLessThan(report.indexOf('## Three of Wands'));
+    expect(report.indexOf('## Three of Wands')).toBeLessThan(report.indexOf('## Queen of Cups'));
   });
 });

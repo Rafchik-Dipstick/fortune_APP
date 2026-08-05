@@ -15,6 +15,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "review:print": "tsx src/print-review-report.ts",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json",
     "validate": "tsx src/validate.ts"

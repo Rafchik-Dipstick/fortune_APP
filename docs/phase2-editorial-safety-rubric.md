@@ -60,12 +60,13 @@ Human review must still catch paraphrases and contextual harm not covered by the
 ## Review procedure
 
 1. Run `corepack npm run content:validate` against the exact commit under review.
-2. Review all eight templates for one card together to test orientation and intention distinction.
-3. Review all three cards for one intention together to detect formulaic repetition.
-4. Compare illustration description and alt text to the final image inside the coded frame.
-5. Record requested edits against stable keys: `cardKey:orientation:intention:variant`.
-6. Rerun automated validation and complete a second-person editorial pass after edits.
-7. Change `editorialStatus` to `APPROVED` only with named owner, date, commit, and decision evidence in `DEPLOY_BOOK.md`.
+2. Run `corepack npm run content:review` to print the deterministic Markdown review packet directly from canonical content.
+3. Review all eight templates for one card together to test orientation and intention distinction.
+4. Review all three cards for one intention together to detect formulaic repetition.
+5. Compare illustration description and alt text to the final image inside the coded frame.
+6. Record requested edits against the stable review key `cardKey:orientation:intention:variant` printed for every template.
+7. Rerun automated validation and complete a second-person editorial pass after edits.
+8. Change `editorialStatus` to `APPROVED` only with named owner, date, commit, and decision evidence in `DEPLOY_BOOK.md`.
 
 ## Approval record
 

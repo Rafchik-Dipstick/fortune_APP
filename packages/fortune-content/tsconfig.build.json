@@ -4,5 +4,11 @@
     "noEmit": false,
     "outDir": "dist"
   },
-  "exclude": ["dist", "node_modules", "src/**/*.test.ts", "src/validate.ts"]
+  "exclude": [
+    "dist",
+    "node_modules",
+    "src/**/*.test.ts",
+    "src/print-review-report.ts",
+    "src/validate.ts"
+  ]
 }
