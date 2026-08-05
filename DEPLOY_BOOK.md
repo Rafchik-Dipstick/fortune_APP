@@ -251,3 +251,19 @@ git diff --check
 ```
 
 Deployment impact: UI prototypes only. No API call, persistence, allowance mutation, purchase initiation, notification, or production configuration was added.
+
+### 2026-08-05 — Phase 2 acceptance evidence matrix
+
+- Added `docs/phase2-visual-acceptance-matrix.md` to separate passing local automation from evidence that requires a signed iOS development build, Mac/Xcode, physical iPhone/iPad testing, and named human review.
+- Defined compact/large iPhone, iPad portrait/landscape, Split View, Stage Manager, 320-point, pseudo-locale, Dynamic Type, VoiceOver, Reduce Motion, Reduce Transparency, focus, and contrast rows.
+- Recorded honest art/editorial states: The Fool is generated and unreviewed, two illustrations are not generated, 24 templates and three descriptions are ready for review, and the draft art style remains unlocked.
+- Added a reusable evidence template with build/device/OS/viewport/accessibility/tester/screenshot/retest fields and explicit Phase 2 exit conditions.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+git diff --check
+```
+
+Deployment impact: documentation only. No build, service, credential, device, content approval, or production state changed.
