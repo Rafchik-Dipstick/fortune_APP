@@ -1,8 +1,13 @@
+import type { ImageSourcePropType } from 'react-native';
+
 import type { Orientation } from '@fortuneness/shared-types';
+
+import theFoolIllustration from '../../../../tools/card-assets/source/major-00-fool.png';
 
 export interface VerticalSliceCard {
   altText: string;
   arcana: 'MAJOR' | 'MINOR';
+  illustration?: ImageSourcePropType;
   key: string;
   name: string;
   number: string;
@@ -10,17 +15,22 @@ export interface VerticalSliceCard {
   suitSymbol: string;
 }
 
+function card(value: VerticalSliceCard): VerticalSliceCard {
+  return value;
+}
+
 export const verticalSliceCards = [
-  {
+  card({
     altText: 'A traveler steps toward dawn beneath a bright wandering star.',
     arcana: 'MAJOR',
+    illustration: theFoolIllustration,
     key: 'major-00-fool',
     name: 'The Fool',
     number: '0',
     orientation: 'UPRIGHT',
     suitSymbol: '✦',
-  },
-  {
+  }),
+  card({
     altText: 'A calm queen holds a silver cup beside moonlit water and white lilies.',
     arcana: 'MINOR',
     key: 'cups-queen',
@@ -28,8 +38,8 @@ export const verticalSliceCards = [
     number: 'Q',
     orientation: 'UPRIGHT',
     suitSymbol: '◡',
-  },
-  {
+  }),
+  card({
     altText: 'Three flowering staffs overlook a luminous sea beneath an open horizon.',
     arcana: 'MINOR',
     key: 'wands-03',
@@ -37,8 +47,8 @@ export const verticalSliceCards = [
     number: 'III',
     orientation: 'UPRIGHT',
     suitSymbol: '│',
-  },
-] as const satisfies readonly VerticalSliceCard[];
+  }),
+] as const;
 
 export const sampleReading = {
   ...verticalSliceCards[0],

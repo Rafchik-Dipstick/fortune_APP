@@ -211,3 +211,22 @@ git diff --check
 ```
 
 Deployment impact: content and validation only. The dataset is not seeded or served by the API, and human editorial approval remains a Phase 2 acceptance blocker.
+
+### 2026-08-05 — Phase 2 Google ADC art proof 1 of 3
+
+- Verified Application Default Credentials and the configured Vertex project without printing tokens or secret values.
+- Used the authorized single Google Vertex ADC request to generate The Fool illustration with `gemini-3.1-flash-image` and the draft `phase2-nocturnal-celestial-v1` prompt direction.
+- Visually inspected the result: the central traveler/dog silhouette, celestial palette, crop safety, and lack of text/watermark are suitable for coded-frame testing. Human editorial and real-device visual review remain open.
+- Recorded the 848 × 1264 RGB source, 2,022,576-byte size, exact output path, provider/model, review state, English alternative text, and SHA-256 checksum in the asset manifest.
+- Integrated the single-source proof through the code-rendered card face in Reveal and Collection; no CDN or duplicate tracked shipping binary is used.
+- Expanded asset validation to verify PNG structure, dimensions, aspect tolerance, file size, checksum, unique keys/checksums, manifest coverage, alternative-text length, and review status.
+
+Verification required before commit:
+
+```text
+corepack npm run asset:validate
+corepack npm run check
+git diff --check
+```
+
+Deployment impact: one local bundled development art proof was added. No production deployment, remote service configuration, or credential changed; two additional ADC proofs, normalization lock, and device approval remain open.

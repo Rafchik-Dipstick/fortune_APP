@@ -38,6 +38,7 @@ export default function RevealScreen() {
           faceUp={{
             artAltText: sampleReading.altText,
             cardName: sampleReading.name,
+            ...(sampleReading.illustration ? { illustration: sampleReading.illustration } : {}),
             number: sampleReading.number,
             orientation: sampleReading.orientation,
             suitSymbol: sampleReading.suitSymbol,

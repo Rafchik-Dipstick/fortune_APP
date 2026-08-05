@@ -72,6 +72,7 @@ export default function CollectionScreen() {
                   faceUp={{
                     artAltText: card.altText,
                     cardName: card.name,
+                    ...(card.illustration ? { illustration: card.illustration } : {}),
                     number: card.number,
                     orientation: card.orientation,
                     suitSymbol: card.suitSymbol,

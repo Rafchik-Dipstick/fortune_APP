@@ -1,5 +1,23 @@
 {
   "schemaVersion": 1,
-  "promptTemplateVersion": "unlocked",
-  "cards": []
+  "promptTemplateVersion": "phase2-nocturnal-celestial-v1-draft",
+  "cards": [
+    {
+      "key": "major-00-fool",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/major-00-fool.png",
+      "bundledPath": "tools/card-assets/source/major-00-fool.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2022576,
+      "sha256": "082534c72dd943a0ccb4417df90df4daf2585a00076fa341f8f06a3ce5c5122c",
+      "localizedAltText": {
+        "en": "A traveler at a cliff lifts a white flower while a small dog watches beneath a radiant dawn star."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Visual inspection found no text or watermark and a clear central silhouette. Human editorial, compact/regular device review, and final normalization remain open."
+    }
+  ]
 }
