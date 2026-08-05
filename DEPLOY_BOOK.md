@@ -526,3 +526,24 @@ git diff --check
 ```
 
 Deployment impact: thirteen unreviewed Cups source illustrations, their accessibility/provenance metadata, and documentation only. The mobile bundle still imports only the three Phase 2 proofs; no review status, API, credential, entitlement, or deployed state changed.
+
+### 2026-08-05 — Full-deck Swords source completion
+
+- Generated and individually inspected all fourteen Swords sources through Google Vertex ADC one request at a time.
+- The Swords source set is complete at 14/14, bringing the canonical full-deck manifest to 64/78 generated sources.
+- Every source is an 848 × 1264 RGB PNG below the 4 MB source limit, has a unique SHA-256 checksum, and is bound to its exact prompt checksum in the canonical manifest.
+- Source inspection found no visible words, signatures, watermarks, bodies, blood, graphic injury, combat, or horror; sensitive cards use explicitly symbolic or restorative compositions.
+- Four exact-count deviations remain open: Four of Swords shows five rather than four swords; Five of Swords shows four rather than five swords and four rather than two distant silhouettes; Six of Swords shows five rather than six swords; and Ten of Swords shows eight rather than ten swords.
+- Ace of Swords places its olive/palm foliage around the hilt rather than crowning the blade tip, and Seven of Swords leaves the carried blades visibly unsheathed. These deviations remain recorded without promoting either source.
+- Generated edges range from open compositions to elaborate full frames and remain coded-frame/device-review issues; no source was added to the runtime bundle.
+
+Verification required before commit:
+
+```text
+corepack npm run asset:sync
+corepack npm run asset:validate
+corepack npm run check
+git diff --check
+```
+
+Deployment impact: fourteen unreviewed Swords source illustrations, their accessibility/provenance metadata, and documentation only. The mobile bundle still imports only the three Phase 2 proofs; no review status, API, credential, entitlement, or deployed state changed.

@@ -953,6 +953,272 @@
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
       "reviewNotes": "Source inspection found no text or watermark, a composed adult king on a stone throne surrounded by calm water, exactly one silver cup and one simple lotus scepter, and ships moving safely in the distance. A full generated ornamental frame requires coded-frame and device review."
+    },
+    {
+      "key": "swords-ace",
+      "promptKey": "swords-ace",
+      "promptTextSha256": "f7fd2285af3662ee77396b48ebe45721fab443f45c88aa0311975a0e01b1dd96",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/swords-ace.png",
+      "bundledPath": "tools/card-assets/source/swords-ace.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1638324,
+      "sha256": "000ba5c414f60ab238b7dd5ede675823526df35a07d986f8eae233ab73029d9a",
+      "localizedAltText": {
+        "en": "A hand raises one silver sword crowned with olive and palm leaves beneath a star."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, one hand emerging from a cloud, exactly one upright moon-silver sword, a clear radiant star, and olive/palm foliage. The foliage clusters around the hilt rather than crowning the blade tip, and the thin full edge requires source and coded-frame review."
+    },
+    {
+      "key": "swords-02",
+      "promptKey": "swords-02",
+      "promptTextSha256": "6a25039fbcf5b217a324028622fa1a64983273ca574a974037433bc26b616eda",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/swords-02.png",
+      "bundledPath": "tools/card-assets/source/swords-02.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1549973,
+      "sha256": "5a8f1ad4c01610c304527c3b24a0124d1fa45cd4612b8cb2019b081a59a0833a",
+      "localizedAltText": {
+        "en": "A blindfolded figure holds two crossed silver swords beside moonlit water and distant rocks."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text, watermark, or injury; a calm blindfolded adult sits beside moonlit water holding exactly two crossed silver swords, with a crescent moon and distant rocks. The light generated top arch requires coded-frame and device review."
+    },
+    {
+      "key": "swords-03",
+      "promptKey": "swords-03",
+      "promptTextSha256": "1f92185e896278bffd51fc33a44d71033e6ddd37ad9727d51e7f76bbc5a136e8",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/swords-03.png",
+      "bundledPath": "tools/card-assets/source/swords-03.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1709952,
+      "sha256": "73d6812809d24763c503439e932e729f8e86e8018ba7017596e9de7efb789744",
+      "localizedAltText": {
+        "en": "Three silver swords cross a translucent crystal heart beneath gentle cleansing rain."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text, watermark, anatomy, blood, or horror; exactly three silver swords cross a translucent faceted crystal heart beneath cleansing rain clouds. A strong generated full ornamental frame requires coded-frame and device review."
+    },
+    {
+      "key": "swords-04",
+      "promptKey": "swords-04",
+      "promptTextSha256": "bf5a90e414f57ad8d07011bf830715be1f8f96c7a7ab46bae11cf6b33bea3f1b",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/swords-04.png",
+      "bundledPath": "tools/card-assets/source/swords-04.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1557889,
+      "sha256": "ff7ac4f4e1c6c1207a02e28eae2aca772f5606730dabcda9ab3efc10fd4d1f28",
+      "localizedAltText": {
+        "en": "An armored figure rests in a sanctuary with one sword below and three mounted above."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text, watermark, injury, or distress and a resting armored adult in a peaceful sanctuary, but three swords are mounted above and two lie beneath the couch, five total rather than the requested four. The count mismatch and strong full frame require review."
+    },
+    {
+      "key": "swords-05",
+      "promptKey": "swords-05",
+      "promptTextSha256": "3f4857a68ff1acdde949816bb9dba060f0ad2531649888c4acee6733a534c643",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/swords-05.png",
+      "bundledPath": "tools/card-assets/source/swords-05.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2028389,
+      "sha256": "ebbf1a5f80c0a6569308d570a2af60d7b1233d6c17324e51c30758df8b8ee4d8",
+      "localizedAltText": {
+        "en": "A figure gathers three swords while two lie nearby and two people walk toward water."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text, watermark, combat, or injury, but the central adult gathers two swords while two lie safely on the ground, four total rather than five, and four background silhouettes appear rather than the intended pair. The count deviations and full frame require review."
+    },
+    {
+      "key": "swords-06",
+      "promptKey": "swords-06",
+      "promptTextSha256": "f1062683438efb8eb20a5305e620099279caab7ec98bd9c0a6b46a846c132d89",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/swords-06.png",
+      "bundledPath": "tools/card-assets/source/swords-06.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1941226,
+      "sha256": "0c1aa436a983f5ddb4eb0adc22e95d9c40b119cb21eb271541920e6cd061f716",
+      "localizedAltText": {
+        "en": "A guide rows two passengers toward calm shores with six swords secured at the bow."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text, watermark, danger, or distress and the guide, two clothed passengers, safe boat, and calm destination are clear, but only five upright swords appear at the bow rather than six. The open scene avoids a heavy generated card frame; the count mismatch requires review."
+    },
+    {
+      "key": "swords-07",
+      "promptKey": "swords-07",
+      "promptTextSha256": "7c343b137f24920592bc26a58f532db549aa32c2ee4594889ab3d8bc2283d819",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/swords-07.png",
+      "bundledPath": "tools/card-assets/source/swords-07.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1793859,
+      "sha256": "9fe6c9b7f2fbeb523a2db6305599ed56ddac56e08e502fa05a5574d111d7e02a",
+      "localizedAltText": {
+        "en": "A careful figure carries five sheathed swords while two remain beside a quiet camp."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text, watermark, or combat and the careful adult, quiet camp, five-sword bundle, and exactly two swords left behind read as seven total. The carried swords are visibly unsheathed despite the prompt safety detail, and the strong full frame requires review."
+    },
+    {
+      "key": "swords-08",
+      "promptKey": "swords-08",
+      "promptTextSha256": "aabbe7fa9f586b4902f55a97fc554fe1626ab7ec0b4cee1b4a9689130cf4a66a",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/swords-08.png",
+      "bundledPath": "tools/card-assets/source/swords-08.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2002057,
+      "sha256": "09d29496863c174ac11903ee4939a97f532cafba37fc1e563a0789699e510af5",
+      "localizedAltText": {
+        "en": "A loosely blindfolded figure stands within eight spaced swords beside an open path."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text, watermark, injury, or distress; a loosely blindfolded adult stands safely within an open ring of exactly eight upright silver swords, with clear gaps and a visible path to a lit home. The light rounded generated edge requires coded-frame review."
+    },
+    {
+      "key": "swords-09",
+      "promptKey": "swords-09",
+      "promptTextSha256": "7b80cbd4bbb29eb94a5faaf9006b59a57385f849750cb88e15d1fdab7cf8190b",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/swords-09.png",
+      "bundledPath": "tools/card-assets/source/swords-09.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2024541,
+      "sha256": "c4a023ed707be092729be9946a5dbaefcf833fbd85604c34b60bc6fecc683019",
+      "localizedAltText": {
+        "en": "An awake figure sits beneath nine wall-mounted swords with a rose-patterned quilt."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text, watermark, injury, or horror; a dignified adult sits awake beneath exactly nine distant wall-mounted silver swords and is visually comforted by a rose-and-constellation quilt. The elaborate generated full frame requires coded-frame and device review."
+    },
+    {
+      "key": "swords-10",
+      "promptKey": "swords-10",
+      "promptTextSha256": "e587ab2f0d69b6a02c1e3293773a3cbebbb51ec72d0f23a7e7be7ed2e256d6e3",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/swords-10.png",
+      "bundledPath": "tools/card-assets/source/swords-10.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1632471,
+      "sha256": "c0042a409ee2c788a9049122d722113321f2ad1dd43955bd8d66f8cb4ef1f6f0",
+      "localizedAltText": {
+        "en": "Ten silver swords rest in dark earth beside an empty cloak as dawn rises."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text, watermark, body, blood, injury, or horror and the empty cloak, golden dawn, and calm water create a clear nonviolent ending, but only eight swords are visibly planted rather than ten. The open composition avoids a heavy frame; the count mismatch requires review."
+    },
+    {
+      "key": "swords-page",
+      "promptKey": "swords-page",
+      "promptTextSha256": "b11282d9bc5b388505d3894a44457971cce7eb4cda427c4d3c70d5c75603d8de",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/swords-page.png",
+      "bundledPath": "tools/card-assets/source/swords-page.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1975887,
+      "sha256": "84790ee7c021555f53387c82d58d0b24549cf4a65e65c69825c616be043d6851",
+      "localizedAltText": {
+        "en": "An alert young adult holds one silver sword in a windswept meadow beneath circling birds."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, an alert young adult holding one upright silver sword in a windswept meadow, circling birds, fast-moving clouds, and a curious nonaggressive stance. The generated top celestial arch requires coded-frame and device review."
+    },
+    {
+      "key": "swords-knight",
+      "promptKey": "swords-knight",
+      "promptTextSha256": "9067a79ac6ec22d0164dd750d4ba66acf81eb2227ecc5ac1d1b19c546a8e688f",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/swords-knight.png",
+      "bundledPath": "tools/card-assets/source/swords-knight.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2172883,
+      "sha256": "e3e432098e32414446b8909f49c9b8ce533aba6ec43a91ad74c55e7d38b0f08e",
+      "localizedAltText": {
+        "en": "A rider raises one silver sword while a white horse moves beneath racing clouds."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text, watermark, opponent, combat, or unsafe motion; an adult rider moves swiftly on a white horse with one raised silver sword beneath racing clouds and wind-bent trees. A thin generated full edge requires coded-frame and device review."
+    },
+    {
+      "key": "swords-queen",
+      "promptKey": "swords-queen",
+      "promptTextSha256": "a1a8120c72f29a394398bd2d1579cc9b8141aadeb11bec0e7c71301fce285d95",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/swords-queen.png",
+      "bundledPath": "tools/card-assets/source/swords-queen.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1942734,
+      "sha256": "1364ec41a38dd5ba5cf143989e3bae47c423a48eace618b40284409d433350e6",
+      "localizedAltText": {
+        "en": "A discerning queen holds an upright silver sword and extends one open hand."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, a discerning adult queen on a butterfly-carved throne, exactly one upright silver sword, an open-hand gesture, and a clear wind-swept sky. The composition avoids a heavy rectangular internal frame but still requires device review."
+    },
+    {
+      "key": "swords-king",
+      "promptKey": "swords-king",
+      "promptTextSha256": "1b37d9611c0d51eec0c1aaad79ff4d9bb88081ef0712d5e85a1b2c65ca099e1f",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/swords-king.png",
+      "bundledPath": "tools/card-assets/source/swords-king.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1792511,
+      "sha256": "043b930964ccb2930734ddb0ffb7811afccc4703c5a0bd42fe5cd8ed489851f5",
+      "localizedAltText": {
+        "en": "A thoughtful king holds one upright silver sword on a butterfly-carved throne."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, a thoughtful adult king on a butterfly-and-crescent throne, exactly one upright silver sword, calm symmetry, and a clear constellation sky. The light rounded generated edge requires coded-frame and device review."
     }
   ]
 }
