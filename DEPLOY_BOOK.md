@@ -12,9 +12,11 @@ The canonical product and technical requirements live in [`FORTUNENESS_SPEC.md`]
 | ------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | Phase 0 — owner accounts, naming, and risk spikes | Blocked on owner/external actions | Apple, Expo/EAS, Railway, Google ADC, editorial ownership, and reviewer-access decisions remain open.                                |
 | Phase 1 — repository and quality scaffold         | In progress                       | JavaScript/API/mobile scaffold is present; native modules, entitlement evidence, EAS linkage, and signed device builds remain gated. |
-| Phase 2 — design system and adaptive slice        | In progress                       | Coded fixtures are underway; three-card art/content and real-device visual acceptance remain open.                                   |
-| Phase 3 — API skeleton and shared contracts       | In progress                       | Express application construction is isolated from process-owned listener startup; environment and HTTP policy follow sequentially.   |
-| Phases 4–17                                       | Not started                       | Must follow the acceptance order in the specification.                                                                               |
+| Phase 2 — design system and adaptive slice        | In progress                       | Static fixtures and 24 templates exist; human editorial/art approval and the Expo device matrix remain open.                         |
+| Phase 3 — API skeleton and shared contracts       | Local implementation complete     | Full local gate passes; Railway staging linkage, variables, PostgreSQL, deploy, and live health evidence remain external.            |
+| Phases 4–10                                       | Not started                       | Must follow the acceptance order in the specification.                                                                               |
+| Phase 11 — full deck and content                  | In progress                       | All 78 crops validate; human art/alt-text review, bundle integration, 624 approved templates, and device/performance gates remain.   |
+| Phases 12–17                                      | Not started                       | Must follow the acceptance order in the specification.                                                                               |
 
 ## Phase 0 deployment blockers
 
@@ -833,3 +835,20 @@ git diff --check
 ```
 
 Deployment impact: shared schemas, generated API documentation, and CI drift enforcement only. The Railway build order changes, but no service, route deployment, database schema, credential, or external environment changed.
+
+### 2026-08-06 — Phase 3 local completion verification
+
+- Reconciled the delivery summary with the completed local API shell and the independently progressing full-deck asset work.
+- Ran the full root gate after all Phase 3 commits: formatting, lint, Expo public config, every workspace typecheck, 52 tests, OpenAPI drift, content validation, 78/78 source and normalized asset validation, brand validation, every TypeScript build, and the iOS Expo export all passed.
+- Confirmed the Git worktree is clean after the chronological commit series.
+- Kept Phase 3 acceptance open: no Railway project is linked, no staging variables or PostgreSQL service are available in this workspace, and no live `/health` evidence can exist until those owner-controlled resources are supplied.
+
+Verification:
+
+```text
+corepack npm run check
+git diff --check
+git status --short --branch
+```
+
+Deployment impact: documentation and verification evidence only. No code, schema, asset, credential, external service, or deployed state changed.
