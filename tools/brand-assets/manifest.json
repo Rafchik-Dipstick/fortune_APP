@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "promptTemplateVersion": "phase2-brand-mark-v1-draft",
+  "assets": [
+    {
+      "key": "fortuneness-mark",
+      "roles": ["APP_ICON_CANDIDATE", "SPLASH_MARK_CANDIDATE"],
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/brand-assets/source/fortuneness-mark.png",
+      "width": 1024,
+      "height": 1024,
+      "colorMode": "RGB",
+      "bytes": 1005249,
+      "sha256": "4275f70e70482747f543a7a70d6f4dcf120f6e0623573992e1a68541ff7d0f9d",
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Visual inspection found no text, watermark, transparency, or unsafe edge detail. Small-size legibility and masked iOS device review remain open."
+    }
+  ]
+}

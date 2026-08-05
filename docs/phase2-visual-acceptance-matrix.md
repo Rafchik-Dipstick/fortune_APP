@@ -22,6 +22,7 @@ This record prevents local JavaScript checks from being mistaken for iPhone/iPad
 | iOS JavaScript export including local art                   | Pass                               | `corepack npm run build --workspace @fortuneness/mobile` |
 | Three-card content matrix                                   | Pass, 24/24 ready for review       | `corepack npm run content:validate`                      |
 | ADC art manifest                                            | Complete proof set, 3/3 unreviewed | `corepack npm run asset:validate`                        |
+| Brand mark manifest                                         | Pass, one unreviewed square proof  | `corepack npm run brand:validate`                        |
 
 Automated evidence does not close any physical-device row below.
 
@@ -64,6 +65,7 @@ No item can be marked approved by automated generation or by the coding agent.
 | 24 English fortune templates            | Complete and validator-clean                                             | Editorial safety, tone, grammar, distinctness, and card/intention fit     | READY FOR REVIEW |
 | Three English illustration descriptions | Complete and validator-clean                                             | Editorial visible-imagery accuracy and 8–25-word final alt text           | READY FOR REVIEW |
 | Draft art prompt/style                  | Three proofs available                                                   | Lock only after all three cards pass iPhone and iPad coded-frame review   | UNLOCKED         |
+| Fortuneness app-icon/launch mark        | 1024 × 1024 RGB proof generated, manifested, and configured              | Review small sizes, iOS masks, launch presentation, and brand fit         | READY FOR REVIEW |
 
 ## Per-run evidence template
 

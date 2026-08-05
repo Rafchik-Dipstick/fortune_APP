@@ -1,6 +1,7 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
 export const buildProfiles = ['development', 'preview', 'production'] as const;
+const brandMarkPath = '../../tools/brand-assets/source/fortuneness-mark.png';
 
 export type BuildProfile = (typeof buildProfiles)[number];
 
@@ -44,6 +45,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     name: 'Fortuneness',
     slug: 'fortuneness',
     version: '0.1.0',
+    backgroundColor: '#0D0A1A',
+    icon: brandMarkPath,
     platforms: ['ios'],
     orientation: 'default',
     scheme: 'fortuneness',
@@ -65,6 +68,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         'expo-splash-screen',
         {
           backgroundColor: '#0D0A1A',
+          image: brandMarkPath,
+          imageWidth: 180,
+          resizeMode: 'contain',
         },
       ],
       [

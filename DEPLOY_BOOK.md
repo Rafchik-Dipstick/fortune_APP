@@ -288,3 +288,25 @@ git diff --check
 ```
 
 Deployment impact: two locally bundled development art proofs were added. No production deployment, remote configuration, credential, human approval, or final normalization state changed.
+
+### 2026-08-05 — Fortuneness brand-mark and app-icon proof
+
+- Generated one text-free 1024 × 1024 RGB Fortuneness brand mark through Google Vertex ADC using a dedicated draft prompt version.
+- Visually inspected the crescent, eight-point dawn star, botanical symmetry, safe margins, small-size silhouette, and lack of text/watermark/transparency.
+- Added a separate brand manifest with provider/model, intended app-icon and splash roles, exact output path, byte size, SHA-256 checksum, and `GENERATED_UNREVIEWED` status.
+- Added brand validation for PNG structure, square dimensions, minimum size, RGB/no-alpha encoding, file size, checksum, unique keys/roles, supported roles, and manifest coverage.
+- Configured the development Expo app to use the single tracked source for its app icon and contained launch mark against the midnight background.
+- Added `brand:validate` to the root quality gate and recorded the remaining masked-icon, launch-screen, and physical-device review in the Phase 2 matrix.
+
+Verification required before commit:
+
+```text
+corepack npm run brand:validate
+corepack npm run check
+cd apps/mobile
+corepack npm exec expo-doctor@latest
+cd ../..
+git diff --check
+```
+
+Deployment impact: one locally bundled, unreviewed development brand proof and native asset configuration were added. A new native build is required to see the icon/splash; no signed build, store record, credential, human approval, or production deployment changed.
