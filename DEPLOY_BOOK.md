@@ -485,3 +485,23 @@ git diff --check
 ```
 
 Deployment impact: sixteen unreviewed Major Arcana source illustrations, their accessibility/provenance metadata, and documentation only. The mobile bundle still imports only the three Phase 2 proofs; no review status, API, credential, entitlement, or deployed state changed.
+
+### 2026-08-05 — Full-deck Wands source completion
+
+- Generated and individually inspected the thirteen missing Wands sources through Google Vertex ADC one request at a time; the previously generated Three of Wands proof remains unchanged.
+- The Wands source set is now complete at 14/14, bringing the canonical full-deck manifest to 37/78 generated sources.
+- Every new source is an 848 × 1264 RGB PNG below the 4 MB source limit, has a unique SHA-256 checksum, and is bound to its exact prompt checksum in the canonical manifest.
+- Source inspection confirmed the requested primary symbolism and found no visible words, signatures, or watermarks. Exact staff counts were checked for the numbered cards and recorded in per-card review notes.
+- Five of Wands shows four adults rather than the requested five while retaining five flowering staffs and a safe, friendly tone; Ten of Wands has a dense ten-staff bundle that needs a device-scale recount. Both remain explicitly `GENERATED_UNREVIEWED` for human source review.
+- Generated ornamental edges range from light celestial arches to strong full frames and remain open coded-frame/device-review issues; no source was promoted or added to the runtime bundle.
+
+Verification required before commit:
+
+```text
+corepack npm run asset:sync
+corepack npm run asset:validate
+corepack npm run check
+git diff --check
+```
+
+Deployment impact: thirteen unreviewed Wands source illustrations, their accessibility/provenance metadata, and documentation only. The mobile bundle still imports only the three Phase 2 proofs; no review status, API, credential, entitlement, or deployed state changed.
