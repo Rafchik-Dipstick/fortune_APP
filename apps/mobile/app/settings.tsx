@@ -1,0 +1,147 @@
+import { useState } from 'react';
+import { StyleSheet, Switch, View } from 'react-native';
+import { useRouter } from 'expo-router';
+
+import { AppButton } from '@/components/app-button';
+import { AppText } from '@/components/app-text';
+import { PageHeader } from '@/components/page-header';
+import { Screen } from '@/components/screen';
+import { Surface } from '@/components/surface';
+import { colors, spacing } from '@/theme/tokens';
+
+interface SettingRowProps {
+  description: string;
+  label: string;
+  onValueChange: (value: boolean) => void;
+  value: boolean;
+}
+
+function SettingRow({ description, label, onValueChange, value }: SettingRowProps) {
+  return (
+    <View style={styles.settingRow}>
+      <View style={styles.settingCopy}>
+        <AppText variant="label">{label}</AppText>
+        <AppText color="textMuted" variant="caption">
+          {description}
+        </AppText>
+      </View>
+      <Switch
+        accessibilityLabel={label}
+        onValueChange={onValueChange}
+        thumbColor={value ? colors.gold : colors.textMuted}
+        trackColor={{ false: colors.surfaceRaised, true: colors.teal }}
+        value={value}
+      />
+    </View>
+  );
+}
+
+export default function SettingsScreen() {
+  const router = useRouter();
+  const [sound, setSound] = useState(true);
+  const [haptics, setHaptics] = useState(true);
+  const [reduceMore, setReduceMore] = useState(false);
+
+  return (
+    <Screen readingWidth>
+      <PageHeader
+        actions={
+          <AppButton
+            compact
+            label="Done"
+            onPress={() => {
+              router.back();
+            }}
+            variant="quiet"
+          />
+        }
+        eyebrow="Account and experience"
+        title="Settings"
+      />
+
+      <View style={styles.sections}>
+        <Surface>
+          <AppText color="gold" variant="caption">
+            Game Center
+          </AppText>
+          <AppText variant="headline">Player alias loads after authentication</AppText>
+          <AppText color="textMuted">Synced Fortuneness account · Static Phase 2 fixture</AppText>
+        </Surface>
+
+        <Surface>
+          <AppText color="gold" variant="caption">
+            Account day
+          </AppText>
+          <AppText variant="headline">Europe/Kyiv</AppText>
+          <AppText color="textMuted">
+            Next reset at 12:00 AM. Device time-zone changes require confirmation and cannot create
+            an extra allowance.
+          </AppText>
+        </Surface>
+
+        <Surface>
+          <SettingRow
+            description="Optional soft paper and shimmer sounds."
+            label="Sound"
+            onValueChange={setSound}
+            value={sound}
+          />
+          <SettingRow
+            description="Selection, draw, and reveal feedback."
+            label="Haptics"
+            onValueChange={setHaptics}
+            value={haptics}
+          />
+          <SettingRow
+            description="Follow iOS Reduce Motion and reduce additional effects."
+            label="Reduce more motion"
+            onValueChange={setReduceMore}
+            value={reduceMore}
+          />
+        </Surface>
+
+        <Surface>
+          <AppText variant="label">Reminder</AppText>
+          <AppText color="textMuted">
+            Offered only after the first completed reading. Default: 9:00 AM account time.
+          </AppText>
+          <AppButton
+            disabled
+            label="Enable after first reading"
+            onPress={() => undefined}
+            variant="secondary"
+          />
+        </Surface>
+
+        <Surface>
+          <AppText variant="label">Privacy and account</AppText>
+          <AppText color="textMuted">
+            Privacy Policy · Terms of Use · Support · Restore Purchases · Delete account
+          </AppText>
+          <AppText color="textMuted" variant="caption">
+            Fortuneness offers tarot-inspired reflections for entertainment and personal
+            contemplation. It does not predict certain outcomes or provide medical, legal,
+            financial, or mental-health advice.
+          </AppText>
+        </Surface>
+      </View>
+    </Screen>
+  );
+}
+
+const styles = StyleSheet.create({
+  sections: {
+    gap: spacing.lg,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  settingCopy: {
+    flex: 1,
+    gap: spacing.xxs,
+  },
+});

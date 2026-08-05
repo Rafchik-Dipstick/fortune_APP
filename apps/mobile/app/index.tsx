@@ -1,96 +1,126 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
-import { getAppCopy } from '@/i18n/copy';
-import { scaffoldTheme } from '@/theme/scaffold-theme';
+import type { FortuneIntention } from '@fortuneness/shared-types';
 
-export default function LaunchScaffoldScreen() {
-  const copy = getAppCopy(process.env.EXPO_PUBLIC_LOCALE_OVERRIDE);
+import { AppButton } from '@/components/app-button';
+import { AppText } from '@/components/app-text';
+import { IntentionSelector } from '@/components/intention-selector';
+import { PageHeader } from '@/components/page-header';
+import { Screen } from '@/components/screen';
+import { StatusBanner } from '@/components/status-banner';
+import { Surface } from '@/components/surface';
+import { TarotCard } from '@/components/tarot-card';
+import { useAdaptiveLayout } from '@/theme/adaptive';
+import { spacing } from '@/theme/tokens';
+
+export default function OracleScreen() {
+  const router = useRouter();
+  const { isRegular, oracleCardWidth } = useAdaptiveLayout();
+  const [intention, setIntention] = useState<FortuneIntention>('GENERAL');
 
   return (
-    <SafeAreaView edges={['top', 'right', 'bottom', 'left']} style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.content} contentInsetAdjustmentBehavior="automatic">
-        <View accessible accessibilityRole="summary" style={styles.panel}>
-          <Text style={styles.eyebrow}>{copy.eyebrow}</Text>
-          <Text accessibilityRole="header" style={styles.title}>
-            {copy.title}
-          </Text>
-          <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-            <Text style={styles.symbol}>☾ ✦ ☽</Text>
-          </View>
-          <Text accessibilityRole="header" style={styles.headline}>
-            {copy.headline}
-          </Text>
-          <Text style={styles.body}>{copy.body}</Text>
-          <Text style={styles.status}>{copy.status}</Text>
+    <Screen>
+      <PageHeader
+        actions={
+          <>
+            <AppButton
+              compact
+              label="Collection"
+              onPress={() => {
+                router.push('/collection');
+              }}
+              variant="quiet"
+            />
+            <AppButton
+              compact
+              label="Shop"
+              onPress={() => {
+                router.push('/shop');
+              }}
+              variant="quiet"
+            />
+            <AppButton
+              compact
+              label="Settings"
+              onPress={() => {
+                router.push('/settings');
+              }}
+              variant="quiet"
+            />
+          </>
+        }
+        eyebrow="Daily ritual"
+        title="Oracle"
+      />
+
+      <StatusBanner
+        message="Static Phase 2 fixture — server state connects in Phase 7."
+        title="One free reflection is ready"
+      />
+
+      <View style={[styles.oracle, isRegular ? styles.oracleRegular : undefined]}>
+        <View style={styles.cardColumn}>
+          <TarotCard
+            face="down"
+            onPress={() => {
+              router.push('/reveal');
+            }}
+            width={oracleCardWidth}
+          />
+          <AppButton
+            label="Draw your card"
+            onPress={() => {
+              router.push('/reveal');
+            }}
+          />
         </View>
-      </ScrollView>
-    </SafeAreaView>
+
+        <Surface style={styles.ritualPanel}>
+          <AppText color="gold" variant="caption">
+            Set an intention
+          </AppText>
+          <AppText accessibilityRole="header" variant="headline">
+            What would you like to notice today?
+          </AppText>
+          <AppText color="textMuted">
+            Choose a focus or keep General. Your reading offers reflection, not certainty.
+          </AppText>
+          <IntentionSelector onChange={setIntention} value={intention} />
+          <View style={styles.allowance}>
+            <AppText variant="label">1 draw available</AppText>
+            <AppText color="textMuted" variant="caption">
+              Next daily card at 12:00 AM Europe/Kyiv
+            </AppText>
+          </View>
+        </Surface>
+      </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: scaffoldTheme.background,
+  oracle: {
+    alignItems: 'center',
+    gap: spacing.xl,
+    paddingTop: spacing.xl,
   },
-  content: {
-    flexGrow: 1,
+  oracleRegular: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 32,
   },
-  panel: {
-    width: '100%',
-    maxWidth: 680,
+  cardColumn: {
     alignItems: 'center',
-    borderColor: scaffoldTheme.gold,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 24,
-    backgroundColor: scaffoldTheme.surface,
-    paddingHorizontal: 28,
-    paddingVertical: 40,
+    gap: spacing.lg,
   },
-  eyebrow: {
-    color: scaffoldTheme.gold,
-    fontSize: 13,
-    fontWeight: '600',
-    letterSpacing: 2,
-    textAlign: 'center',
-    textTransform: 'uppercase',
+  ritualPanel: {
+    width: '100%',
+    maxWidth: 520,
   },
-  title: {
-    marginTop: 12,
-    color: scaffoldTheme.text,
-    fontSize: 40,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  symbol: {
-    marginVertical: 20,
-    color: scaffoldTheme.gold,
-    fontSize: 22,
-    letterSpacing: 8,
-  },
-  headline: {
-    color: scaffoldTheme.text,
-    fontSize: 24,
-    fontWeight: '500',
-    lineHeight: 32,
-    textAlign: 'center',
-  },
-  body: {
-    marginTop: 16,
-    color: scaffoldTheme.textMuted,
-    fontSize: 17,
-    lineHeight: 26,
-    textAlign: 'center',
-  },
-  status: {
-    marginTop: 28,
-    color: scaffoldTheme.gold,
-    fontSize: 13,
-    fontWeight: '600',
+  allowance: {
+    gap: spacing.xxs,
+    paddingTop: spacing.sm,
   },
 });

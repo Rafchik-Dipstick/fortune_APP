@@ -7,7 +7,8 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@fortuneness/shared-types": ["../../packages/shared-types/src/index.ts"]
     },
     "types": ["node"]
   },

@@ -12,7 +12,8 @@ The canonical product and technical requirements live in [`FORTUNENESS_SPEC.md`]
 | ------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | Phase 0 — owner accounts, naming, and risk spikes | Blocked on owner/external actions | Apple, Expo/EAS, Railway, Google ADC, editorial ownership, and reviewer-access decisions remain open.                                |
 | Phase 1 — repository and quality scaffold         | In progress                       | JavaScript/API/mobile scaffold is present; native modules, entitlement evidence, EAS linkage, and signed device builds remain gated. |
-| Phases 2–17                                       | Not started                       | Must follow the acceptance order in the specification.                                                                               |
+| Phase 2 — design system and adaptive slice        | In progress                       | Coded fixtures are underway; three-card art/content and real-device visual acceptance remain open.                                   |
+| Phases 3–17                                       | Not started                       | Must follow the acceptance order in the specification.                                                                               |
 
 ## Phase 0 deployment blockers
 
@@ -171,3 +172,25 @@ git diff --check
 ```
 
 Deployment impact: documentation only. No external account, credential, environment, service, database, or mobile binary changed.
+
+### 2026-08-05 — Phase 2 adaptive coded fixture slice
+
+- Replaced the temporary launch panel with one-root Expo Router fixtures for Oracle, Reveal, Collection, Shop, and Settings.
+- Added shared colors, spacing, radii, typography, 600/900-point window classes, responsive gutters, capped Oracle card sizing, safe-area scrolling shells, surfaces, buttons, banners, and headers.
+- Added an accessible, code-rendered 2:3 tarot card with a rotation-symmetric celestial back, face labels/symbols/orientation, illustration layer boundary, focus state, and compact collection mode.
+- Added an accessible four-choice intention radio group, adaptive Oracle composition, Deck/Readings collection modes, plain-language StoreKit placeholders without hardcoded prices, and settings/reminder/legal fixtures.
+- Applied the debug-only length-expanded pseudo-localizer through the shared text component so fixture copy can be stress-tested without exposing the pseudo-locale in production.
+- Added pure breakpoint/card-sizing tests and the three-card metadata fixture used by the visual slice. Google ADC illustration layers and the complete 24-reading slice remain separate gates.
+
+Verification required before commit:
+
+```text
+corepack npm ci
+corepack npm run check
+cd apps/mobile
+corepack npm exec expo-doctor@latest
+cd ../..
+git diff --check
+```
+
+Deployment impact: no deployment or native credential change. The exported JavaScript fixture is development-only and does not connect authentication, draws, purchases, notifications, or deletion.
