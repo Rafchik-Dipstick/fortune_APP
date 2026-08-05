@@ -11,11 +11,15 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { useMotionPreference } from '@/motion/motion-preference';
+import { shouldReduceMotion } from '@/motion/reduce-motion';
 import { celestialParticles, getCelestialMotionProfile } from '@/theme/celestial-backdrop';
 import { colors, radii } from '@/theme/tokens';
 
 export function CelestialBackdrop() {
-  const reduceMotion = useReducedMotion();
+  const systemReduceMotion = useReducedMotion();
+  const { reduceMoreMotion } = useMotionPreference();
+  const reduceMotion = shouldReduceMotion(systemReduceMotion, reduceMoreMotion);
   const [reduceTransparency, setReduceTransparency] = useState(false);
   const progress = useSharedValue(0);
   const motionProfile = getCelestialMotionProfile(reduceMotion);

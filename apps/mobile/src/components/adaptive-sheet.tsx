@@ -3,6 +3,8 @@ import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useMotionPreference } from '@/motion/motion-preference';
+import { shouldReduceMotion } from '@/motion/reduce-motion';
 import { useAdaptiveLayout } from '@/theme/adaptive';
 import { colors, radii, spacing } from '@/theme/tokens';
 
@@ -18,7 +20,9 @@ interface AdaptiveSheetProps {
 
 export function AdaptiveSheet({ children, onClose, title, visible }: AdaptiveSheetProps) {
   const { isRegular } = useAdaptiveLayout();
-  const reduceMotion = useReducedMotion();
+  const systemReduceMotion = useReducedMotion();
+  const { reduceMoreMotion } = useMotionPreference();
+  const reduceMotion = shouldReduceMotion(systemReduceMotion, reduceMoreMotion);
 
   return (
     <Modal

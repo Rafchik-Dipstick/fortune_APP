@@ -9,12 +9,16 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { useMotionPreference } from '@/motion/motion-preference';
+import { shouldReduceMotion } from '@/motion/reduce-motion';
 import { colors, radii, spacing } from '@/theme/tokens';
 
 const rowWidths = ['100%', '82%', '64%'] as const;
 
 export function LoadingSkeleton() {
-  const reduceMotion = useReducedMotion();
+  const systemReduceMotion = useReducedMotion();
+  const { reduceMoreMotion } = useMotionPreference();
+  const reduceMotion = shouldReduceMotion(systemReduceMotion, reduceMoreMotion);
   const opacity = useSharedValue(0.62);
 
   useEffect(() => {

@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/page-header';
 import { Screen } from '@/components/screen';
 import { Surface } from '@/components/surface';
 import { useQaLocale } from '@/i18n/qa-locale';
+import { useMotionPreference } from '@/motion/motion-preference';
 import { colors, spacing } from '@/theme/tokens';
 
 interface SettingRowProps {
@@ -40,9 +41,9 @@ function SettingRow({ description, label, onValueChange, value }: SettingRowProp
 export default function SettingsScreen() {
   const router = useRouter();
   const { locale, pseudoLocaleAvailable, setLocale } = useQaLocale();
+  const { reduceMoreMotion, setReduceMoreMotion } = useMotionPreference();
   const [sound, setSound] = useState(true);
   const [haptics, setHaptics] = useState(true);
-  const [reduceMore, setReduceMore] = useState(false);
 
   return (
     <Screen readingWidth>
@@ -95,10 +96,10 @@ export default function SettingsScreen() {
             value={haptics}
           />
           <SettingRow
-            description="Follow iOS Reduce Motion and reduce additional effects."
+            description="Follow iOS Reduce Motion and reduce additional effects for this session."
             label="Reduce more motion"
-            onValueChange={setReduceMore}
-            value={reduceMore}
+            onValueChange={setReduceMoreMotion}
+            value={reduceMoreMotion}
           />
         </Surface>
 

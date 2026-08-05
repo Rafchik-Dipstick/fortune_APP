@@ -17,7 +17,7 @@ This record prevents local JavaScript checks from being mistaken for iPhone/iPad
 | 320/599/600/899/900/1024-point layout classifications       | Pass                               | `apps/mobile/src/theme/adaptive.test.ts`                 |
 | Default reveal duration remains 600–750 ms                  | Pass at 675 ms                     | `apps/mobile/src/motion/reveal-motion.test.ts`           |
 | Reduce Motion reveal remains 150–250 ms with no perspective | Pass at 200 ms                     | `apps/mobile/src/motion/reveal-motion.test.ts`           |
-| Strict checks, 29 tests, content and asset validation       | Pass                               | `corepack npm run check`                                 |
+| Strict checks, 31 tests, content and asset validation       | Pass                               | `corepack npm run check`                                 |
 | Expo dependency/configuration health                        | Pass, 20/20                        | `cd apps/mobile && corepack npm exec expo-doctor@latest` |
 | iOS JavaScript export including local art                   | Pass                               | `corepack npm run build --workspace @fortuneness/mobile` |
 | Three-card content matrix                                   | Pass, 24/24 ready for review       | `corepack npm run content:validate`                      |
@@ -27,6 +27,7 @@ This record prevents local JavaScript checks from being mistaken for iPhone/iPad
 | Canonical editorial review packet                           | Pass, 24 stable review keys        | `corepack npm run content:review`                        |
 | Runtime English/en-XA fixture switch                        | Profile-gated and unit-tested      | Development/preview Settings                             |
 | Capped celestial backdrop and motion fallback               | Pass, 12 deterministic particles   | `apps/mobile/src/theme/celestial-backdrop.test.ts`       |
+| System plus in-app Reduce Motion resolution                 | Pass, complete truth table         | `apps/mobile/src/motion/reduce-motion.test.ts`           |
 
 Automated evidence does not close any physical-device row below.
 

@@ -406,3 +406,21 @@ git diff --check
 ```
 
 Deployment impact: shared mobile presentation and tests only. No content/art approval, API behavior, stored data, credential, native entitlement, or deployed state changed.
+
+### 2026-08-05 — Phase 2 shared motion preference
+
+- Replaced the inert Settings-only `Reduce more motion` fixture value with app-level session state shared by every current animated surface.
+- Resolves the effective motion policy as iOS Reduce Motion OR the Fortuneness preference, so the app can only reduce further and can never override an enabled system accessibility setting.
+- Applied the policy to route transitions, the reveal flip/crossfade, loading-skeleton pulse, adaptive-sheet transition, and celestial-backdrop drift.
+- Updated the Settings description to state its Phase 2 session scope; persistence remains deferred to the Settings implementation phase.
+- Added truth-table tests for system and in-app precedence and updated the Phase 2 evidence matrix/test count.
+
+Verification required before commit:
+
+```text
+corepack npm run test --workspace @fortuneness/mobile
+corepack npm run check
+git diff --check
+```
+
+Deployment impact: mobile fixture motion behavior and tests only. No persisted preference, content/art approval, API behavior, stored account data, credential, native entitlement, or deployed state changed.

@@ -10,6 +10,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
+import { useMotionPreference } from '@/motion/motion-preference';
+import { shouldReduceMotion } from '@/motion/reduce-motion';
 import { getRevealMotionProfile } from '@/motion/reveal-motion';
 import { spacing } from '@/theme/tokens';
 
@@ -22,7 +24,9 @@ interface RevealCardSequenceProps {
 }
 
 export function RevealCardSequence({ children, faceUp, width }: RevealCardSequenceProps) {
-  const reduceMotion = useReducedMotion();
+  const systemReduceMotion = useReducedMotion();
+  const { reduceMoreMotion } = useMotionPreference();
+  const reduceMotion = shouldReduceMotion(systemReduceMotion, reduceMoreMotion);
   const motionProfile = useMemo(() => getRevealMotionProfile(reduceMotion), [reduceMotion]);
   const cardProgress = useSharedValue(0);
   const contentOpacity = useSharedValue(0);
