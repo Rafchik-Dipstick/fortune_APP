@@ -680,3 +680,22 @@ git diff --check
 ```
 
 Deployment impact: 14 local Swords bundle candidates and manifest metadata only. No source checksum, runtime import, API, credential, entitlement, human approval, or deployed state changed.
+
+### 2026-08-06 — Pentacles crop normalization
+
+- Normalized all 14 Pentacles sources sequentially to exact 1024 × 1536 RGB PNG bundle candidates while preserving the immutable source archive.
+- Reviewed every normalized Pentacles card in the labeled contact sheet and checked all four sides with the edge-band audit.
+- Removed the final 1–5 px perimeter slivers from Ace, Two, Five, Eight, Nine, Ten, Knight, and Queen after the first pass.
+- King of Pentacles received a mixed-edge crop that removes both the near-black outside band and the cream lower-corner generation artifact without cutting its ornamental frame.
+- The final Pentacles group has no light or dark band detections; all 14 files validate below 4 MB with unique checksums and source-bound crop records.
+- The deck is now mechanically normalized at 78/78, but every card remains `GENERATED_UNREVIEWED` pending human source, coded-frame, accessibility, editorial, and Expo device review.
+
+Verification required before commit:
+
+```text
+corepack npm run asset:validate
+corepack npm run format:check
+git diff --check
+```
+
+Deployment impact: 14 local Pentacles bundle candidates and manifest metadata only. No source checksum, runtime import, API, credential, entitlement, human approval, or deployed state changed.

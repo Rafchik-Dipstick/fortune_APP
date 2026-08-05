@@ -73,19 +73,19 @@
     "swords-queen": { "crop": [0, 0, 0, 0], "edgeTreatment": "NONE" },
     "swords-king": { "crop": [35, 31, 35, 38], "edgeTreatment": "LIGHT_GUTTER" },
 
-    "pentacles-ace": { "crop": [43, 40, 43, 40], "edgeTreatment": "DARK_GUTTER" },
-    "pentacles-02": { "crop": [25, 25, 25, 21], "edgeTreatment": "DARK_GUTTER" },
+    "pentacles-ace": { "crop": [45, 42, 45, 42], "edgeTreatment": "DARK_GUTTER" },
+    "pentacles-02": { "crop": [25, 28, 25, 24], "edgeTreatment": "DARK_GUTTER" },
     "pentacles-03": { "crop": [29, 28, 29, 28], "edgeTreatment": "LIGHT_GUTTER" },
     "pentacles-04": { "crop": [0, 0, 0, 0], "edgeTreatment": "NONE" },
-    "pentacles-05": { "crop": [34, 33, 34, 37], "edgeTreatment": "DARK_GUTTER" },
+    "pentacles-05": { "crop": [39, 37, 39, 41], "edgeTreatment": "DARK_GUTTER" },
     "pentacles-06": { "crop": [16, 12, 16, 11], "edgeTreatment": "LIGHT_GUTTER" },
     "pentacles-07": { "crop": [29, 25, 29, 26], "edgeTreatment": "LIGHT_GUTTER" },
-    "pentacles-08": { "crop": [30, 26, 30, 28], "edgeTreatment": "DARK_GUTTER" },
-    "pentacles-09": { "crop": [31, 29, 31, 29], "edgeTreatment": "DARK_GUTTER" },
-    "pentacles-10": { "crop": [25, 21, 25, 20], "edgeTreatment": "DARK_GUTTER" },
+    "pentacles-08": { "crop": [34, 30, 34, 32], "edgeTreatment": "DARK_GUTTER" },
+    "pentacles-09": { "crop": [35, 33, 35, 34], "edgeTreatment": "DARK_GUTTER" },
+    "pentacles-10": { "crop": [28, 24, 28, 24], "edgeTreatment": "DARK_GUTTER" },
     "pentacles-page": { "crop": [0, 0, 0, 0], "edgeTreatment": "NONE" },
-    "pentacles-knight": { "crop": [34, 31, 33, 30], "edgeTreatment": "DARK_GUTTER" },
-    "pentacles-queen": { "crop": [19, 24, 21, 22], "edgeTreatment": "LIGHT_GUTTER" },
+    "pentacles-knight": { "crop": [35, 33, 36, 34], "edgeTreatment": "DARK_GUTTER" },
+    "pentacles-queen": { "crop": [19, 24, 22, 22], "edgeTreatment": "LIGHT_GUTTER" },
     "pentacles-king": { "crop": [28, 24, 28, 27], "edgeTreatment": "MIXED_GUTTER" }
   }
 }
