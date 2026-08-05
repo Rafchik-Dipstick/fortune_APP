@@ -1219,6 +1219,272 @@
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
       "reviewNotes": "Source inspection found no text or watermark, a thoughtful adult king on a butterfly-and-crescent throne, exactly one upright silver sword, calm symmetry, and a clear constellation sky. The light rounded generated edge requires coded-frame and device review."
+    },
+    {
+      "key": "pentacles-ace",
+      "promptKey": "pentacles-ace",
+      "promptTextSha256": "97c89b3f4ec384f06556e18ad78a951c9df37981daa3facaab102b0a3ac9178d",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/pentacles-ace.png",
+      "bundledPath": "tools/card-assets/source/pentacles-ace.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1954316,
+      "sha256": "494ff92f32d6c8aca3f38fdfe559c094aad3a3ad4d294eadcb305798063d94e4",
+      "localizedAltText": {
+        "en": "A hand offers one golden pentacle disk above a flowering path toward distant mountains."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, one hand emerging from a cloud, exactly one large antique-gold pentacle disk, a flowering garden path, and distant mountains. The thin rounded generated full edge requires coded-frame and device review."
+    },
+    {
+      "key": "pentacles-02",
+      "promptKey": "pentacles-02",
+      "promptTextSha256": "52cc263c4f9164ab90b035a3ea174d9f6d074648cd390d2cb90fe05e87a3d96a",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/pentacles-02.png",
+      "bundledPath": "tools/card-assets/source/pentacles-02.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1801666,
+      "sha256": "73d02db5f79bdd226c84809b6a93df8180af050e9a62634ab36372629114ed28",
+      "localizedAltText": {
+        "en": "A lively figure balances two golden pentacle disks within an infinity ribbon above distant ships."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, a lively adult balancing exactly two golden pentacle disks joined by an infinity ribbon, and two small ships riding gentle waves. A strong generated full ornamental frame requires coded-frame and device review."
+    },
+    {
+      "key": "pentacles-03",
+      "promptKey": "pentacles-03",
+      "promptTextSha256": "bb71aa2831da928a0f7762f1c8a8531b2aece93c9a9be87607b0385524f45b80",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/pentacles-03.png",
+      "bundledPath": "tools/card-assets/source/pentacles-03.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2057907,
+      "sha256": "c1210196352cdb6cc48672dafca88551022c66f250ae43b88bc49303e0f1d8aa",
+      "localizedAltText": {
+        "en": "Three collaborators review a plan beneath three carved pentacle disks in a moonlit workshop."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, three diverse adult collaborators reviewing a wordless plan in a moonlit workshop, and exactly three carved golden pentacle disks. The generated architectural and botanical arch requires coded-frame and device review."
+    },
+    {
+      "key": "pentacles-04",
+      "promptKey": "pentacles-04",
+      "promptTextSha256": "13856426d5cb804e0fe2da3c4e7db2c2044d85222efc60ae99fe89dd3045df12",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/pentacles-04.png",
+      "bundledPath": "tools/card-assets/source/pentacles-04.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1724088,
+      "sha256": "216a49db6a239d5062d45e395959f74416658fcfdb803a4a2750d1a6f28ffc0d",
+      "localizedAltText": {
+        "en": "A seated figure holds one pentacle with another above and two beneath their feet."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, a composed seated adult carefully holding one disk, one disk above the crown, and one beneath each foot, exactly four total, before a distant city. The open composition avoids a heavy rectangular internal frame."
+    },
+    {
+      "key": "pentacles-05",
+      "promptKey": "pentacles-05",
+      "promptTextSha256": "6bea103472563e5185384b1cb20b614752e55955fcb1fbe21135a92ec85b0835",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/pentacles-05.png",
+      "bundledPath": "tools/card-assets/source/pentacles-05.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2119296,
+      "sha256": "01fdb83b3c91daba83457f7746949f593d503cadf86a6eaaef2325acd132491c",
+      "localizedAltText": {
+        "en": "Two bundled travelers pass a glowing window containing five golden pentacles in gentle snow."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text, watermark, or degrading hardship imagery; two warmly clothed travelers support one another through gentle snow beside a glowing refuge window containing exactly five golden pentacles. A full generated ornate frame requires coded-frame and device review."
+    },
+    {
+      "key": "pentacles-06",
+      "promptKey": "pentacles-06",
+      "promptTextSha256": "ef16ca15e3a3230460f391d5b82311060f22caf235b257375eebea959d2462a6",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/pentacles-06.png",
+      "bundledPath": "tools/card-assets/source/pentacles-06.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2125279,
+      "sha256": "4c5a966b5e963d2beeea16544a697cb448281cc26826c0f34a9fd5c9f25c64f3",
+      "localizedAltText": {
+        "en": "A generous figure shares six golden pentacle disks while holding balanced scales."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, a generous adult using balanced scales, two other dignified adults, and exactly six golden pentacle disks shared across the exchange. A strong generated botanical full frame requires coded-frame and device review."
+    },
+    {
+      "key": "pentacles-07",
+      "promptKey": "pentacles-07",
+      "promptTextSha256": "5f39bcacac0b09eb44647f3cda509a595681d44a65947b86d1863f82724468be",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/pentacles-07.png",
+      "bundledPath": "tools/card-assets/source/pentacles-07.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1846470,
+      "sha256": "f84dc3174eed0811b5a009414310c83edea9b9331df954526060f5b83e2a4b66",
+      "localizedAltText": {
+        "en": "A patient gardener observes seven golden pentacle disks growing among healthy vines."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark and the patient gardener, resting tool, healthy vine, and waxing moon are clear, but nine golden pentacle disks grow on the vine rather than the requested seven. The count mismatch and partial generated frame require source and coded-frame review."
+    },
+    {
+      "key": "pentacles-08",
+      "promptKey": "pentacles-08",
+      "promptTextSha256": "a241fa82ffa657ba53b3c3ae0a0f7dd166d69bc50a7fbd9c7726bbc0b32eabee",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/pentacles-08.png",
+      "bundledPath": "tools/card-assets/source/pentacles-08.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1878527,
+      "sha256": "96bded1ea97bfc25dd38cbe82630db32182bcde4ca0abefc70fd5a23644c5c2b",
+      "localizedAltText": {
+        "en": "A focused artisan engraves one of eight golden pentacle disks at a workbench."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, a focused adult artisan engraving one disk at a workbench, and seven completed disks displayed in a clear vertical arrangement, exactly eight total. A strong generated full ornamental frame requires coded-frame and device review."
+    },
+    {
+      "key": "pentacles-09",
+      "promptKey": "pentacles-09",
+      "promptTextSha256": "4e6474549d05e7dccc259def865fc052b245b20a1435d7d7cde24d40412e28cc",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/pentacles-09.png",
+      "bundledPath": "tools/card-assets/source/pentacles-09.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2015366,
+      "sha256": "79ac9a012a554ab19229ce95de933ad1d29570c8cd029a03b2a9f8a0ab694918",
+      "localizedAltText": {
+        "en": "A self-possessed figure walks with a falcon among vines bearing nine golden pentacles."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark and the self-possessed adult, lush vineyard, and safely hooded falcon are clear, but ten golden pentacle disks are visible rather than nine, with the extra at the lower-right edge. The count mismatch and strong full frame require review."
+    },
+    {
+      "key": "pentacles-10",
+      "promptKey": "pentacles-10",
+      "promptTextSha256": "827eb7f9b14795804cbe8cfcb62283377350e8517cb075c4fa3d773691209f66",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/pentacles-10.png",
+      "bundledPath": "tools/card-assets/source/pentacles-10.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1852781,
+      "sha256": "25d441ee0e5d60cfdaa9ae2f46aa1d2e18573dd1a7b736a5d8cc2136322130de",
+      "localizedAltText": {
+        "en": "An intergenerational family gathers with two dogs beneath ten constellation-like golden pentacles."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark and the intergenerational family, two calm dogs, and protective archway are clear, but the constellation contains eleven golden pentacle disks rather than ten. The count mismatch and strong generated full frame require review."
+    },
+    {
+      "key": "pentacles-page",
+      "promptKey": "pentacles-page",
+      "promptTextSha256": "55f9181c3783ccabeb82df75f614729365e2072f41b729cc4cfa49041790a2dd",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/pentacles-page.png",
+      "bundledPath": "tools/card-assets/source/pentacles-page.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1805349,
+      "sha256": "0a9b3cfada29c0bd241e57272d1066b36aa0f389904e116afcc39855bb250845",
+      "localizedAltText": {
+        "en": "A thoughtful young adult studies one golden pentacle disk in a flowering mountain field."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, a thoughtful young adult studying exactly one golden pentacle disk at heart height, a flowering field, and distant blue-violet mountains. The open composition avoids a heavy rectangular internal frame."
+    },
+    {
+      "key": "pentacles-knight",
+      "promptKey": "pentacles-knight",
+      "promptTextSha256": "3e842d019395b510e876f6efcd7dd20fb880051f2f98f4a7aaf7c7554de8363c",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/pentacles-knight.png",
+      "bundledPath": "tools/card-assets/source/pentacles-knight.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 1870480,
+      "sha256": "aeb20934a5436ba08b80048a71e5e3445c38ee60f2672cff27b866dbd5621f4a",
+      "localizedAltText": {
+        "en": "A patient rider holds one golden pentacle disk on a dark horse above tended fields."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, an adult rider on a calm dark workhorse, exactly one golden pentacle disk, carefully tended fields, and a steady evening star. The thin generated full frame requires coded-frame and device review."
+    },
+    {
+      "key": "pentacles-queen",
+      "promptKey": "pentacles-queen",
+      "promptTextSha256": "c537bf49e003aabfc94dc82b2f118506b66bc22e55f79fff7fb8f3203f641f6b",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/pentacles-queen.png",
+      "bundledPath": "tools/card-assets/source/pentacles-queen.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2050495,
+      "sha256": "1446744edf70025922107c5cddf4039e85925e723fdb53066bdefea350cc836d",
+      "localizedAltText": {
+        "en": "A nurturing queen holds one golden pentacle disk in a rose garden beside a rabbit."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no text or watermark, a nurturing adult queen in a rose garden, exactly one golden pentacle disk, a safely resting rabbit, and fruiting branches. The light rounded generated edge requires coded-frame and device review."
+    },
+    {
+      "key": "pentacles-king",
+      "promptKey": "pentacles-king",
+      "promptTextSha256": "d68ae2cc7567ab1cca0301b09df5cea5684e89228c3aa78ae7cc79bf2f7cb7f0",
+      "provider": "google-vertex-adc",
+      "model": "gemini-3.1-flash-image",
+      "sourceOutputPath": "tools/card-assets/source/pentacles-king.png",
+      "bundledPath": "tools/card-assets/source/pentacles-king.png",
+      "width": 848,
+      "height": 1264,
+      "colorMode": "RGB",
+      "bytes": 2088977,
+      "sha256": "b570dfcd3a1c306dbf11cfb1f863b7d58e034afeab29d4878bb897490c512cf5",
+      "localizedAltText": {
+        "en": "A grounded king holds a golden pentacle disk on a bull-carved throne amid grapevines."
+      },
+      "reviewStatus": "GENERATED_UNREVIEWED",
+      "reviewNotes": "Source inspection found no readable word or watermark, a grounded adult king on a bull-carved throne amid grapevines, exactly one golden pentacle disk, a small scepter, and a distant home. Small pseudo-glyphs ring the disk, and the strong full frame requires source and coded-frame review."
     }
   ]
 }

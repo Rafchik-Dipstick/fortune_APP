@@ -547,3 +547,24 @@ git diff --check
 ```
 
 Deployment impact: fourteen unreviewed Swords source illustrations, their accessibility/provenance metadata, and documentation only. The mobile bundle still imports only the three Phase 2 proofs; no review status, API, credential, entitlement, or deployed state changed.
+
+### 2026-08-05 — Full-deck Pentacles source completion
+
+- Generated and individually inspected all fourteen Pentacles sources through Google Vertex ADC one request at a time.
+- The Pentacles source set is complete at 14/14, bringing the canonical full-deck source manifest to 78/78 generated illustrations.
+- Every source is an 848 × 1264 RGB PNG below the 4 MB source limit, has a unique SHA-256 checksum, and is bound to its exact prompt checksum in the canonical manifest.
+- Source inspection found no readable words, signatures, watermarks, unsafe animal handling, degrading hardship imagery, or unsafe action; people are clothed, dignified, and represented across ages and skin tones.
+- Three exact-count deviations remain open: Seven of Pentacles shows nine rather than seven disks; Nine of Pentacles shows ten rather than nine disks; and Ten of Pentacles shows eleven rather than ten disks.
+- King of Pentacles includes small pseudo-glyphs around its disk that require review against the no-letters rule. All count/glyph observations remain recorded without promoting any source.
+- Generated edges range from open compositions to strong full frames and remain coded-frame/device-review issues; no new source was added to the runtime bundle.
+
+Verification required before commit:
+
+```text
+corepack npm run asset:sync
+corepack npm run asset:validate
+corepack npm run check
+git diff --check
+```
+
+Deployment impact: fourteen unreviewed Pentacles source illustrations, their accessibility/provenance metadata, and documentation only. The source catalog is complete, but the mobile bundle still imports only the three Phase 2 proofs; no review status, API, credential, entitlement, or deployed state changed.
