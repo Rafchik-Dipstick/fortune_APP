@@ -11,7 +11,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-00-fool.png",
-      "bundledPath": "tools/card-assets/source/major-00-fool.png",
+      "bundledPath": "tools/card-assets/normalized/major-00-fool.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -21,7 +21,38 @@
         "en": "A traveler at a cliff lifts a white flower while a small dog watches beneath a radiant dawn star."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Visual inspection found no text or watermark and a clear central silhouette. Human editorial, compact/regular device review, and final normalization remain open."
+      "reviewNotes": "Visual inspection found no text or watermark and a clear central silhouette. Human editorial, compact/regular device review, and final normalization remain open.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "082534c72dd943a0ccb4417df90df4daf2585a00076fa341f8f06a3ce5c5122c",
+        "crop": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "edgeTreatment": "NONE",
+        "outputPath": "tools/card-assets/normalized/major-00-fool.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2764331,
+        "sha256": "961d7653f3b02f2c65148b3ef09dd0ee974c9849b23fafdc6b6e1f2aeb8ec9f8",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-01-magician",
@@ -30,7 +61,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-01-magician.png",
-      "bundledPath": "tools/card-assets/source/major-01-magician.png",
+      "bundledPath": "tools/card-assets/normalized/major-01-magician.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -40,7 +71,38 @@
         "en": "A poised creator raises a luminous wand above a table holding a cup, sword, and pentacle disk."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark, a clear central figure, raised wand, infinity ribbon, and readable cup/sword/pentacle objects. A strong generated ornamental border may compete with the code-rendered frame and requires device review."
+      "reviewNotes": "Source inspection found no text or watermark, a clear central figure, raised wand, infinity ribbon, and readable cup/sword/pentacle objects. A strong generated ornamental border may compete with the code-rendered frame and requires device review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "4d42edb411ca6e9f268403a800206a658188eb0a81ccfffd4c282cb3ac057302",
+        "crop": {
+          "left": 23,
+          "top": 19,
+          "right": 23,
+          "bottom": 19
+        },
+        "edgeTreatment": "LIGHT_GUTTER",
+        "outputPath": "tools/card-assets/normalized/major-01-magician.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2840432,
+        "sha256": "6642b112502150d1f536ef047f5c8ba3a63f7481de95841f33be6ca5babe8fd8",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-02-high-priestess",
@@ -49,7 +111,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-02-high-priestess.png",
-      "bundledPath": "tools/card-assets/source/major-02-high-priestess.png",
+      "bundledPath": "tools/card-assets/normalized/major-02-high-priestess.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -59,7 +121,38 @@
         "en": "A serene guardian holds a silver scroll between dark and pale pillars before a pomegranate veil."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark, two contrasting pillars, a blank silver scroll, pomegranates, and a readable seated figure. A full generated ornamental border may compete with the code-rendered frame and requires device review."
+      "reviewNotes": "Source inspection found no text or watermark, two contrasting pillars, a blank silver scroll, pomegranates, and a readable seated figure. A full generated ornamental border may compete with the code-rendered frame and requires device review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "350f34658f39209287ef8839bdc283b36e46825cf7699c215cab785dacecfda0",
+        "crop": {
+          "left": 30,
+          "top": 26,
+          "right": 30,
+          "bottom": 26
+        },
+        "edgeTreatment": "LIGHT_GUTTER",
+        "outputPath": "tools/card-assets/normalized/major-02-high-priestess.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2995174,
+        "sha256": "a13dc4f68d8b995dc2cc6897b1a3d446cb0d6d3cc833be6c471d8dd515ce207e",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-03-empress",
@@ -68,7 +161,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-03-empress.png",
-      "bundledPath": "tools/card-assets/source/major-03-empress.png",
+      "bundledPath": "tools/card-assets/normalized/major-03-empress.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -78,7 +171,38 @@
         "en": "A crowned ruler rests among wheat, roses, and flowing water beneath twelve small stars."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark and clear wheat, roses, water, crown, and central ruler. The exact twelve-star crown count is not confidently readable, and the generated ornamental border requires coded-frame review."
+      "reviewNotes": "Source inspection found no text or watermark and clear wheat, roses, water, crown, and central ruler. The exact twelve-star crown count is not confidently readable, and the generated ornamental border requires coded-frame review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "7f5c582d23d5e24ed12efe3b6a93af30f75ec10d54d947b12b0edca2560dc750",
+        "crop": {
+          "left": 31,
+          "top": 29,
+          "right": 31,
+          "bottom": 29
+        },
+        "edgeTreatment": "LIGHT_GUTTER",
+        "outputPath": "tools/card-assets/normalized/major-03-empress.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2906309,
+        "sha256": "ce32e346dd7cab5f78f1db9ba9d4d8dc57559c896cb775b81f9413552be1c53d",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-04-emperor",
@@ -87,7 +211,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-04-emperor.png",
-      "bundledPath": "tools/card-assets/source/major-04-emperor.png",
+      "bundledPath": "tools/card-assets/normalized/major-04-emperor.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -97,7 +221,38 @@
         "en": "A steady sovereign sits on a ram-carved stone throne before distant violet mountains."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark, a clear sovereign, geometric throne, multiple ram motifs, square mantle, and violet mountains. A strong generated ornamental border may compete with the code-rendered frame and requires device review."
+      "reviewNotes": "Source inspection found no text or watermark, a clear sovereign, geometric throne, multiple ram motifs, square mantle, and violet mountains. A strong generated ornamental border may compete with the code-rendered frame and requires device review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "e2f50bbb758eea774ee9b25107aa19878f361ecde92831065ae88562f92bbd4c",
+        "crop": {
+          "left": 28,
+          "top": 28,
+          "right": 28,
+          "bottom": 25
+        },
+        "edgeTreatment": "LIGHT_GUTTER",
+        "outputPath": "tools/card-assets/normalized/major-04-emperor.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2522833,
+        "sha256": "57e9263c7b2d0b60304ec2e8e408a33518fac2d9a408d35131018a52dbfcd42a",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-05-hierophant",
@@ -106,7 +261,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-05-hierophant.png",
-      "bundledPath": "tools/card-assets/source/major-05-hierophant.png",
+      "bundledPath": "tools/card-assets/normalized/major-05-hierophant.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -116,7 +271,38 @@
         "en": "An elder teacher welcomes two students beneath a celestial arch beside crossed golden keys."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark, a dignified elder teacher, exactly two adult students, crossed keys, and flowering staffs. A strong generated ornamental border may compete with the code-rendered frame and requires device review."
+      "reviewNotes": "Source inspection found no text or watermark, a dignified elder teacher, exactly two adult students, crossed keys, and flowering staffs. A strong generated ornamental border may compete with the code-rendered frame and requires device review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "6a614ba57407948bf1cd80961fc75c08e05f15deeda86174b508d877052aaea6",
+        "crop": {
+          "left": 34,
+          "top": 32,
+          "right": 34,
+          "bottom": 31
+        },
+        "edgeTreatment": "DARK_GUTTER",
+        "outputPath": "tools/card-assets/normalized/major-05-hierophant.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2705648,
+        "sha256": "e8ebc9f9bfcb04424d68dfdb53b452f6f39701a2251d1d807700d71c65baa4af",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-06-lovers",
@@ -125,7 +311,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-06-lovers.png",
-      "bundledPath": "tools/card-assets/source/major-06-lovers.png",
+      "bundledPath": "tools/card-assets/normalized/major-06-lovers.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -135,7 +321,38 @@
         "en": "Two adults face each other beneath a winged star between fruiting and flame-leaf trees."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark, two clothed adults with open hands, a fruiting tree, a flame-leaf tree, and a clear winged star. A generated ornamental border may compete with the code-rendered frame and requires device review."
+      "reviewNotes": "Source inspection found no text or watermark, two clothed adults with open hands, a fruiting tree, a flame-leaf tree, and a clear winged star. A generated ornamental border may compete with the code-rendered frame and requires device review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "38450a961424a1f728db1c332e7af0b1a06fad8123b95abb0cc53c0a6d1132ad",
+        "crop": {
+          "left": 28,
+          "top": 26,
+          "right": 28,
+          "bottom": 24
+        },
+        "edgeTreatment": "LIGHT_GUTTER",
+        "outputPath": "tools/card-assets/normalized/major-06-lovers.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2733066,
+        "sha256": "e439f956fed2a8f59133ca9d3138d349d46fec6d1d344251141bdd7dc705ce0b",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-07-chariot",
@@ -144,7 +361,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-07-chariot.png",
-      "bundledPath": "tools/card-assets/source/major-07-chariot.png",
+      "bundledPath": "tools/card-assets/normalized/major-07-chariot.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -154,7 +371,38 @@
         "en": "An armored traveler guides a silver chariot drawn by dark and pale celestial sphinxes."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark, a clear armored traveler, gold chariot, road, and one dark and one pale winged feline guardian. The guardians read more as celestial cats than classical sphinxes, and the generated ornamental border requires coded-frame review."
+      "reviewNotes": "Source inspection found no text or watermark, a clear armored traveler, gold chariot, road, and one dark and one pale winged feline guardian. The guardians read more as celestial cats than classical sphinxes, and the generated ornamental border requires coded-frame review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "271741abfd40a756aba6135c6430b7abb8dab943ff611bcc45bd91d46468ee85",
+        "crop": {
+          "left": 28,
+          "top": 29,
+          "right": 28,
+          "bottom": 27
+        },
+        "edgeTreatment": "LIGHT_GUTTER",
+        "outputPath": "tools/card-assets/normalized/major-07-chariot.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2858003,
+        "sha256": "512aa9be7bef7214fec3d654a59ec7389521db0f601bbf0541644fff1035ab12",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-08-strength",
@@ -163,7 +411,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-08-strength.png",
-      "bundledPath": "tools/card-assets/source/major-08-strength.png",
+      "bundledPath": "tools/card-assets/normalized/major-08-strength.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -173,7 +421,38 @@
         "en": "A calm figure gently meets a peaceful lion beneath an infinity ribbon and flowering vines."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark, a calm central figure using both hands, a peaceful lion, a clear infinity ribbon, and flowering vines. The generated ornamental framing remains open for coded-frame and device review."
+      "reviewNotes": "Source inspection found no text or watermark, a calm central figure using both hands, a peaceful lion, a clear infinity ribbon, and flowering vines. The generated ornamental framing remains open for coded-frame and device review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "bb7d271f8ab2b34537c865d03978917b5bc3bcd23bd6fdf0fe74643e8b6f6e16",
+        "crop": {
+          "left": 27,
+          "top": 21,
+          "right": 27,
+          "bottom": 0
+        },
+        "edgeTreatment": "DARK_GUTTER",
+        "outputPath": "tools/card-assets/normalized/major-08-strength.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2948797,
+        "sha256": "60bec8d9c73e44cadbd75dc5179c1ca299c6cd937a91780553b1bc755670a564",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-09-hermit",
@@ -182,7 +461,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-09-hermit.png",
-      "bundledPath": "tools/card-assets/source/major-09-hermit.png",
+      "bundledPath": "tools/card-assets/normalized/major-09-hermit.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -192,7 +471,38 @@
         "en": "A cloaked elder holds a star-lit lantern and staff on a quiet mountain path."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark, a readable cloaked elder, star-lit lantern, simple staff, mountain path, and strong negative space. The illustration avoids a heavy rectangular internal frame but still requires coded-frame and device review."
+      "reviewNotes": "Source inspection found no text or watermark, a readable cloaked elder, star-lit lantern, simple staff, mountain path, and strong negative space. The illustration avoids a heavy rectangular internal frame but still requires coded-frame and device review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "da77f16ee682117947d4d3f3f83744f86247fe7a2bea89aa621b41496dbe2d63",
+        "crop": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "edgeTreatment": "NONE",
+        "outputPath": "tools/card-assets/normalized/major-09-hermit.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2581558,
+        "sha256": "4778df82e0118d97ae2298bf3f31470812df71560b0d3111215379e8fbbc95bd",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 35,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-10-wheel-of-fortune",
@@ -201,7 +511,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-10-wheel-of-fortune.png",
-      "bundledPath": "tools/card-assets/source/major-10-wheel-of-fortune.png",
+      "bundledPath": "tools/card-assets/normalized/major-10-wheel-of-fortune.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -211,7 +521,38 @@
         "en": "An eight-spoked celestial wheel turns among clouds encircled by four gentle winged guardians."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no words or watermark, a clearly countable eight-spoked wheel, and all four winged human/eagle/bull/lion guardians. Small zodiac-like glyphs appear on the spokes and require review against the no-letters rule."
+      "reviewNotes": "Source inspection found no words or watermark, a clearly countable eight-spoked wheel, and all four winged human/eagle/bull/lion guardians. Small zodiac-like glyphs appear on the spokes and require review against the no-letters rule.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "11643e53456d77c300a790231cace19b5d97108b77e3efc4d9fc55996772a954",
+        "crop": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "edgeTreatment": "NONE",
+        "outputPath": "tools/card-assets/normalized/major-10-wheel-of-fortune.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2449151,
+        "sha256": "2553f2e93fc00426def936043790ccca5143ec890a59e11171c51157cada19ea",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-11-justice",
@@ -220,7 +561,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-11-justice.png",
-      "bundledPath": "tools/card-assets/source/major-11-justice.png",
+      "bundledPath": "tools/card-assets/normalized/major-11-justice.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -230,7 +571,38 @@
         "en": "A composed arbiter holds an upright silver sword and balanced golden scales between pillars."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark, a composed central arbiter, one upright silver sword, evenly balanced scales, and paired pillars. The celestial arch is less frame-like than earlier sources but still requires coded-frame and device review."
+      "reviewNotes": "Source inspection found no text or watermark, a composed central arbiter, one upright silver sword, evenly balanced scales, and paired pillars. The celestial arch is less frame-like than earlier sources but still requires coded-frame and device review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "b8601620e0d018b1b2a12f8544d3e2c4a963252e34488eb6f870bfa7cbbf74d3",
+        "crop": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "edgeTreatment": "NONE",
+        "outputPath": "tools/card-assets/normalized/major-11-justice.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2860020,
+        "sha256": "6c139d93f4e46763cc31555d9aec04b6457d157f828833ab9be3383009094afa",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-12-hanged-man",
@@ -239,7 +611,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-12-hanged-man.png",
-      "bundledPath": "tools/card-assets/source/major-12-hanged-man.png",
+      "bundledPath": "tools/card-assets/normalized/major-12-hanged-man.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -249,7 +621,38 @@
         "en": "A peaceful figure hangs safely from a living tree with a soft halo and bent leg."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text, watermark, injury, or distress; the clothed figure is safely suspended from a living tree, the free leg forms a bent triangle, and the halo is clear. A strong generated ornamental border requires coded-frame review."
+      "reviewNotes": "Source inspection found no text, watermark, injury, or distress; the clothed figure is safely suspended from a living tree, the free leg forms a bent triangle, and the halo is clear. A strong generated ornamental border requires coded-frame review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "e4241571270f5bb517095c1e9283fd7985fca18d726a5ee2481de250d812a2be",
+        "crop": {
+          "left": 35,
+          "top": 33,
+          "right": 35,
+          "bottom": 33
+        },
+        "edgeTreatment": "DARK_GUTTER",
+        "outputPath": "tools/card-assets/normalized/major-12-hanged-man.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2554433,
+        "sha256": "1b76833f3892b5ab52543a71543d7138ee7389cf384d51a10debaeba138ac110",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-13-death",
@@ -258,7 +661,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-13-death.png",
-      "bundledPath": "tools/card-assets/source/major-13-death.png",
+      "bundledPath": "tools/card-assets/normalized/major-13-death.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -268,7 +671,38 @@
         "en": "A silver rider carries a white rose banner through falling leaves toward a bright sunrise."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text, watermark, corpse, gore, fear, or horror; the silver armored rider, white rose banner, autumn leaves, sunrise, and diverse respectful figures are clear. A strong generated ornamental border requires coded-frame review."
+      "reviewNotes": "Source inspection found no text, watermark, corpse, gore, fear, or horror; the silver armored rider, white rose banner, autumn leaves, sunrise, and diverse respectful figures are clear. A strong generated ornamental border requires coded-frame review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "1ada34ac143a793d338613f03b48e187b35f510010f5c793196b4894cb01b607",
+        "crop": {
+          "left": 32,
+          "top": 22,
+          "right": 32,
+          "bottom": 27
+        },
+        "edgeTreatment": "DARK_GUTTER",
+        "outputPath": "tools/card-assets/normalized/major-13-death.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 3122787,
+        "sha256": "64cb6b338feabd3b7434e7ca4faca333d9aa52c07cb2077e5e7bfee5a0c65f51",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-14-temperance",
@@ -277,7 +711,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-14-temperance.png",
-      "bundledPath": "tools/card-assets/source/major-14-temperance.png",
+      "bundledPath": "tools/card-assets/normalized/major-14-temperance.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -287,7 +721,38 @@
         "en": "A winged figure pours water between two cups while standing between stone and luminous water."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark, exactly two cups, a continuous silver stream, one foot on stone and one in luminous water, clear wings, and a golden path. A generated floral border requires coded-frame review."
+      "reviewNotes": "Source inspection found no text or watermark, exactly two cups, a continuous silver stream, one foot on stone and one in luminous water, clear wings, and a golden path. A generated floral border requires coded-frame review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "74f92fab2a9ee534cc744ab48447c27928286c9824216b2f086104b39465966d",
+        "crop": {
+          "left": 30,
+          "top": 32,
+          "right": 30,
+          "bottom": 33
+        },
+        "edgeTreatment": "DARK_GUTTER",
+        "outputPath": "tools/card-assets/normalized/major-14-temperance.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2712298,
+        "sha256": "4d1abf5a28204842cae3e043bf60b8095924743a3948f9b754ab9c9ef81295c1",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-15-devil",
@@ -296,7 +761,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-15-devil.png",
-      "bundledPath": "tools/card-assets/source/major-15-devil.png",
+      "bundledPath": "tools/card-assets/normalized/major-15-devil.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -306,7 +771,38 @@
         "en": "Two adults notice loose flower-vine loops while a shadowed horned statue recedes behind them."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text, watermark, sexuality, or graphic content; two clothed adults notice loose flowering vine loops beneath a guiding star while a horned stone figure stays in shadow. The figure is somewhat imposing and the generated border requires device review."
+      "reviewNotes": "Source inspection found no text, watermark, sexuality, or graphic content; two clothed adults notice loose flowering vine loops beneath a guiding star while a horned stone figure stays in shadow. The figure is somewhat imposing and the generated border requires device review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "bdec3dea780af309ba34aad5316ad5c6e1aa5ab571fc52ad2e65c43f1d7c2d11",
+        "crop": {
+          "left": 40,
+          "top": 36,
+          "right": 40,
+          "bottom": 34
+        },
+        "edgeTreatment": "LIGHT_GUTTER",
+        "outputPath": "tools/card-assets/normalized/major-15-devil.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 3002888,
+        "sha256": "9241c2193c8483764b17f6dd06f03c7558c4ff376b56cc6156dc15e499bb5f3e",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-16-tower",
@@ -315,7 +811,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-16-tower.png",
-      "bundledPath": "tools/card-assets/source/major-16-tower.png",
+      "bundledPath": "tools/card-assets/normalized/major-16-tower.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -325,7 +821,38 @@
         "en": "Celestial light opens an empty stone observatory into birds and falling petals beneath storm clouds."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text, watermark, fire, injury, or horror; a clean vertical light beam opens the empty observatory crown into birds and petals while tiny people remain safely distant. The subtle botanical edge still requires coded-frame review."
+      "reviewNotes": "Source inspection found no text, watermark, fire, injury, or horror; a clean vertical light beam opens the empty observatory crown into birds and petals while tiny people remain safely distant. The subtle botanical edge still requires coded-frame review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "bc2aee25b9d38e13bab8f3db539f4cfd5441468150738998ccea24a10f25d0dc",
+        "crop": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "edgeTreatment": "NONE",
+        "outputPath": "tools/card-assets/normalized/major-16-tower.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2257674,
+        "sha256": "5d595dcffe286d371f2145573dcf6b601170cab06ba9f4288959f6ea4ca9c8ad",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-17-star",
@@ -334,7 +861,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-17-star.png",
-      "bundledPath": "tools/card-assets/source/major-17-star.png",
+      "bundledPath": "tools/card-assets/normalized/major-17-star.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -344,7 +871,38 @@
         "en": "A kneeling figure pours two vessels beneath one large star and seven smaller stars."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark, a clothed kneeling figure, exactly two pouring vessels, one large eight-pointed star, and seven clearly countable smaller stars. The generated botanical border remains open for coded-frame review."
+      "reviewNotes": "Source inspection found no text or watermark, a clothed kneeling figure, exactly two pouring vessels, one large eight-pointed star, and seven clearly countable smaller stars. The generated botanical border remains open for coded-frame review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "94a89d73ff1acdac063eba2619dddc5da13f1c0b5d6e193e24407949ab2dcc5d",
+        "crop": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "edgeTreatment": "NONE",
+        "outputPath": "tools/card-assets/normalized/major-17-star.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2858715,
+        "sha256": "c73eac94e8abf34a65a0f23b4e0fe957719f22567f0d40dcaebc4ba7c7e59534",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-18-moon",
@@ -353,7 +911,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-18-moon.png",
-      "bundledPath": "tools/card-assets/source/major-18-moon.png",
+      "bundledPath": "tools/card-assets/normalized/major-18-moon.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -363,7 +921,38 @@
         "en": "A winding path crosses between towers as a dog, wolf, and crayfish face the moon."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark; the faced crescent moon, two slender towers, winding path, calm dog and wolf, and small crayfish are all immediately readable. A full generated ornamental frame requires coded-frame review."
+      "reviewNotes": "Source inspection found no text or watermark; the faced crescent moon, two slender towers, winding path, calm dog and wolf, and small crayfish are all immediately readable. A full generated ornamental frame requires coded-frame review.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "0e76dec2553d69345fb3871490cc275773ff241e2bbb62b5ea507694f8509fcd",
+        "crop": {
+          "left": 29,
+          "top": 27,
+          "right": 29,
+          "bottom": 26
+        },
+        "edgeTreatment": "LIGHT_GUTTER",
+        "outputPath": "tools/card-assets/normalized/major-18-moon.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2768926,
+        "sha256": "d2e9d27f57d856e9fbc1310245ac06872162224ed7e0af41397b0d04ed3cf175",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-19-sun",
@@ -372,7 +961,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-19-sun.png",
-      "bundledPath": "tools/card-assets/source/major-19-sun.png",
+      "bundledPath": "tools/card-assets/normalized/major-19-sun.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -382,7 +971,38 @@
         "en": "A joyful child rides a white horse past sunflowers beneath a large radiant sun."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text or watermark; the joyful clothed child, gentle white horse, sunflowers, flowing warm banner, and large radiant sun are clear and suitable for a general audience. The source avoids a heavy rectangular internal frame."
+      "reviewNotes": "Source inspection found no text or watermark; the joyful clothed child, gentle white horse, sunflowers, flowing warm banner, and large radiant sun are clear and suitable for a general audience. The source avoids a heavy rectangular internal frame.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "cda67453cdab3fad93e3c22d4c5ade0343562e1c560e67c298360922f8df136a",
+        "crop": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "edgeTreatment": "NONE",
+        "outputPath": "tools/card-assets/normalized/major-19-sun.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2838019,
+        "sha256": "1a69861db8477eeb246711150c7debe5817bd083e3777031492e22ee9afecea3",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-20-judgement",
@@ -391,7 +1011,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-20-judgement.png",
-      "bundledPath": "tools/card-assets/source/major-20-judgement.png",
+      "bundledPath": "tools/card-assets/normalized/major-20-judgement.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -401,7 +1021,38 @@
         "en": "Diverse figures step from dark boats toward light as a winged herald sounds a trumpet."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection found no text, watermark, horror, or resurrection imagery; diverse clothed adults step from dark boats onto a luminous shore beneath a compassionate winged herald and golden trumpet. The source avoids a heavy rectangular internal frame."
+      "reviewNotes": "Source inspection found no text, watermark, horror, or resurrection imagery; diverse clothed adults step from dark boats onto a luminous shore beneath a compassionate winged herald and golden trumpet. The source avoids a heavy rectangular internal frame.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "33d1922e9cee99baa1404527e2d702622af8136b966e34e6ab52ebb2a736008a",
+        "crop": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0
+        },
+        "edgeTreatment": "NONE",
+        "outputPath": "tools/card-assets/normalized/major-20-judgement.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2839324,
+        "sha256": "e110428f122a16fd1a04ad2b1052481216e6ca480d722f9a06bc98ff7db5c4e2",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 23,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "major-21-world",
@@ -410,7 +1061,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-21-world.png",
-      "bundledPath": "tools/card-assets/source/major-21-world.png",
+      "bundledPath": "tools/card-assets/normalized/major-21-world.png",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -420,7 +1071,38 @@
         "en": "A joyful dancer holds two wands inside a living wreath surrounded by four winged guardians."
       },
       "reviewStatus": "GENERATED_UNREVIEWED",
-      "reviewNotes": "Source inspection: joyful clothed dancer, two silver wands, oval living wreath, and all four winged guardians are present; no text, watermark, or heavy rectangular frame observed. Human source, coded-frame, accessibility, and device review remain open."
+      "reviewNotes": "Source inspection: joyful clothed dancer, two silver wands, oval living wreath, and all four winged guardians are present; no text, watermark, or heavy rectangular frame observed. Human source, coded-frame, accessibility, and device review remain open.",
+      "normalization": {
+        "version": "frame-gutter-crop-v1",
+        "sourceSha256": "c292360e04c3ad3a5ea3657bfd44e220d2cd39ce74a116fb75a7f9a2f6b0b386",
+        "crop": {
+          "left": 27,
+          "top": 25,
+          "right": 27,
+          "bottom": 29
+        },
+        "edgeTreatment": "DARK_GUTTER",
+        "outputPath": "tools/card-assets/normalized/major-21-world.png",
+        "width": 1024,
+        "height": 1536,
+        "colorMode": "RGB",
+        "bytes": 2715966,
+        "sha256": "f73a914e792ce78e2010b82aae20b42da91493680c74abb610193a554ba02b65",
+        "edgeBands": {
+          "light": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          },
+          "dark": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0
+          }
+        }
+      }
     },
     {
       "key": "wands-ace",
@@ -1486,5 +2168,6 @@
       "reviewStatus": "GENERATED_UNREVIEWED",
       "reviewNotes": "Source inspection found no readable word or watermark, a grounded adult king on a bull-carved throne amid grapevines, exactly one golden pentacle disk, a small scepter, and a distant home. Small pseudo-glyphs ring the disk, and the strong full frame requires source and coded-frame review."
     }
-  ]
+  ],
+  "normalizationVersion": "frame-gutter-crop-v1"
 }

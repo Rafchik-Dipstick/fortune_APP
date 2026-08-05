@@ -607,3 +607,22 @@ git diff --check
 ```
 
 Deployment impact: reproducible local normalization tooling and review metadata only. This commit creates no normalized PNG yet and changes no runtime import, human approval, API, credential, entitlement, or deployed state.
+
+### 2026-08-06 — Major Arcana crop normalization
+
+- Normalized all 22 Major Arcana sources sequentially to exact 1024 × 1536 RGB PNGs while leaving the 848 × 1264 archival sources and their checksums unchanged.
+- Reviewed the complete normalized Major Arcana contact sheet and the per-side light/dark edge-band report.
+- Tightened six initially detected 1–4 px residual frame gutters before the final render: Emperor, Hierophant, Hanged Man, Death, Temperance, and World.
+- The remaining dark top-band detections on Hermit and Judgement are intentional painted sky/negative space with illustration content crossing other edges, not exterior canvas gutters.
+- All 22 normalized files are uniquely checksum-bound to their source and crop record, use the canonical normalized path, and remain below the 4 MB normalized limit.
+- Review status remains `GENERATED_UNREVIEWED`; this crop pass is not human art, accessibility, editorial, coded-frame, or device approval.
+
+Verification required before commit:
+
+```text
+corepack npm run asset:validate
+corepack npm run format:check
+git diff --check
+```
+
+Deployment impact: 22 local Major Arcana bundle candidates and manifest metadata only. No source checksum, runtime import, API, credential, entitlement, human approval, or deployed state changed.
