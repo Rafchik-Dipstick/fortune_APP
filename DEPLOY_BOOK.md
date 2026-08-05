@@ -644,3 +644,21 @@ git diff --check
 ```
 
 Deployment impact: 14 local Wands bundle candidates and manifest metadata only. No source checksum, runtime import, API, credential, entitlement, human approval, or deployed state changed.
+
+### 2026-08-06 — Cups crop normalization
+
+- Normalized all 14 Cups sources sequentially to exact 1024 × 1536 RGB PNG bundle candidates while preserving the archival source set.
+- Reviewed every normalized Cups card in one labeled contact sheet and checked per-side edge-band depths.
+- Removed residual 2–13 px dark frame gutters from Three, Five, Seven, Ten, Page, and King after the initial render.
+- Six of Cups retains its painted night-sky top because flowers and architecture cross the canvas and the area is scene content rather than an exterior gutter.
+- All 14 normalized Cups files validate below 4 MB with unique checksums, canonical paths, and source-bound crop records; no card was promoted beyond `GENERATED_UNREVIEWED`.
+
+Verification required before commit:
+
+```text
+corepack npm run asset:validate
+corepack npm run format:check
+git diff --check
+```
+
+Deployment impact: 14 local Cups bundle candidates and manifest metadata only. No source checksum, runtime import, API, credential, entitlement, human approval, or deployed state changed.
