@@ -872,11 +872,11 @@ The Zod schemas in `packages/api-contracts` and generated OpenAPI document are r
 | `POST /v1/me/deletion/cancel` | None | `200 { user, session, bootstrap }`; `410 ACCOUNT_PURGED` after purge. |
 | `GET /v1/fortune/state` | None | `200 { state, unviewedDraw? }` with server time and all absolute period/time-zone timestamps. |
 | `POST /v1/fortunes/draw` | `{ intention }` plus header key | First issuance `201`; same-key replay `200`; an existing unviewed draw or exhausted allowance is `409` with owned authoritative state. |
-| `GET /v1/fortunes` | `cursor`, `limit`, and allowlisted filters | `200 { items, nextCursor, savedThrough? }`. |
+| `GET /v1/fortunes` | `cursor`, `limit`, and allowlisted filters | `200 { items, nextCursor, syncedAt }`. |
 | `GET /v1/fortunes/:id` | Owned UUID | `200 { draw }`; another user's ID is indistinguishable from not found. |
 | `PATCH /v1/fortunes/:id/viewed` | None | `200 { draw }`; repeated acknowledgement is identical. |
 | `GET /v1/collection` | None | `200 { cards, unlockedCount, totalCount, syncedAt }`. |
-| `GET /v1/collection/cards/:key` | `cursor`, `limit` | `200 { card, readings, nextCursor }`. |
+| `GET /v1/collection/cards/:key` | `cursor`, `limit` | `200 { card, readings, nextCursor, syncedAt }`. |
 | `GET /v1/iap/catalog` | None | `200 { products, benefits, gracePeriodPolicy, appAccountToken }`; the token is the current server-issued purchase token, while price remains StoreKit-owned. |
 | `POST /v1/iap/transactions` | `{ signedTransaction }` | Discriminated `200 { transactionId, deliveryAccepted, safeToFinish, appliedNow, disposition, callerState? }`; `callerState` is omitted for other/closed-owner delivery and can never describe the recorded other owner. |
 | `POST /v1/iap/reconcile` | Up to 100 signed current/unfinished items | `200 { dispositions, callerState? }`; each item is independently idempotent, and the optional state belongs only to the authenticated caller. |
