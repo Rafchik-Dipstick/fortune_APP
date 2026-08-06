@@ -1265,3 +1265,24 @@ git diff --check
 ```
 
 Deployment impact: one additive/backfilled user-context migration plus local API period/state services, route/runtime wiring, and tests. The migration still requires the normal staging backup/restore and `migrate deploy` gate; no persistent database, user state, entitlement, allowance, credential, Railway service, or deployed environment changed.
+
+### 2026-08-06 — Phase 6 cryptographic fortune selection
+
+- Added an injected selection engine whose production source uses Node cryptographic randomness for bounded uniform indexes and unit draws; deterministic sources remain test-only and cannot be supplied by the client.
+- Selected upright/reversed orientation first at exactly 70/30, then failed closed when the selected locale/intention/orientation content group was unavailable instead of rerolling toward available content.
+- Implemented the specified recency preference and relaxation order: exclude both 30-day templates and last-three cards when possible, relax the template exclusion first, then relax the recent-card exclusion only if necessary.
+- Implemented 65/35 unseen-versus-seen group selection only when both groups exist and the full 78-card deck is not unlocked, followed by a uniform card choice and uniform eligible template-variant choice. No card receives a paid or rarity weight.
+- Added deterministic reachability and edge-case tests plus 100,000-selection statistical checks; measured orientation and unseen-group frequencies stay within the required two-percentage-point tolerances.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: local pure selection code and tests only. No database query/row, allowance, content activation, client seed, route, credential, or deployed environment changed.
