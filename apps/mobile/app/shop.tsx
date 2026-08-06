@@ -1,19 +1,81 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Linking, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { AdaptiveSheet } from '@/components/adaptive-sheet';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
+import { ErrorState } from '@/components/error-state';
+import { LoadingSkeleton } from '@/components/loading-skeleton';
 import { PageHeader } from '@/components/page-header';
 import { Screen } from '@/components/screen';
 import { StatusBanner } from '@/components/status-banner';
 import { Surface } from '@/components/surface';
+import { publicEnvironment } from '@/config/public-environment';
+import { useFortuneRitual } from '@/fortune/fortune-ritual';
+import { useCommerce } from '@/iap/commerce';
+import { blockedReasonMessage, summarizeAllowance, type ShopOffer } from '@/iap/shop-catalog';
 import { spacing } from '@/theme/tokens';
+
+function OfferCard({
+  busy,
+  offer,
+  onPurchase,
+}: {
+  busy: boolean;
+  offer: ShopOffer;
+  onPurchase: () => void;
+}) {
+  return (
+    <Surface>
+      <AppText color="gold" variant="caption">
+        {offer.productType === 'CONSUMABLE'
+          ? 'One-time purchase · repeatable'
+          : 'Month-to-month subscription'}
+      </AppText>
+      <AppText accessibilityRole="header" variant="headline">
+        {offer.title}
+      </AppText>
+      <AppText color="textMuted">{offer.benefit.description}</AppText>
+      <AppButton
+        accessibilityLabel={
+          offer.displayPrice === null
+            ? `${offer.title}, price unavailable`
+            : `Buy ${offer.title} for ${offer.displayPrice}`
+        }
+        disabled={!offer.purchasable}
+        label={
+          busy
+            ? 'Confirming with the App Store…'
+            : (offer.displayPrice ?? 'Price unavailable right now')
+        }
+        onPress={onPurchase}
+      />
+      <AppText color="textMuted" variant="caption">
+        {offer.disclosure}
+      </AppText>
+      {offer.blockedReason === null ? null : (
+        <AppText color="textMuted" variant="caption">
+          {blockedReasonMessage(offer.blockedReason)}
+        </AppText>
+      )}
+    </Surface>
+  );
+}
 
 export default function ShopScreen() {
   const router = useRouter();
+  const commerce = useCommerce();
+  const ritual = useFortuneRitual();
   const [termsVisible, setTermsVisible] = useState(false);
+  const allowanceSummary = summarizeAllowance(ritual.allowance, commerce.callerState);
+  const phase = commerce.purchasePhase;
+  const busyProductId =
+    phase.kind === 'PURCHASING' || phase.kind === 'PENDING' ? phase.productId : undefined;
+
+  const openLink = (url: string) => {
+    void Linking.openURL(url).catch(() => undefined);
+  };
 
   return (
     <Screen readingWidth>
@@ -32,57 +94,115 @@ export default function ShopScreen() {
         title="Shop"
       />
 
-      <StatusBanner
-        message="1 free · 0 subscriber · 0 pack credits"
-        title="Your current allowance"
-      />
+      <StatusBanner message={allowanceSummary.detail} title={allowanceSummary.headline} />
 
-      <View style={styles.offers}>
-        <Surface>
-          <AppText color="gold" variant="caption">
-            Repeatable consumable
-          </AppText>
-          <AppText variant="headline">10 Fortune Pack</AppText>
-          <AppText color="textMuted">
-            Adds exactly 10 spendable draw credits after server verification. Unused credits remain
-            until spent or adjusted after a verified refund.
-          </AppText>
-          <AppButton disabled label="StoreKit price loads here" onPress={() => undefined} />
-        </Surface>
-
-        <Surface>
-          <AppText color="gold" variant="caption">
-            Month-to-month subscription
-          </AppText>
-          <AppText variant="headline">Oracle+ Monthly</AppText>
-          <AppText color="textMuted">
-            Adds 10 fortunes per eligible account day while active or in a verified grace period.
-            Auto-renews monthly until cancelled; no 12-month commitment.
-          </AppText>
-          <AppButton disabled label="StoreKit price loads here" onPress={() => undefined} />
-        </Surface>
-
-        <AppButton
-          disabled
-          label="Restore Purchases"
-          onPress={() => undefined}
-          variant="secondary"
+      {phase.kind === 'CANCELLED' ? (
+        <AppText accessibilityLiveRegion="polite" color="textMuted" variant="caption">
+          Purchase cancelled. Nothing was charged and your allowance is unchanged.
+        </AppText>
+      ) : null}
+      {phase.kind === 'PENDING' ? (
+        <StatusBanner
+          message="Apple is waiting for approval on this purchase. Nothing is granted until it is approved and verified; you can keep using Fortuneness meanwhile."
+          title="Waiting for approval"
         />
-        <AppText color="textMuted" style={styles.disclosure} variant="caption">
-          Restore Purchases rechecks your Apple subscription and synchronizes pack credits already
-          recorded for this Fortuneness account. Commerce connects in Phase 9.
+      ) : null}
+      {phase.kind === 'SUCCEEDED' ? (
+        <StatusBanner message={phase.message} title="Purchase confirmed" />
+      ) : null}
+      {phase.kind === 'FAILED' ? (
+        <AppText accessibilityLiveRegion="assertive" color="danger" variant="caption">
+          {phase.message}
         </AppText>
-        <AppText color="textMuted" style={styles.disclosure} variant="caption">
-          Terms of Use · Privacy Policy · Manage Subscription
+      ) : null}
+      {commerce.restoreSummary === undefined ? null : (
+        <StatusBanner message={commerce.restoreSummary.message} title="Restore Purchases" />
+      )}
+      {commerce.manageError === undefined ? null : (
+        <AppText accessibilityLiveRegion="polite" color="textMuted" variant="caption">
+          {commerce.manageError}
         </AppText>
-        <AppButton
-          label="How purchases work"
-          onPress={() => {
-            setTermsVisible(true);
+      )}
+
+      {commerce.isCatalogLoading ? (
+        <LoadingSkeleton />
+      ) : commerce.catalogError !== undefined ? (
+        <ErrorState
+          message="The Fortuneness benefit catalog could not be loaded, so nothing is offered for sale right now. No purchase was started."
+          onRetry={() => {
+            void commerce.retryCatalog();
           }}
-          variant="quiet"
+          title="Shop is temporarily unavailable"
         />
-      </View>
+      ) : (
+        <View style={styles.offers}>
+          {commerce.offers.map((offer) => (
+            <OfferCard
+              busy={busyProductId === offer.productId}
+              key={offer.productId}
+              offer={offer}
+              onPurchase={() => {
+                void commerce.purchase(offer.productId);
+              }}
+            />
+          ))}
+
+          <Surface>
+            <AppText variant="label">Already purchased?</AppText>
+            <AppButton
+              disabled={commerce.isRestoring || !commerce.storeKitAvailable}
+              label={commerce.isRestoring ? 'Rechecking with Apple…' : 'Restore Purchases'}
+              onPress={() => {
+                void commerce.restorePurchases();
+              }}
+              variant="secondary"
+            />
+            <AppText color="textMuted" variant="caption">
+              Rechecks your Apple subscription and synchronizes pack credits already recorded for
+              this Fortuneness account. It never creates a new charge.
+            </AppText>
+            <AppButton
+              disabled={!commerce.storeKitAvailable}
+              label="Manage Subscription"
+              onPress={() => {
+                void commerce.manageSubscription();
+              }}
+              variant="secondary"
+            />
+            <AppText color="textMuted" variant="caption">
+              Opens Apple&apos;s subscription settings, where Oracle+ can be cancelled at any time.
+            </AppText>
+          </Surface>
+
+          <View style={styles.disclosures}>
+            <AppButton
+              label="Terms of Use"
+              onPress={() => {
+                openLink(publicEnvironment.termsUrl);
+              }}
+              variant="quiet"
+            />
+            <AppButton
+              label="Privacy Policy"
+              onPress={() => {
+                openLink(publicEnvironment.privacyUrl);
+              }}
+              variant="quiet"
+            />
+            <AppButton
+              label="How purchases work"
+              onPress={() => {
+                setTermsVisible(true);
+              }}
+              variant="quiet"
+            />
+          </View>
+          <AppText color="textMuted" style={styles.centered} variant="caption">
+            Fortuneness offers tarot-inspired reflections for entertainment. Purchases add readings;
+            they never change what a reading says.
+          </AppText>
+        </View>
+      )}
 
       <AdaptiveSheet
         onClose={() => {
@@ -96,12 +216,19 @@ export default function ShopScreen() {
           after the server verifies the signed transaction for this account.
         </AppText>
         <AppText color="textMuted">
-          A 10 Fortune Pack adds ten spendable credits. Oracle+ Monthly adds ten eligible readings
-          per account day while the verified subscription is active or in grace period.
+          The free daily reading is always included and never expires. Oracle+ readings are used
+          before pack credits, so a subscription day never spends a credit you paid for separately.
+        </AppText>
+        <AppText color="textMuted">
+          Pack credits stay until you spend them. A verified refund removes the unspent units of
+          that purchase, and cancelling Oracle+ keeps every card and reading you already collected.
         </AppText>
         <AppText color="textMuted">
           Restore Purchases checks existing Apple transactions. It does not create a new charge.
         </AppText>
+        {commerce.catalog?.gracePeriodPolicy.enabled === true ? (
+          <AppText color="textMuted">{commerce.catalog.gracePeriodPolicy.description}</AppText>
+        ) : null}
       </AdaptiveSheet>
     </Screen>
   );
@@ -112,7 +239,14 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
     paddingTop: spacing.lg,
   },
-  disclosure: {
+  disclosures: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+  },
+  centered: {
     textAlign: 'center',
   },
 });

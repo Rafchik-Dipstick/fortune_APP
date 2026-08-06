@@ -18,7 +18,7 @@
     "start": "node dist/main.js",
     "test": "vitest run --exclude \"**/*.integration.test.ts\"",
     "test:db": "node scripts/run-database-tests.mjs",
-    "test:db:integration": "vitest run src/db/database.integration.test.ts src/fortune/archive.integration.test.ts src/iap/application.integration.test.ts src/iap/notifications.integration.test.ts",
+    "test:db:integration": "vitest run src/db/database.integration.test.ts src/fortune/archive.integration.test.ts src/fortune/monetized-allowance.integration.test.ts src/iap/application.integration.test.ts src/iap/notifications.integration.test.ts",
     "typecheck": "prisma generate && tsc -p tsconfig.json && tsc -p prisma/tsconfig.json"
   },
   "dependencies": {

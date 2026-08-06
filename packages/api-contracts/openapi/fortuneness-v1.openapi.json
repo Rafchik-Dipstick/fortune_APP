@@ -11,7 +11,8 @@
     { "name": "Authentication" },
     { "name": "Account" },
     { "name": "Fortunes" },
-    { "name": "Collection" }
+    { "name": "Collection" },
+    { "name": "Commerce" }
   ],
   "x-stable-error-codes": [
     "VALIDATION_FAILED",
@@ -612,6 +613,375 @@
         "type": "object",
         "properties": { "intention": { "$ref": "#/components/schemas/FortuneIntention" } },
         "required": ["intention"],
+        "additionalProperties": false
+      },
+      "IapCatalogResponse": {
+        "type": "object",
+        "properties": {
+          "products": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/IapCatalogProduct" },
+            "minItems": 1,
+            "maxItems": 20
+          },
+          "benefits": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/IapBenefit" },
+            "minItems": 1,
+            "maxItems": 20
+          },
+          "gracePeriodPolicy": {
+            "type": "object",
+            "properties": {
+              "enabled": { "type": "boolean" },
+              "description": { "type": "string", "minLength": 1, "maxLength": 500 }
+            },
+            "required": ["enabled", "description"],
+            "additionalProperties": false
+          },
+          "appAccountToken": { "type": "string", "format": "uuid" }
+        },
+        "required": ["products", "benefits", "gracePeriodPolicy", "appAccountToken"],
+        "additionalProperties": false
+      },
+      "IapCatalogProduct": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 160,
+            "pattern": "^[A-Za-z0-9]+(?:\\.[A-Za-z0-9]+)+$/u"
+          },
+          "productType": { "$ref": "#/components/schemas/IapProductType" }
+        },
+        "required": ["productId", "productType"],
+        "additionalProperties": false
+      },
+      "IapProductType": { "type": "string", "enum": ["CONSUMABLE", "AUTO_RENEWABLE_SUBSCRIPTION"] },
+      "IapBenefit": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 160,
+            "pattern": "^[A-Za-z0-9]+(?:\\.[A-Za-z0-9]+)+$/u"
+          },
+          "kind": { "type": "string", "enum": ["PACK_CREDITS", "SUBSCRIPTION_DAILY_FORTUNES"] },
+          "units": { "type": "integer", "minimum": 1, "maximum": 10 },
+          "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "description": { "type": "string", "minLength": 1, "maxLength": 500 }
+        },
+        "required": ["productId", "kind", "units", "title", "description"],
+        "additionalProperties": false
+      },
+      "IapTransactionResponse": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "transactionId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[0-9]+$/u"
+              },
+              "deliveryAccepted": { "type": "boolean", "enum": [true] },
+              "safeToFinish": { "type": "boolean", "enum": [true] },
+              "disposition": { "type": "string", "enum": ["APPLIED"] },
+              "appliedNow": { "type": "boolean", "enum": [true] },
+              "callerState": { "$ref": "#/components/schemas/IapCallerState" }
+            },
+            "required": [
+              "transactionId",
+              "deliveryAccepted",
+              "safeToFinish",
+              "disposition",
+              "appliedNow"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "transactionId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[0-9]+$/u"
+              },
+              "deliveryAccepted": { "type": "boolean", "enum": [true] },
+              "safeToFinish": { "type": "boolean", "enum": [true] },
+              "disposition": { "type": "string", "enum": ["ALREADY_APPLIED"] },
+              "appliedNow": { "type": "boolean", "enum": [false] },
+              "callerState": { "$ref": "#/components/schemas/IapCallerState" }
+            },
+            "required": [
+              "transactionId",
+              "deliveryAccepted",
+              "safeToFinish",
+              "disposition",
+              "appliedNow"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "transactionId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[0-9]+$/u"
+              },
+              "deliveryAccepted": { "type": "boolean", "enum": [true] },
+              "safeToFinish": { "type": "boolean", "enum": [true] },
+              "disposition": { "type": "string", "enum": ["DELIVERED_TO_OTHER_ACCOUNT"] },
+              "appliedNow": { "type": "boolean", "enum": [false] }
+            },
+            "required": [
+              "transactionId",
+              "deliveryAccepted",
+              "safeToFinish",
+              "disposition",
+              "appliedNow"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "transactionId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[0-9]+$/u"
+              },
+              "deliveryAccepted": { "type": "boolean", "enum": [true] },
+              "safeToFinish": { "type": "boolean", "enum": [true] },
+              "disposition": { "type": "string", "enum": ["OWNER_CLOSED_NO_BENEFIT"] },
+              "appliedNow": { "type": "boolean", "enum": [false] }
+            },
+            "required": [
+              "transactionId",
+              "deliveryAccepted",
+              "safeToFinish",
+              "disposition",
+              "appliedNow"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "IapCallerState": {
+        "type": "object",
+        "properties": {
+          "subscription": { "$ref": "#/components/schemas/SubscriptionAllowance" },
+          "spendablePackCredits": { "type": "integer", "minimum": 0 },
+          "commerceReviewRequired": { "type": "boolean" }
+        },
+        "required": ["subscription", "spendablePackCredits", "commerceReviewRequired"],
+        "additionalProperties": false
+      },
+      "IapTransactionRequest": {
+        "type": "object",
+        "properties": {
+          "signedTransaction": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 20000,
+            "pattern": "^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/u"
+          }
+        },
+        "required": ["signedTransaction"],
+        "additionalProperties": false
+      },
+      "IapReconcileResponse": {
+        "type": "object",
+        "properties": {
+          "dispositions": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/IapReconcileDisposition" },
+            "minItems": 1,
+            "maxItems": 100
+          },
+          "callerState": { "$ref": "#/components/schemas/IapCallerState" }
+        },
+        "required": ["dispositions"],
+        "additionalProperties": false
+      },
+      "IapReconcileDisposition": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "index": { "type": "integer", "minimum": 0, "maximum": 99 },
+              "transactionId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[0-9]+$/u"
+              },
+              "deliveryAccepted": { "type": "boolean", "enum": [true] },
+              "safeToFinish": { "type": "boolean", "enum": [true] },
+              "disposition": { "type": "string", "enum": ["APPLIED"] },
+              "appliedNow": { "type": "boolean", "enum": [true] }
+            },
+            "required": [
+              "index",
+              "transactionId",
+              "deliveryAccepted",
+              "safeToFinish",
+              "disposition",
+              "appliedNow"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "index": { "type": "integer", "minimum": 0, "maximum": 99 },
+              "transactionId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[0-9]+$/u"
+              },
+              "deliveryAccepted": { "type": "boolean", "enum": [true] },
+              "safeToFinish": { "type": "boolean", "enum": [true] },
+              "disposition": { "type": "string", "enum": ["ALREADY_APPLIED"] },
+              "appliedNow": { "type": "boolean", "enum": [false] }
+            },
+            "required": [
+              "index",
+              "transactionId",
+              "deliveryAccepted",
+              "safeToFinish",
+              "disposition",
+              "appliedNow"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "index": { "type": "integer", "minimum": 0, "maximum": 99 },
+              "transactionId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[0-9]+$/u"
+              },
+              "deliveryAccepted": { "type": "boolean", "enum": [true] },
+              "safeToFinish": { "type": "boolean", "enum": [true] },
+              "disposition": { "type": "string", "enum": ["DELIVERED_TO_OTHER_ACCOUNT"] },
+              "appliedNow": { "type": "boolean", "enum": [false] }
+            },
+            "required": [
+              "index",
+              "transactionId",
+              "deliveryAccepted",
+              "safeToFinish",
+              "disposition",
+              "appliedNow"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "index": { "type": "integer", "minimum": 0, "maximum": 99 },
+              "transactionId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[0-9]+$/u"
+              },
+              "deliveryAccepted": { "type": "boolean", "enum": [true] },
+              "safeToFinish": { "type": "boolean", "enum": [true] },
+              "disposition": { "type": "string", "enum": ["OWNER_CLOSED_NO_BENEFIT"] },
+              "appliedNow": { "type": "boolean", "enum": [false] }
+            },
+            "required": [
+              "index",
+              "transactionId",
+              "deliveryAccepted",
+              "safeToFinish",
+              "disposition",
+              "appliedNow"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "index": { "type": "integer", "minimum": 0, "maximum": 99 },
+              "transactionId": {
+                "type": ["string", "null"],
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[0-9]+$/u"
+              },
+              "deliveryAccepted": { "type": "boolean", "enum": [false] },
+              "safeToFinish": { "type": "boolean", "enum": [false] },
+              "disposition": { "type": "string", "enum": ["REJECTED"] },
+              "errorCode": {
+                "type": "string",
+                "enum": [
+                  "TRANSACTION_UNVERIFIED",
+                  "PRODUCT_NOT_ALLOWED",
+                  "TRANSACTION_OWNER_UNKNOWN",
+                  "RETRYABLE_CONFLICT"
+                ]
+              }
+            },
+            "required": [
+              "index",
+              "transactionId",
+              "deliveryAccepted",
+              "safeToFinish",
+              "disposition",
+              "errorCode"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "IapReconcileRequest": {
+        "type": "object",
+        "properties": {
+          "transactions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 20,
+              "maxLength": 20000,
+              "pattern": "^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/u"
+            },
+            "minItems": 1,
+            "maxItems": 100
+          }
+        },
+        "required": ["transactions"],
+        "additionalProperties": false
+      },
+      "IapStatusResponse": {
+        "type": "object",
+        "properties": {
+          "subscription": { "$ref": "#/components/schemas/SubscriptionAllowance" },
+          "spendablePackCredits": { "type": "integer", "minimum": 0 },
+          "commerceReviewRequired": { "type": "boolean" }
+        },
+        "required": ["subscription", "spendablePackCredits", "commerceReviewRequired"],
+        "additionalProperties": false
+      },
+      "AppStoreNotificationEnvelope": {
+        "type": "object",
+        "properties": {
+          "signedPayload": { "type": "string", "minLength": 20, "maxLength": 2000000 }
+        },
+        "required": ["signedPayload"],
         "additionalProperties": false
       }
     },
@@ -1263,6 +1633,231 @@
           },
           "503": {
             "description": "Content is incomplete or stable database state could not be acquired after bounded retries.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          }
+        }
+      }
+    },
+    "/v1/iap/catalog": {
+      "get": {
+        "description": "Returns the allowlisted product IDs, server-owned benefit copy, grace-period policy, and the current server-issued purchase token. Prices remain StoreKit-owned.",
+        "summary": "Get the commerce catalog",
+        "tags": ["Commerce"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "The allowlisted catalog and the caller purchase token.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/IapCatalogResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "The access token or authoritative session is no longer active.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "410": {
+            "description": "The account has already been purged.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "423": {
+            "description": "The account is pending deletion.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "503": {
+            "description": "Stable database state is temporarily unavailable.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          }
+        }
+      }
+    },
+    "/v1/iap/transactions": {
+      "post": {
+        "description": "Verifies one StoreKit signed transaction and applies its benefit exactly once through the atomic application service. Duplicate accepted delivery is normal success with appliedNow false.",
+        "summary": "Deliver a signed transaction",
+        "tags": ["Commerce"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/IapTransactionRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The transaction was verified and durably applied, already applied, delivered to its recorded other owner, or terminally closed without benefit.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/IapTransactionResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "The JWS is unverified or the product is not allowlisted.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "401": {
+            "description": "The access token or authoritative session is no longer active.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "409": {
+            "description": "No owner is identifiable; the transaction is quarantined unfinished.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "410": {
+            "description": "The account has already been purged.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "423": {
+            "description": "The account is pending deletion.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "503": {
+            "description": "A retryable lock or database failure occurred; retry without finishing.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          }
+        }
+      }
+    },
+    "/v1/iap/reconcile": {
+      "post": {
+        "description": "Independently verifies and idempotently applies up to 100 signed current or unfinished transactions enumerated by the client.",
+        "summary": "Reconcile signed transactions",
+        "tags": ["Commerce"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/IapReconcileRequest" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "One independent disposition per submitted transaction.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/IapReconcileResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "The batch shape or an item exceeds the documented bounds.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "401": {
+            "description": "The access token or authoritative session is no longer active.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "410": {
+            "description": "The account has already been purged.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "423": {
+            "description": "The account is pending deletion.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "503": {
+            "description": "Stable database state is temporarily unavailable.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          }
+        }
+      }
+    },
+    "/v1/iap/status": {
+      "get": {
+        "description": "Returns the caller-owned normalized subscription entitlement, nonnegative spendable pack balance, and commerce-review lock state.",
+        "summary": "Get commerce status",
+        "tags": ["Commerce"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "The caller-owned entitlement and pack balance.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/IapStatusResponse" } }
+            }
+          },
+          "401": {
+            "description": "The access token or authoritative session is no longer active.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "410": {
+            "description": "The account has already been purged.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "423": {
+            "description": "The account is pending deletion.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "503": {
+            "description": "Stable database state is temporarily unavailable.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          }
+        }
+      }
+    },
+    "/v1/webhooks/app-store": {
+      "post": {
+        "description": "Receives App Store Server Notifications V2. The outer and nested JWS are verified and the envelope is stored durably before acknowledgement; processing happens asynchronously.",
+        "summary": "Receive App Store notifications",
+        "tags": ["Commerce"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AppStoreNotificationEnvelope" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "The verified envelope was durably persisted." },
+          "400": {
+            "description": "The envelope is malformed or fails verification.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "503": {
+            "description": "Durable persistence is temporarily unavailable; Apple should retry.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
             }

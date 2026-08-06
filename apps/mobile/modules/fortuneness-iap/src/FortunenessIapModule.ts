@@ -28,18 +28,38 @@ export interface IapSubscriptionPeriod {
   value: number;
 }
 
+export interface IapIntroductoryOffer {
+  /** Localized StoreKit offer price; never formatted by the app. */
+  displayPrice: string;
+  paymentMode: string;
+  periodCount: number;
+  periodUnit: string;
+  periodValue: number;
+}
+
 export interface IapProduct {
   description: string;
   displayName: string;
   /** Localized StoreKit price string; the UI never formats prices itself. */
   displayPrice: string;
+  /** Present only when this Apple Account is currently eligible for it. */
+  introductoryOffer: IapIntroductoryOffer | null;
   productId: string;
   subscriptionPeriod: IapSubscriptionPeriod | null;
   type: string;
 }
 
+export interface IapStorefront {
+  countryCode: string;
+  id: string;
+}
+
 interface IapEvents {
-  [event: string]: (transaction: IapSignedTransaction) => void;
+  // expo-modules-core requires an index signature on the events map. Every
+  // listener below must be assignable to it, so the payload is the
+  // intersection of the concrete event payloads.
+  [event: string]: (payload: IapSignedTransaction & IapStorefront) => void;
+  onStorefrontChange(storefront: IapStorefront): void;
   onTransactionUpdate(transaction: IapSignedTransaction): void;
 }
 
@@ -48,6 +68,7 @@ declare class FortunenessIapNativeModule extends NativeModule<IapEvents> {
   fetchProductsAsync(productIds: string[]): Promise<IapProduct[]>;
   finishTransactionAsync(transactionId: string): Promise<boolean>;
   getCurrentEntitlementsAsync(): Promise<IapSignedTransaction[]>;
+  getStorefrontAsync(): Promise<IapStorefront | null>;
   getUnfinishedTransactionsAsync(): Promise<IapSignedTransaction[]>;
   presentManageSubscriptionsAsync(): Promise<void>;
   purchaseAsync(productId: string, appAccountToken: string): Promise<IapPurchaseResult>;
@@ -66,6 +87,23 @@ export function canMakePayments(): boolean {
 
 export async function fetchIapProductsAsync(productIds: string[]): Promise<IapProduct[]> {
   return (await nativeModule?.fetchProductsAsync(productIds)) ?? [];
+}
+
+/**
+ * Active App Store storefront. Prices, availability, and offer eligibility are
+ * storefront-specific, so a change invalidates every cached product.
+ */
+export async function getIapStorefrontAsync(): Promise<IapStorefront | null> {
+  return (await nativeModule?.getStorefrontAsync()) ?? null;
+}
+
+export function addStorefrontChangeListener(
+  listener: (storefront: IapStorefront) => void,
+): EventSubscription {
+  if (nativeModule === null) {
+    return { remove: () => undefined };
+  }
+  return nativeModule.addListener('onStorefrontChange', listener);
 }
 
 /**

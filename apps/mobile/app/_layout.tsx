@@ -12,6 +12,7 @@ import { QaLocaleProvider } from '@/i18n/qa-locale';
 import { LocalDataProvider } from '@/local-data/local-data';
 import { FortuneRitualProvider } from '@/fortune/fortune-ritual';
 import { ExperienceFeedbackProvider } from '@/feedback/experience-feedback';
+import { CommerceProvider } from '@/iap/commerce';
 import { MotionPreferenceProvider, useMotionPreference } from '@/motion/motion-preference';
 import { shouldReduceMotion } from '@/motion/reduce-motion';
 import { colors } from '@/theme/tokens';
@@ -26,9 +27,11 @@ export default function RootLayout() {
               <AuthenticationGate>
                 <ExperienceFeedbackProvider>
                   <FortuneRitualProvider>
-                    <MotionPreferenceProvider>
-                      <AppNavigation />
-                    </MotionPreferenceProvider>
+                    <CommerceProvider>
+                      <MotionPreferenceProvider>
+                        <AppNavigation />
+                      </MotionPreferenceProvider>
+                    </CommerceProvider>
                   </FortuneRitualProvider>
                 </ExperienceFeedbackProvider>
               </AuthenticationGate>

@@ -1,7 +1,9 @@
 import { StyleSheet, Switch, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import type { IapCallerState } from '@fortuneness/api-contracts';
 
 import { useAuthentication } from '@/auth/authentication';
+import { useCommerce } from '@/iap/commerce';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
 import { PageHeader } from '@/components/page-header';
@@ -39,9 +41,30 @@ function SettingRow({ description, label, onValueChange, value }: SettingRowProp
   );
 }
 
+/** Plain status wording; an inactive subscription is stated, never nudged. */
+function subscriptionLabel(callerState: IapCallerState | undefined): string {
+  switch (callerState?.subscription.status) {
+    case undefined:
+      return 'Oracle+ status loading';
+    case 'ACTIVE':
+      return 'Oracle+ is active';
+    case 'GRACE_PERIOD':
+      return 'Oracle+ is in a billing grace period';
+    case 'BILLING_RETRY':
+      return 'Oracle+ renewal is being retried by Apple';
+    case 'EXPIRED':
+      return 'Oracle+ has expired';
+    case 'REVOKED':
+      return 'Oracle+ was revoked';
+    case 'NONE':
+      return 'Oracle+ is not active';
+  }
+}
+
 export default function SettingsScreen() {
   const router = useRouter();
   const authentication = useAuthentication();
+  const commerce = useCommerce();
   const { locale, pseudoLocaleAvailable, setLocale } = useQaLocale();
   const { reduceMoreMotion, setReduceMoreMotion } = useMotionPreference();
   const feedback = useExperienceFeedback();
@@ -126,6 +149,55 @@ export default function SettingsScreen() {
             label="Enable after first reading"
             onPress={() => undefined}
             variant="secondary"
+          />
+        </Surface>
+
+        <Surface>
+          <AppText color="gold" variant="caption">
+            Purchases
+          </AppText>
+          <AppText variant="headline">{subscriptionLabel(commerce.callerState)}</AppText>
+          <AppText color="textMuted">
+            {commerce.callerState === undefined
+              ? 'Your commerce state is loading.'
+              : `${String(commerce.callerState.spendablePackCredits)} pack ${commerce.callerState.spendablePackCredits === 1 ? 'credit' : 'credits'} available on this account.`}
+          </AppText>
+          <AppButton
+            disabled={commerce.isRestoring || !commerce.storeKitAvailable}
+            label={commerce.isRestoring ? 'Rechecking with Apple…' : 'Restore Purchases'}
+            onPress={() => {
+              void commerce.restorePurchases();
+            }}
+            variant="secondary"
+          />
+          <AppText color="textMuted" variant="caption">
+            Rechecks your Apple subscription and synchronizes pack credits already recorded for this
+            Fortuneness account. It never creates a new charge.
+          </AppText>
+          <AppButton
+            disabled={!commerce.storeKitAvailable}
+            label="Manage Subscription"
+            onPress={() => {
+              void commerce.manageSubscription();
+            }}
+            variant="secondary"
+          />
+          {commerce.restoreSummary === undefined ? null : (
+            <AppText accessibilityLiveRegion="polite" color="textMuted" variant="caption">
+              {commerce.restoreSummary.message}
+            </AppText>
+          )}
+          {commerce.manageError === undefined ? null : (
+            <AppText accessibilityLiveRegion="polite" color="textMuted" variant="caption">
+              {commerce.manageError}
+            </AppText>
+          )}
+          <AppButton
+            label="Open Shop"
+            onPress={() => {
+              router.push('/shop');
+            }}
+            variant="quiet"
           />
         </Surface>
 

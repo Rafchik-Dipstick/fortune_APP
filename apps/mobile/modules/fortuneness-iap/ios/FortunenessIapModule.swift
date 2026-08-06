@@ -4,6 +4,7 @@ import StoreKit
 import UIKit
 
 private let transactionUpdateEvent = "onTransactionUpdate"
+private let storefrontChangeEvent = "onStorefrontChange"
 
 private enum IapModuleError: Error, LocalizedError {
   case invalidAppAccountToken
@@ -37,11 +38,12 @@ private enum IapModuleError: Error, LocalizedError {
  */
 public final class FortunenessIapModule: Module {
   private var updatesTask: _Concurrency.Task<Void, Never>?
+  private var storefrontTask: _Concurrency.Task<Void, Never>?
 
   public func definition() -> ModuleDefinition {
     Name("FortunenessIap")
 
-    Events(transactionUpdateEvent)
+    Events(transactionUpdateEvent, storefrontChangeEvent)
 
     OnCreate {
       self.updatesTask = _Concurrency.Task(priority: .utility) {
@@ -49,20 +51,40 @@ public final class FortunenessIapModule: Module {
           self.emitVerifiedUpdate(update)
         }
       }
+      // A storefront change invalidates every cached localized price, so the
+      // shop refetches products instead of showing another country's price.
+      self.storefrontTask = _Concurrency.Task(priority: .utility) {
+        for await storefront in Storefront.updates {
+          self.sendEvent(storefrontChangeEvent, self.serializeStorefront(storefront))
+        }
+      }
     }
 
     OnDestroy {
       self.updatesTask?.cancel()
       self.updatesTask = nil
+      self.storefrontTask?.cancel()
+      self.storefrontTask = nil
     }
 
     Function("canMakePayments") { () -> Bool in
       return AppStore.canMakePayments
     }
 
+    AsyncFunction("getStorefrontAsync") { () -> [String: Any?]? in
+      guard let storefront = await Storefront.current else {
+        return nil
+      }
+      return self.serializeStorefront(storefront)
+    }
+
     AsyncFunction("fetchProductsAsync") { (productIds: [String]) -> [[String: Any?]] in
       let products = try await Product.products(for: productIds)
-      return products.map { self.serializeProduct($0) }
+      var serialized: [[String: Any?]] = []
+      for product in products {
+        serialized.append(await self.serializeProduct(product))
+      }
+      return serialized
     }
 
     AsyncFunction("purchaseAsync") {
@@ -184,18 +206,39 @@ public final class FortunenessIapModule: Module {
     ]
   }
 
-  private func serializeProduct(_ product: Product) -> [String: Any?] {
+  private func serializeStorefront(_ storefront: Storefront) -> [String: Any?] {
+    return ["countryCode": storefront.countryCode, "id": storefront.id]
+  }
+
+  /**
+   Serializes one product for display. Prices and offer text always come from
+   StoreKit for the active storefront; the app never formats a currency. An
+   introductory offer is reported only when this Apple Account is currently
+   eligible for it, so the shop cannot advertise a trial the player cannot get.
+   */
+  private func serializeProduct(_ product: Product) async -> [String: Any?] {
     var subscriptionPeriod: [String: Any?]? = nil
+    var introductoryOffer: [String: Any?]? = nil
     if let subscription = product.subscription {
       subscriptionPeriod = [
         "unit": String(describing: subscription.subscriptionPeriod.unit),
         "value": subscription.subscriptionPeriod.value,
       ]
+      if let offer = subscription.introductoryOffer, await subscription.isEligibleForIntroOffer {
+        introductoryOffer = [
+          "displayPrice": offer.displayPrice,
+          "paymentMode": offer.paymentMode.rawValue,
+          "periodCount": offer.periodCount,
+          "periodUnit": String(describing: offer.period.unit),
+          "periodValue": offer.period.value,
+        ]
+      }
     }
     return [
       "description": product.description,
       "displayName": product.displayName,
       "displayPrice": product.displayPrice,
+      "introductoryOffer": introductoryOffer,
       "productId": product.id,
       "subscriptionPeriod": subscriptionPeriod,
       "type": product.type.rawValue,

@@ -16,7 +16,7 @@ import { Surface } from '@/components/surface';
 import { TarotCard } from '@/components/tarot-card';
 import { useFortuneRitual } from '@/fortune/fortune-ritual';
 import { useAdaptiveLayout } from '@/theme/adaptive';
-import { spacing } from '@/theme/tokens';
+import { colors, spacing } from '@/theme/tokens';
 
 const intentionLabels: Record<FortuneIntention, string> = {
   GENERAL: 'General',
@@ -38,6 +38,22 @@ function formatNextReset(state: FortuneAllowanceState): string {
   } catch {
     return state.nextResetAt;
   }
+}
+
+/**
+ * States the spend order plainly so a subscriber can see that Oracle+ readings
+ * are used before any pack credit they bought separately.
+ */
+function allowanceOrderNote(state: FortuneAllowanceState): string {
+  if (state.subscription.status === 'GRACE_PERIOD') {
+    return 'Oracle+ is in a billing grace period and still grants its daily readings. Pack credits are spent last.';
+  }
+  if (state.subscription.entitled) {
+    return 'Free, then Oracle+, then pack credits — in that order.';
+  }
+  return state.spendablePackCredits > 0
+    ? 'The free reading is spent before any pack credit.'
+    : 'The free daily reading is always included.';
 }
 
 function drawFailureMessage(error: Error, retainedIntention: FortuneIntention | undefined): string {
@@ -82,14 +98,26 @@ export default function OracleScreen() {
               }}
               variant="quiet"
             />
-            <AppButton
-              compact
-              label="Shop"
-              onPress={() => {
-                router.push('/shop');
-              }}
-              variant="quiet"
-            />
+            <View style={styles.shopAction}>
+              <AppButton
+                accessibilityLabel={
+                  exhausted ? 'Shop. Optional ways to draw more are available.' : 'Shop'
+                }
+                compact
+                label="Shop"
+                onPress={() => {
+                  router.push('/shop');
+                }}
+                variant="quiet"
+              />
+              {exhausted ? (
+                <View
+                  accessibilityElementsHidden
+                  importantForAccessibility="no-hide-descendants"
+                  style={styles.shopDot}
+                />
+              ) : null}
+            </View>
             <AppButton
               compact
               label="Settings"
@@ -211,6 +239,9 @@ export default function OracleScreen() {
                   Oracle+ · {String(allowance.spendablePackCredits)} pack
                 </AppText>
                 <AppText color="textMuted" variant="caption">
+                  {allowanceOrderNote(allowance)}
+                </AppText>
+                <AppText color="textMuted" variant="caption">
                   Account day: {allowance.accountTimeZone}
                 </AppText>
               </View>
@@ -233,6 +264,19 @@ export default function OracleScreen() {
 }
 
 const styles = StyleSheet.create({
+  shopAction: {
+    justifyContent: 'center',
+  },
+  // Quiet availability hint only; never a flashing badge or countdown.
+  shopDot: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.goldMuted,
+  },
   oracle: {
     alignItems: 'center',
     gap: spacing.xl,

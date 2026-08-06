@@ -12,6 +12,11 @@ StoreKit 2 local Expo module for Fortuneness commerce (spec section 7.2).
   Purchases only, and the manage-subscriptions sheet. Every function degrades
   safely when the native module is absent (Expo Go, simulator without the
   dev build, non-Apple platforms).
+- Product payloads carry the StoreKit localized `displayPrice`, billing
+  period, and an `introductoryOffer` reported only while this Apple Account is
+  actually eligible for it. `getStorefrontAsync` plus the
+  `onStorefrontChange` event let the shop refetch instead of showing another
+  country's cached price.
 - The delivery loop lives in `apps/mobile/src/iap/commerce-delivery.ts`:
   transactions are finished only after the server accepts delivery with
   `deliveryAccepted` and `safeToFinish` both true.
