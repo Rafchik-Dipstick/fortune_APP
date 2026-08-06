@@ -10,6 +10,7 @@ import {
   type TarotSuit,
 } from '@fortuneness/api-contracts';
 
+import { getAccountPurgeEpoch } from './purge-epoch';
 import { readingColumnValues, upsertReadingSql } from './reading-store';
 import { getDatabaseWriteQueue } from './write-queue';
 
@@ -89,6 +90,15 @@ function buildFilterClauses(filters: ArchiveReadingFilters): {
 
 export class AccountArchiveStore {
   constructor(private readonly database: SQLiteDatabase) {}
+
+  /**
+   * Current purge generation for the account. Capture it before long-running
+   * fetch-then-persist work and skip the persist step when it changed, so
+   * purged account data is never re-inserted.
+   */
+  getPurgeEpoch(accountId: string): number {
+    return getAccountPurgeEpoch(this.database, accountId);
+  }
 
   async saveReadings(accountId: string, draws: readonly FortuneDraw[]): Promise<void> {
     if (draws.length === 0) {

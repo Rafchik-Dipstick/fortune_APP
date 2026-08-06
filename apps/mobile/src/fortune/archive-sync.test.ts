@@ -34,18 +34,32 @@ function draw(index: number): FortuneDraw {
   };
 }
 
-function createStore(known: readonly string[] = []): ArchiveSyncStore & {
+function createStore(
+  known: readonly string[] = [],
+  options: { priorSyncedAt?: string } = {},
+): ArchiveSyncStore & {
+  bumpPurgeEpoch: () => void;
   enforceCacheLimit: ReturnType<typeof vi.fn>;
   recordReadingsSyncedAt: ReturnType<typeof vi.fn>;
   saveCollectionSummary: ReturnType<typeof vi.fn>;
   saveReadings: ReturnType<typeof vi.fn>;
 } {
   const knownIds = new Set(known);
+  let epoch = 0;
   return {
+    bumpPurgeEpoch: () => {
+      epoch += 1;
+    },
     enforceCacheLimit: vi.fn().mockResolvedValue(0),
     filterKnownReadingIds: vi.fn((_account: string, ids: readonly string[]) =>
       Promise.resolve(new Set(ids.filter((id) => knownIds.has(id)))),
     ),
+    getPurgeEpoch: () => epoch,
+    getSyncState: vi.fn().mockResolvedValue({
+      readingsSyncedAt: options.priorSyncedAt,
+      savedReadingCount: known.length,
+      totalPayloadBytes: 0,
+    }),
     recordReadingsSyncedAt: vi.fn().mockResolvedValue(undefined),
     saveCollectionSummary: vi.fn().mockResolvedValue(undefined),
     saveReadings: vi.fn().mockResolvedValue(undefined),
@@ -77,7 +91,11 @@ describe('ArchiveSyncController', () => {
 
     const result = await controller.syncLatest(accountId, accessToken);
 
-    expect(result).toEqual({ syncedAt: '2026-08-06T10:00:02.000Z', syncedReadingCount: 200 });
+    expect(result).toEqual({
+      aborted: false,
+      syncedAt: '2026-08-06T10:00:02.000Z',
+      syncedReadingCount: 200,
+    });
     expect(store.saveCollectionSummary).toHaveBeenCalledWith(accountId, summary);
     expect(fetchHistoryPage).toHaveBeenNthCalledWith(1, accessToken, { limit: 100 });
     expect(fetchHistoryPage).toHaveBeenNthCalledWith(2, accessToken, {
@@ -109,9 +127,12 @@ describe('ArchiveSyncController', () => {
     expect(store.saveReadings).toHaveBeenCalledTimes(1);
   });
 
-  it('stops early when a full page is already saved locally', async () => {
+  it('stops early on a fully known page once a baseline sync has completed before', async () => {
     const pageOne = Array.from({ length: 100 }, (_, index) => draw(index));
-    const store = createStore(pageOne.map((item) => item.id));
+    const store = createStore(
+      pageOne.map((item) => item.id),
+      { priorSyncedAt: '2026-08-05T10:00:00.000Z' },
+    );
     const fetchHistoryPage = vi.fn().mockResolvedValue({
       items: pageOne,
       nextCursor: 'v1.cursor-one.signature',
@@ -128,6 +149,63 @@ describe('ArchiveSyncController', () => {
     expect(result.syncedReadingCount).toBe(100);
     expect(fetchHistoryPage).toHaveBeenCalledTimes(1);
     expect(store.saveReadings).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps paging past a fully known page when no baseline sync ever completed', async () => {
+    const pageOne = Array.from({ length: 100 }, (_, index) => draw(index));
+    const pageTwo = Array.from({ length: 100 }, (_, index) => draw(index + 100));
+    const store = createStore(pageOne.map((item) => item.id));
+    const fetchHistoryPage = vi
+      .fn()
+      .mockResolvedValueOnce({
+        items: pageOne,
+        nextCursor: 'v1.cursor-one.signature',
+        syncedAt: '2026-08-06T10:00:01.000Z',
+      })
+      .mockResolvedValueOnce({
+        items: pageTwo,
+        nextCursor: null,
+        syncedAt: '2026-08-06T10:00:02.000Z',
+      });
+    const controller = new ArchiveSyncController({
+      fetchCollection: vi.fn().mockResolvedValue(summary),
+      fetchHistoryPage,
+      store,
+    });
+
+    const result = await controller.syncLatest(accountId, accessToken);
+
+    expect(result).toEqual({
+      aborted: false,
+      syncedAt: '2026-08-06T10:00:02.000Z',
+      syncedReadingCount: 200,
+    });
+    expect(fetchHistoryPage).toHaveBeenCalledTimes(2);
+    expect(store.recordReadingsSyncedAt).toHaveBeenCalledWith(
+      accountId,
+      '2026-08-06T10:00:02.000Z',
+    );
+  });
+
+  it('aborts without writing when the account is purged mid-sync', async () => {
+    const store = createStore();
+    const items = Array.from({ length: 10 }, (_, index) => draw(index));
+    const fetchHistoryPage = vi.fn().mockImplementation(() => {
+      store.bumpPurgeEpoch();
+      return Promise.resolve({ items, nextCursor: null, syncedAt: '2026-08-06T10:00:01.000Z' });
+    });
+    const controller = new ArchiveSyncController({
+      fetchCollection: vi.fn().mockResolvedValue(summary),
+      fetchHistoryPage,
+      store,
+    });
+
+    const result = await controller.syncLatest(accountId, accessToken);
+
+    expect(result.aborted).toBe(true);
+    expect(store.saveReadings).not.toHaveBeenCalled();
+    expect(store.recordReadingsSyncedAt).not.toHaveBeenCalled();
+    expect(store.enforceCacheLimit).not.toHaveBeenCalled();
   });
 
   it('propagates fetch failures without recording a successful sync', async () => {

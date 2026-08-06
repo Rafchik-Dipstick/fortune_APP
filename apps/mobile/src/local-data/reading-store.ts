@@ -1,6 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { fortuneDrawSchema, type FortuneDraw } from '@fortuneness/api-contracts';
 
+import { bumpAccountPurgeEpoch } from './purge-epoch';
 import { getDatabaseWriteQueue } from './write-queue';
 
 export type PendingRevealStep = 'CARD_REVEALED' | 'CONTENT_REACHABLE' | 'ISSUED';
@@ -230,6 +231,7 @@ export class AccountReadingStore {
   }
 
   async purgeAccount(accountId: string): Promise<void> {
+    bumpAccountPurgeEpoch(this.database, accountId);
     await getDatabaseWriteQueue(this.database).run(() =>
       this.database.withExclusiveTransactionAsync(async (transaction) => {
         await transaction.runAsync('DELETE FROM pending_reveals WHERE account_id = $accountId', {

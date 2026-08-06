@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import {
+  keepPreviousData,
   useInfiniteQuery,
   useQuery,
   useQueryClient,
@@ -27,6 +28,9 @@ import { useLocalData } from '../local-data/local-data';
 import { ArchiveSyncController } from './archive-sync';
 
 const pageSize = 30;
+// While a screen shows cache-sourced pages, retry the server on an interval so
+// the view recovers to live data soon after connectivity returns (§2.6).
+const offlineRecheckIntervalMs = 30_000;
 
 export const collectionSummaryQueryKey = (accountId: string) =>
   ['collection', 'summary', accountId] as const;
@@ -92,10 +96,15 @@ export function useCollectionSummary(): UseQueryResult<CollectionSummaryResult> 
   const { archiveStore } = useLocalData();
   return useQuery({
     queryKey: collectionSummaryQueryKey(accountId),
+    refetchInterval: (query) =>
+      query.state.data?.source === 'cache' ? offlineRecheckIntervalMs : false,
     queryFn: async (): Promise<CollectionSummaryResult> => {
+      const purgeEpoch = archiveStore.getPurgeEpoch(accountId);
       try {
         const response = await getCollection(session.accessToken);
-        await archiveStore.saveCollectionSummary(accountId, response);
+        if (archiveStore.getPurgeEpoch(accountId) === purgeEpoch) {
+          await archiveStore.saveCollectionSummary(accountId, response);
+        }
         return { response, source: 'server', syncedAt: response.syncedAt };
       } catch (error) {
         if (!isOfflineError(error)) {
@@ -121,6 +130,11 @@ export function useReadingsArchive(
     queryKey: readingsArchiveQueryKey(accountId, filters),
     initialPageParam: undefined as ArchivePageParam | undefined,
     getNextPageParam: (lastPage: ArchiveReadingsPage) => lastPage.next ?? undefined,
+    placeholderData: keepPreviousData,
+    refetchInterval: (query) =>
+      query.state.data?.pages.some((page) => page.source === 'cache')
+        ? offlineRecheckIntervalMs
+        : false,
     queryFn: async ({ pageParam }): Promise<ArchiveReadingsPage> => {
       if (pageParam?.kind === 'local') {
         const items = await archiveStore.loadReadingsPage(accountId, {
@@ -130,18 +144,23 @@ export function useReadingsArchive(
         });
         return { items, next: localNext(items), source: 'cache', syncedAt: null };
       }
+      const purgeEpoch = archiveStore.getPurgeEpoch(accountId);
       try {
         const page = await getFortuneHistory(session.accessToken, {
           ...filters,
           limit: pageSize,
           ...(pageParam === undefined ? {} : { cursor: pageParam.cursor }),
         });
-        await archiveStore.saveReadings(accountId, page.items);
-        if (pageParam === undefined) {
-          await archiveStore.recordReadingsSyncedAt(accountId, page.syncedAt);
+        if (archiveStore.getPurgeEpoch(accountId) === purgeEpoch) {
+          await archiveStore.saveReadings(accountId, page.items);
+          // Only an unfiltered newest page proves archive-wide freshness; a
+          // filtered fetch must not advance the offline "last sync" label.
+          if (pageParam === undefined && Object.keys(filters).length === 0) {
+            await archiveStore.recordReadingsSyncedAt(accountId, page.syncedAt);
+          }
+          await archiveStore.enforceCacheLimit(accountId);
+          void queryClient.invalidateQueries({ queryKey: archiveSyncStateQueryKey(accountId) });
         }
-        await archiveStore.enforceCacheLimit(accountId);
-        void queryClient.invalidateQueries({ queryKey: archiveSyncStateQueryKey(accountId) });
         return {
           items: page.items,
           next: page.nextCursor === null ? null : { cursor: page.nextCursor, kind: 'server' },
@@ -177,6 +196,10 @@ export function useCollectionCardDetail(
     queryKey: collectionCardQueryKey(accountId, cardKey),
     initialPageParam: undefined as ArchivePageParam | undefined,
     getNextPageParam: (lastPage: CardDetailPage) => lastPage.next ?? undefined,
+    refetchInterval: (query) =>
+      query.state.data?.pages.some((page) => page.source === 'cache')
+        ? offlineRecheckIntervalMs
+        : false,
     queryFn: async ({ pageParam }): Promise<CardDetailPage> => {
       if (pageParam?.kind === 'local') {
         const cached = await archiveStore.loadCollectionSummary(accountId);
@@ -191,13 +214,16 @@ export function useCollectionCardDetail(
         });
         return { card, next: localNext(readings), readings, source: 'cache' };
       }
+      const purgeEpoch = archiveStore.getPurgeEpoch(accountId);
       try {
         const page = await getCollectionCard(session.accessToken, cardKey, {
           limit: pageSize,
           ...(pageParam === undefined ? {} : { cursor: pageParam.cursor }),
         });
-        await archiveStore.saveReadings(accountId, page.readings);
-        await archiveStore.enforceCacheLimit(accountId);
+        if (archiveStore.getPurgeEpoch(accountId) === purgeEpoch) {
+          await archiveStore.saveReadings(accountId, page.readings);
+          await archiveStore.enforceCacheLimit(accountId);
+        }
         return {
           card: page.card,
           next: page.nextCursor === null ? null : { cursor: page.nextCursor, kind: 'server' },
@@ -229,12 +255,15 @@ export function useReadingDetail(drawId: string): UseQueryResult<ReadingDetailRe
   return useQuery({
     queryKey: readingDetailQueryKey(accountId, drawId),
     queryFn: async (): Promise<ReadingDetailResult> => {
+      const purgeEpoch = archiveStore.getPurgeEpoch(accountId);
       const local = await archiveStore.loadReading(accountId, drawId);
       if (local !== undefined) {
         return { draw: local, source: 'cache' };
       }
       const detail = await getFortuneDetail(session.accessToken, drawId);
-      await archiveStore.saveReadings(accountId, [detail.draw]);
+      if (archiveStore.getPurgeEpoch(accountId) === purgeEpoch) {
+        await archiveStore.saveReadings(accountId, [detail.draw]);
+      }
       return { draw: detail.draw, source: 'server' };
     },
   });
