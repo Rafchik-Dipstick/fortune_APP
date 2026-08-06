@@ -1,3 +1,12 @@
-# Game Center Expo module
+# Fortuneness Game Center module
 
-The Swift/GameKit local Expo module belongs here after the Phase 0 physical-device spike verifies persistent scoped IDs, proof retrieval, presentation bridging, and the signed IPA entitlement. This boundary is intentionally documentation-only until that external gate is complete.
+This iOS-only local Expo module owns the GameKit authentication handler, system presentation bridge, authentication-change events, persistent scoped-ID signal, restriction flags, and identity-verification proof retrieval.
+
+The TypeScript wrapper uses an optional native-module lookup so an accidental Expo Go launch produces the explicit `UNSUPPORTED` state rather than a module-load crash. A development build is required for the native implementation.
+
+Native build verification remains a setup gate:
+
+1. Regenerate the iOS project/development client after native changes.
+2. Confirm the App ID and provisioning profile have Game Center enabled.
+3. Inspect the generated entitlements and signed IPA for `com.apple.developer.game-center = true`.
+4. Exercise authentication, system sign-in presentation, persistent IDs, proof retrieval, restrictions, and player switching on a physical iPhone and iPad.

@@ -1142,3 +1142,29 @@ git diff --check
 ```
 
 Deployment impact: local API account-bootstrap service/route/contracts and a corrected SQL lock projection only. No schema migration, persistent database, purchase token, key, credential, Railway service, or deployed environment changed.
+
+### 2026-08-06 — Phase 5 native Game Center module and entitlement code
+
+- Replaced the placeholder boundary with an iOS-only local Expo module matched to the pinned Expo 57 Modules API and automatically discovered from the app's native modules directory.
+- Added one idempotent `GKLocalPlayer.authenticateHandler`, main-thread presentation of GameKit's supplied controller, authentication-change notification forwarding, and deterministic native states for not-started, authenticating, presenting, authenticated, and unavailable outcomes.
+- Exposed authenticated alias, `teamPlayerID`, `gamePlayerID`, persistent-scoped-ID status, and all three current restriction flags only in process memory/events; temporary identifiers are explicitly rejected before proof retrieval.
+- Added identity-verification retrieval for the exact Apple bundle URL/signature/salt/UInt64 timestamp items, encoding binary values as base64 and the timestamp as a decimal string so JavaScript cannot lose signed-byte precision.
+- Added an optional TypeScript native-module wrapper that fails into an explicit unsupported development-build state in Expo Go instead of crashing, plus strongly typed state, proof, restriction, and event contracts.
+- Added the Game Center config plugin and verified Expo config introspection emits `com.apple.developer.game-center = true`. Expo autolinking found `FortunenessGameCenterModule` with no duplicate module.
+- Documented the remaining physical-device setup gate: App ID capability, provisioning profile, regenerated development client, signed-IPA entitlement inspection, presentation, persistent proof, restrictions, and account-switch exercises.
+
+Verification required before commit:
+
+```text
+corepack npm exec expo-modules-autolinking -- search --platform apple
+corepack npm exec expo -- config --type introspect
+corepack npm run config:check --workspace @fortuneness/mobile
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/mobile
+corepack npm run test --workspace @fortuneness/mobile
+corepack npm run build --workspace @fortuneness/mobile
+git diff --check
+```
+
+Deployment impact: local Expo/Swift module, TypeScript wrapper, and generated-entitlement configuration only. Windows cannot compile GameKit; the documented macOS/physical-device build gate remains required. No App ID, profile, IPA, Apple account, credential, Railway service, or deployed environment changed.

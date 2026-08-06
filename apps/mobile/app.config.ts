@@ -93,6 +93,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         },
       ],
       './plugins/with-local-notifications-only.cjs',
+      './plugins/with-game-center.cjs',
     ],
     experiments: {
       typedRoutes: true,
