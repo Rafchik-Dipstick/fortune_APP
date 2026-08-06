@@ -75,7 +75,7 @@ function toPrismaBytes(value: Buffer): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 
-function serializeUser(user: FullUser): AuthenticatedUser {
+export function serializeAuthenticatedUser(user: FullUser): AuthenticatedUser {
   return {
     id: user.id,
     status: user.status,
@@ -193,7 +193,7 @@ export class GameCenterLoginService {
       });
 
       return gameCenterAuthResponseSchema.parse({
-        user: serializeUser(user),
+        user: serializeAuthenticatedUser(user),
         session: {
           accessToken: access.accessToken,
           refreshToken,

@@ -5,6 +5,7 @@ import { type GameCenterAuthRequest } from '@fortuneness/api-contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { AccessTokenService } from '../auth/access-token.js';
+import { AccountBootstrapService } from '../auth/account-bootstrap.js';
 import {
   GameCenterLoginError,
   GameCenterLoginService,
@@ -261,6 +262,8 @@ describe('PostgreSQL integrity', { concurrent: false }, () => {
       ...rotatedAuthentication,
       authTime: new Date(rotatedAuthentication.authTimeSeconds * 1_000),
     };
+    const bootstrap = await new AccountBootstrapService(prisma, environment).get(logoutContext);
+    expect(bootstrap.bootstrap.appAccountToken).toBe(rotated.bootstrap.appAccountToken);
     await logout.logout(logoutContext);
     await expect(logout.logout(logoutContext)).rejects.toSatisfy(
       (error: unknown) => error instanceof LogoutSessionError && error.code === 'AUTH_REQUIRED',

@@ -99,6 +99,7 @@ export type {
   GameCenterAuthRequest,
   GameCenterAuthResponse,
   GameCenterProof,
+  MeResponse,
   RefreshSessionRequest,
   RefreshSessionResponse,
   SessionTokens,

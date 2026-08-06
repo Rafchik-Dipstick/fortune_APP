@@ -20,7 +20,6 @@ export interface LockedUser {
 
 export interface LockedFinancialSubject {
   benefitsDisabledAt: Date | null;
-  creditBalance: number;
   id: string;
 }
 
@@ -113,7 +112,7 @@ export async function lockFinancialSubjectForUpdate(
   financialSubjectId: string,
 ): Promise<LockedFinancialSubject> {
   const rows = await transaction.$queryRaw<LockedFinancialSubject[]>`
-    SELECT "id", "creditBalance", "benefitsDisabledAt"
+    SELECT "id", "benefitsDisabledAt"
     FROM "FinancialSubject"
     WHERE "id" = ${financialSubjectId}::uuid
     FOR UPDATE

@@ -1,6 +1,7 @@
 import { type Express } from 'express';
 
 import { createApiApp } from './app.js';
+import { AccountBootstrapService } from './auth/account-bootstrap.js';
 import { AccessTokenService } from './auth/access-token.js';
 import { GameCenterLoginService } from './auth/game-center-login.js';
 import { GameCenterProofVerifier } from './auth/game-center-proof.js';
@@ -45,6 +46,7 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
     environment: environment.authentication,
   });
   const logoutSessions = new LogoutSessionService(database.client);
+  const accountBootstrap = new AccountBootstrapService(database.client, environment.authentication);
   const authenticate = createAuthoritativeAuthentication(database.client, accessTokens);
   const app = createApiApp({
     environment,
@@ -53,6 +55,7 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
     configureRoutes: (configuredApp) => {
       registerAuthenticationRoutes(configuredApp, {
         authenticate,
+        bootstrap: accountBootstrap,
         login: gameCenterLogin,
         logout: logoutSessions,
         refresh: refreshSessions,

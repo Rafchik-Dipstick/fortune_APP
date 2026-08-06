@@ -193,6 +193,10 @@ export const generateOpenApiDocument = () => {
         description: 'The access token or authoritative session is no longer active.',
         content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
       },
+      410: {
+        description: 'The account was purged before bootstrap could commit.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
       423: {
         description: 'The account is pending deletion.',
         content: { 'application/json': { schema: apiErrorEnvelopeSchema } },

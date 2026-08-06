@@ -1117,3 +1117,28 @@ git diff --check
 ```
 
 Deployment impact: one index-removal migration plus local API session services/routes, generated OpenAPI, and tests. The migration restores the specified token-scoped idempotency semantics and still requires normal staging evidence; no persistent database, key, credential, Railway service, or deployed environment changed.
+
+### 2026-08-06 — Phase 5 authoritative account bootstrap
+
+- Mounted bearer-protected `GET /v1/me` and exported its shared response type. The route validates the domain response, never caches it, and documents authorization, concurrent deletion, and purge outcomes.
+- Reacquired locks in `User → SessionFamily → FinancialSubject` order before exposing account/bootstrap state, then rechecked ownership, active status, session/family versions, expiry, revocation, and immutable Game Center `auth_time` inside the transaction.
+- Loaded only the current recoverable purchase-token binding and decrypted it with binding-ID authenticated context and an approved retained encryption key. Missing, erased, malformed, or undecryptable bindings fail closed without exposing internal cryptographic details.
+- Returned canonical user preferences and the same separate purchase-token UUID established at Game Center login; the internal financial-subject ID remains server-only.
+- Corrected the preexisting financial-subject lock projection to match the canonical schema: balances are derived from the append-only ledger, so the row lock no longer queries a nonexistent `creditBalance` column.
+- Added route coverage for non-cacheable success and safe account-state failures. The disposable PostgreSQL flow now retrieves and compares the real encrypted bootstrap token under locks before logging out, then removes its generated database after all invariants pass.
+
+Verification required before commit:
+
+```text
+TEST_DATABASE_ADMIN_URL=<injected local admin URL> corepack npm run test:db
+corepack npm run openapi:generate
+corepack npm run openapi:check
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: local API account-bootstrap service/route/contracts and a corrected SQL lock projection only. No schema migration, persistent database, purchase token, key, credential, Railway service, or deployed environment changed.

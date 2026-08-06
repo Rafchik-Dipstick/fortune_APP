@@ -5,11 +5,13 @@ import {
   apiPaths,
   type GameCenterAuthRequest,
   type GameCenterAuthResponse,
+  type MeResponse,
   type RefreshSessionRequest,
   type RefreshSessionResponse,
 } from '@fortuneness/api-contracts';
 
 import { createApiApp } from '../app.js';
+import { AccountBootstrapError } from '../auth/account-bootstrap.js';
 import { GameCenterVerificationError } from '../auth/game-center-errors.js';
 import { GameCenterLoginError } from '../auth/game-center-login.js';
 import { LogoutSessionError } from '../auth/logout-session.js';
@@ -18,6 +20,7 @@ import { createTestApiEnvironment } from '../config/environment.fixture.js';
 import { ApiReadiness } from '../health/readiness.js';
 import {
   type GameCenterLoginHandler,
+  type AccountBootstrapHandler,
   type LogoutSessionHandler,
   type RefreshSessionHandler,
   registerAuthenticationRoutes,
@@ -81,6 +84,7 @@ const result: GameCenterAuthResponse = {
 const createLoginMock = () => vi.fn<GameCenterLoginHandler['login']>();
 const createRefreshMock = () => vi.fn<RefreshSessionHandler['refresh']>();
 const createLogoutMock = () => vi.fn<LogoutSessionHandler['logout']>();
+const createBootstrapMock = () => vi.fn<AccountBootstrapHandler['get']>();
 const authentication = {
   userId: '22222222-2222-4222-8222-222222222222',
   sessionFamilyId: '66666666-6666-4666-8666-666666666666',
@@ -97,6 +101,7 @@ function createFixture(
   login: GameCenterLoginHandler['login'] = createLoginMock(),
   refresh: RefreshSessionHandler['refresh'] = createRefreshMock(),
   logout: LogoutSessionHandler['logout'] = createLogoutMock(),
+  bootstrap: AccountBootstrapHandler['get'] = createBootstrapMock(),
 ) {
   return createApiApp({
     environment: createTestApiEnvironment({ logLevel: 'silent' }),
@@ -104,6 +109,7 @@ function createFixture(
     configureRoutes: (app) => {
       registerAuthenticationRoutes(app, {
         authenticate,
+        bootstrap: { get: bootstrap },
         login: { login },
         logout: { logout },
         refresh: { refresh },
@@ -229,6 +235,40 @@ describe('logout route', () => {
       createFixture(undefined, undefined, createLogoutMock().mockRejectedValue(failure)),
     )
       .post(apiPaths.authLogout)
+      .expect(status);
+
+    expect(response.body.error.code).toBe(code);
+  });
+});
+
+describe('account bootstrap route', () => {
+  const meResult: MeResponse = { user: result.user, bootstrap: result.bootstrap };
+
+  it('returns the current account and purchase token without caching', async () => {
+    const bootstrap = createBootstrapMock().mockResolvedValue(meResult);
+    const response = await request(createFixture(undefined, undefined, undefined, bootstrap))
+      .get(apiPaths.me)
+      .expect(200);
+
+    expect(response.body).toEqual(meResult);
+    expect(response.headers['cache-control']).toBe('no-store');
+    expect(bootstrap).toHaveBeenCalledWith(authentication);
+  });
+
+  it.each([
+    [new AccountBootstrapError('AUTH_REQUIRED'), 401, 'AUTH_REQUIRED'],
+    [new AccountBootstrapError('ACCOUNT_DELETION_PENDING'), 423, 'ACCOUNT_DELETION_PENDING'],
+    [new AccountBootstrapError('ACCOUNT_PURGED'), 410, 'ACCOUNT_PURGED'],
+  ] as const)('maps safe bootstrap failures', async (failure, status, code) => {
+    const response = await request(
+      createFixture(
+        undefined,
+        undefined,
+        undefined,
+        createBootstrapMock().mockRejectedValue(failure),
+      ),
+    )
+      .get(apiPaths.me)
       .expect(status);
 
     expect(response.body.error.code).toBe(code);

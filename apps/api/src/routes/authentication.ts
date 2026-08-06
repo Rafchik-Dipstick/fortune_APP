@@ -4,14 +4,17 @@ import {
   gameCenterAuthRequestSchema,
   gameCenterAuthResponseSchema,
   idempotencyKeySchema,
+  meResponseSchema,
   refreshSessionRequestSchema,
   refreshSessionResponseSchema,
   type GameCenterAuthRequest,
   type GameCenterAuthResponse,
+  type MeResponse,
   type RefreshSessionRequest,
   type RefreshSessionResponse,
 } from '@fortuneness/api-contracts';
 
+import { AccountBootstrapError } from '../auth/account-bootstrap.js';
 import { GameCenterLoginError } from '../auth/game-center-login.js';
 import { GameCenterVerificationError } from '../auth/game-center-errors.js';
 import { LogoutSessionError } from '../auth/logout-session.js';
@@ -29,6 +32,10 @@ export interface RefreshSessionHandler {
 
 export interface LogoutSessionHandler {
   logout(authentication: AuthenticationContext): Promise<void>;
+}
+
+export interface AccountBootstrapHandler {
+  get(authentication: AuthenticationContext): Promise<MeResponse>;
 }
 
 function mapVerificationError(error: GameCenterVerificationError): ApiHttpError {
@@ -225,10 +232,47 @@ export function createLogoutRoute(logout: LogoutSessionHandler): RequestHandler 
   };
 }
 
+function mapAccountBootstrapError(error: AccountBootstrapError): ApiHttpError {
+  switch (error.code) {
+    case 'ACCOUNT_DELETION_PENDING':
+      return new ApiHttpError({
+        code: 'ACCOUNT_DELETION_PENDING',
+        message: 'The account is pending deletion.',
+        statusCode: 423,
+      });
+    case 'ACCOUNT_PURGED':
+      return new ApiHttpError({
+        code: 'ACCOUNT_PURGED',
+        message: 'The account has been purged.',
+        statusCode: 410,
+      });
+    case 'AUTH_REQUIRED':
+      return new ApiHttpError({
+        code: 'AUTH_REQUIRED',
+        message: 'The account bootstrap is unavailable for this session.',
+        statusCode: 401,
+      });
+  }
+}
+
+export function createAccountBootstrapRoute(bootstrap: AccountBootstrapHandler): RequestHandler {
+  return async (request, response, next) => {
+    response.setHeader('Cache-Control', 'no-store');
+    try {
+      response
+        .status(200)
+        .json(meResponseSchema.parse(await bootstrap.get(request.authentication)));
+    } catch (error) {
+      next(error instanceof AccountBootstrapError ? mapAccountBootstrapError(error) : error);
+    }
+  };
+}
+
 export function registerAuthenticationRoutes(
   app: Express,
   handlers: {
     authenticate: RequestHandler;
+    bootstrap: AccountBootstrapHandler;
     login: GameCenterLoginHandler;
     logout: LogoutSessionHandler;
     refresh: RefreshSessionHandler;
@@ -237,4 +281,5 @@ export function registerAuthenticationRoutes(
   app.post(apiPaths.authGameCenter, createGameCenterLoginRoute(handlers.login));
   app.post(apiPaths.authRefresh, createRefreshSessionRoute(handlers.refresh));
   app.post(apiPaths.authLogout, handlers.authenticate, createLogoutRoute(handlers.logout));
+  app.get(apiPaths.me, handlers.authenticate, createAccountBootstrapRoute(handlers.bootstrap));
 }

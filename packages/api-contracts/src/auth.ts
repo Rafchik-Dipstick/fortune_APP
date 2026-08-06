@@ -162,6 +162,7 @@ export type AuthenticatedUser = z.infer<typeof authenticatedUserSchema>;
 export type GameCenterAuthRequest = z.infer<typeof gameCenterAuthRequestSchema>;
 export type GameCenterAuthResponse = z.infer<typeof gameCenterAuthResponseSchema>;
 export type GameCenterProof = z.infer<typeof gameCenterProofSchema>;
+export type MeResponse = z.infer<typeof meResponseSchema>;
 export type RefreshSessionRequest = z.infer<typeof refreshSessionRequestSchema>;
 export type RefreshSessionResponse = z.infer<typeof refreshSessionResponseSchema>;
 export type SessionTokens = z.infer<typeof sessionTokensSchema>;

@@ -517,6 +517,12 @@
               "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
             }
           },
+          "410": {
+            "description": "The account was purged before bootstrap could commit.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
           "423": {
             "description": "The account is pending deletion.",
             "content": {
