@@ -194,7 +194,9 @@ const rawApiEnvironmentSchema = z
       ],
       ['HISTORY_CURSOR_HMAC_KEYS_JSON', 'HISTORY_CURSOR_CURRENT_KEY_VERSION'],
     ] as const) {
-      if (environment[keysField][environment[versionField]] === undefined) {
+      // Own-property check: a version like "constructor" must not pass by
+      // resolving to an inherited Object.prototype member.
+      if (!Object.hasOwn(environment[keysField], environment[versionField])) {
         context.addIssue({
           code: 'custom',
           path: [versionField],

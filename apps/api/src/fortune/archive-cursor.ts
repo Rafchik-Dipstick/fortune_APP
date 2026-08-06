@@ -42,11 +42,17 @@ function signContext(context: string, key: Buffer): Buffer {
   return createHmac('sha256', key).update(context, 'utf8').digest();
 }
 
+function lookupKey(keys: Readonly<Record<string, Buffer>>, version: string): Buffer | undefined {
+  // Own-property check: version strings such as "constructor" must not
+  // resolve to inherited Object.prototype members.
+  return Object.hasOwn(keys, version) ? keys[version] : undefined;
+}
+
 export function encodeArchiveCursor(
   options: ArchiveCursorScope,
   position: ArchiveCursorPosition,
 ): string {
-  const key = options.keyRing.keys[options.keyRing.currentVersion];
+  const key = lookupKey(options.keyRing.keys, options.keyRing.currentVersion);
   if (key === undefined) {
     throw new Error('Current archive cursor key is unavailable.');
   }
@@ -89,7 +95,7 @@ export function decodeArchiveCursor(
     return undefined;
   }
 
-  const key = options.keyRing.keys[payload.v];
+  const key = lookupKey(options.keyRing.keys, payload.v);
   if (key === undefined) {
     return undefined;
   }

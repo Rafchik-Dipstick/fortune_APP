@@ -128,6 +128,13 @@ describe('parseApiEnvironment', () => {
         HISTORY_CURSOR_CURRENT_KEY_VERSION: 'missing',
       }),
     ).toThrow(/HISTORY_CURSOR_CURRENT_KEY_VERSION/);
+    expect(() =>
+      parseApiEnvironment({
+        ...validAuthenticationEnvironment,
+        DATABASE_URL: databaseUrl,
+        HISTORY_CURSOR_CURRENT_KEY_VERSION: 'constructor',
+      }),
+    ).toThrow(/HISTORY_CURSOR_CURRENT_KEY_VERSION/);
 
     try {
       parseApiEnvironment({

@@ -88,4 +88,25 @@ describe('archive cursor', () => {
 
     expect(decodeArchiveCursor(scope, cursor)).toBeUndefined();
   });
+
+  it('rejects cursors naming Object.prototype members as key versions without throwing', () => {
+    for (const version of ['constructor', 'valueOf', 'toString', 'hasOwnProperty']) {
+      const payload = Buffer.from(
+        JSON.stringify({ v: version, a: '2026-08-06T10:00:00.000Z', i: position.id }),
+      ).toString('base64url');
+
+      expect(decodeArchiveCursor(scope, `v1.${payload}.AAAA`)).toBeUndefined();
+    }
+  });
+
+  it('refuses to encode when the current key version only matches a prototype member', () => {
+    const poisonedRing = {
+      currentVersion: 'constructor',
+      keys: { v1: Buffer.alloc(32, 1) },
+    } as unknown as VersionedKeyRing;
+
+    expect(() => encodeArchiveCursor({ ...scope, keyRing: poisonedRing }, position)).toThrow(
+      'Current archive cursor key is unavailable.',
+    );
+  });
 });
