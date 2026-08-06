@@ -13,6 +13,7 @@ import { type DatabaseRuntime, createDatabaseRuntime } from './db/database.js';
 import { ApiReadiness } from './health/readiness.js';
 import { FortuneStateService } from './fortune/state.js';
 import { FortuneDrawService } from './fortune/draw.js';
+import { FortuneViewedService } from './fortune/viewed.js';
 import { type ApiLogger, createApiLogger } from './logging/logger.js';
 import { createAuthoritativeAuthentication } from './middleware/authentication.js';
 import { registerAuthenticationRoutes } from './routes/authentication.js';
@@ -52,6 +53,7 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
   const accountBootstrap = new AccountBootstrapService(database.client, environment.authentication);
   const fortuneState = new FortuneStateService(database.client);
   const fortuneDraw = new FortuneDrawService({ client: database.client });
+  const fortuneViewed = new FortuneViewedService(database.client);
   const authenticate = createAuthoritativeAuthentication(database.client, accessTokens);
   const app = createApiApp({
     environment,
@@ -69,6 +71,7 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
         authenticate,
         draw: fortuneDraw,
         state: fortuneState,
+        viewed: fortuneViewed,
       });
     },
   });

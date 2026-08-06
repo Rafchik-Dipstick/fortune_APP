@@ -438,6 +438,12 @@
         "required": ["id"],
         "additionalProperties": false
       },
+      "FortuneViewedResponse": {
+        "type": "object",
+        "properties": { "draw": { "$ref": "#/components/schemas/FortuneDraw" } },
+        "required": ["draw"],
+        "additionalProperties": false
+      },
       "RefreshSessionResponse": {
         "type": "object",
         "properties": { "session": { "$ref": "#/components/schemas/SessionTokens" } },
@@ -575,6 +581,68 @@
           },
           "503": {
             "description": "Apple proof verification or stable database state is temporarily unavailable.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          }
+        }
+      }
+    },
+    "/v1/fortunes/{id}/viewed": {
+      "patch": {
+        "description": "Idempotently marks one owned immutable reading viewed after all reveal copy is rendered and reachable.",
+        "summary": "Acknowledge a revealed fortune",
+        "tags": ["Fortunes"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "schema": { "type": "string", "format": "uuid" },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The owned reading with its stable viewed timestamp.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FortuneViewedResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "The reading identifier is malformed.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "401": {
+            "description": "The access token or authoritative session is no longer active.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "404": {
+            "description": "The reading is absent or belongs to another account.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "410": {
+            "description": "The account has already been purged.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "423": {
+            "description": "The account is pending deletion.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "503": {
+            "description": "Stable database state is temporarily unavailable.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
             }

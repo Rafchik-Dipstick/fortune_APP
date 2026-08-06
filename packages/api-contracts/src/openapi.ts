@@ -9,12 +9,14 @@ import {
   fortuneDrawRequestSchema,
   fortuneDrawResponseSchema,
   fortuneStateResponseSchema,
+  fortuneViewedResponseSchema,
   healthResponseSchema,
   idempotencyKeySchema,
   meResponseSchema,
   refreshSessionRequestSchema,
   refreshSessionResponseSchema,
   stableApiErrorCodes,
+  uuidSchema,
 } from './index.js';
 
 export const generateOpenApiDocument = () => {
@@ -100,6 +102,47 @@ export const generateOpenApiDocument = () => {
       503: {
         description:
           'Apple proof verification or stable database state is temporarily unavailable.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+    },
+  });
+
+  registry.registerPath({
+    method: 'patch',
+    path: apiPaths.fortuneViewed.replace(':id', '{id}'),
+    description:
+      'Idempotently marks one owned immutable reading viewed after all reveal copy is rendered and reachable.',
+    summary: 'Acknowledge a revealed fortune',
+    tags: ['Fortunes'],
+    security: [{ bearerAuth: [] }],
+    request: { params: z.object({ id: uuidSchema }) },
+    responses: {
+      200: {
+        description: 'The owned reading with its stable viewed timestamp.',
+        content: { 'application/json': { schema: fortuneViewedResponseSchema } },
+      },
+      400: {
+        description: 'The reading identifier is malformed.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      401: {
+        description: 'The access token or authoritative session is no longer active.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      404: {
+        description: 'The reading is absent or belongs to another account.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      410: {
+        description: 'The account has already been purged.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      423: {
+        description: 'The account is pending deletion.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      503: {
+        description: 'Stable database state is temporarily unavailable.',
         content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
       },
     },

@@ -11,6 +11,7 @@ describe('generated OpenAPI document', () => {
     expect(Object.keys(document.paths ?? {})).toEqual([
       apiPaths.health,
       apiPaths.authGameCenter,
+      apiPaths.fortuneViewed.replace(':id', '{id}'),
       apiPaths.authRefresh,
       apiPaths.authLogout,
       apiPaths.me,
@@ -47,6 +48,7 @@ describe('generated OpenAPI document', () => {
     expect(document.components?.schemas).toHaveProperty('FortuneAllowanceState');
     expect(document.components?.schemas).toHaveProperty('FortuneDraw');
     expect(document.components?.schemas).toHaveProperty('FortuneDrawRequest');
+    expect(document.components?.schemas).toHaveProperty('FortuneViewedResponse');
   });
 
   it('publishes every canonical server error code exactly once', () => {

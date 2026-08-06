@@ -18,6 +18,7 @@ import { createTestApiEnvironment } from '../config/environment.fixture.js';
 import { FortuneDrawError, FortuneDrawService } from '../fortune/draw.js';
 import { type FortuneRandomSource } from '../fortune/selection.js';
 import { FortuneStateService } from '../fortune/state.js';
+import { FortuneViewedError, FortuneViewedService } from '../fortune/viewed.js';
 import { AccountTimeZoneService, TimeZoneChangeLimitedError } from '../fortune/time-zone-change.js';
 import { PrismaClient } from '../generated/prisma/client.js';
 import { mapDatabaseError } from './errors.js';
@@ -542,6 +543,38 @@ describe('PostgreSQL integrity', { concurrent: false }, () => {
     await expect(
       prisma.idempotencyRecord.count({ where: { actorId: fixture.user.id } }),
     ).resolves.toBe(1);
+  });
+
+  it('acknowledges an owned reveal once and hides it from fortune state', async () => {
+    const now = new Date('2026-08-06T10:00:00.000Z');
+    const viewedAt = new Date('2026-08-06T10:01:00.000Z');
+    const fixture = await createFortuneStateFixture({ now });
+    const draws = new FortuneDrawService({
+      client: prisma,
+      now: () => now,
+      random: firstCandidateRandom,
+    });
+    const issued = await draws.draw(fixture.authentication, { intention: 'GENERAL' }, randomUUID());
+    const viewed = new FortuneViewedService(prisma, () => viewedAt);
+
+    const first = await viewed.markViewed(fixture.authentication, issued.response.draw.id);
+    const repeated = await viewed.markViewed(fixture.authentication, issued.response.draw.id);
+
+    expect(first).toEqual(repeated);
+    expect(first.draw.viewedAt).toBe(viewedAt.toISOString());
+    await expect(
+      new FortuneStateService(prisma, () => viewedAt).get(fixture.authentication),
+    ).resolves.toMatchObject({ unviewedDraw: null });
+
+    const other = await createFortuneStateFixture({ now });
+    await expect(
+      new FortuneViewedService(prisma, () => viewedAt).markViewed(
+        other.authentication,
+        issued.response.draw.id,
+      ),
+    ).rejects.toSatisfy(
+      (error: unknown) => error instanceof FortuneViewedError && error.code === 'NOT_FOUND',
+    );
   });
 
   it('rejects changed input and stores stable unviewed and exhausted terminal outcomes', async () => {

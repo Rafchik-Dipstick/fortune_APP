@@ -4,13 +4,17 @@ import {
   fortuneDrawRequestSchema,
   fortuneDrawResponseSchema,
   fortuneStateResponseSchema,
+  fortuneViewedResponseSchema,
   idempotencyKeySchema,
+  uuidSchema,
   type FortuneDrawRequest,
   type FortuneDrawResponse,
   type FortuneStateResponse,
+  type FortuneViewedResponse,
 } from '@fortuneness/api-contracts';
 
 import { FortuneStateError } from '../fortune/state.js';
+import { FortuneViewedError } from '../fortune/viewed.js';
 import { FortuneDrawError, type FortuneDrawResult } from '../fortune/draw.js';
 import { type AuthenticationContext } from '../middleware/authentication.js';
 import { ApiHttpError } from '../middleware/errors.js';
@@ -25,6 +29,10 @@ export interface FortuneDrawHandler {
     request: FortuneDrawRequest,
     idempotencyKey: string,
   ): Promise<FortuneDrawResult>;
+}
+
+export interface FortuneViewedHandler {
+  markViewed(authentication: AuthenticationContext, drawId: string): Promise<FortuneViewedResponse>;
 }
 
 function mapFortuneStateError(error: FortuneStateError): ApiHttpError {
@@ -152,14 +160,78 @@ export function createFortuneDrawRoute(draw: FortuneDrawHandler): RequestHandler
   };
 }
 
+function mapFortuneViewedError(error: FortuneViewedError): ApiHttpError {
+  switch (error.code) {
+    case 'ACCOUNT_DELETION_PENDING':
+      return new ApiHttpError({
+        code: 'ACCOUNT_DELETION_PENDING',
+        message: 'The account is pending deletion.',
+        statusCode: 423,
+      });
+    case 'ACCOUNT_PURGED':
+      return new ApiHttpError({
+        code: 'ACCOUNT_PURGED',
+        message: 'The account has been purged.',
+        statusCode: 410,
+      });
+    case 'AUTH_REQUIRED':
+      return new ApiHttpError({
+        code: 'AUTH_REQUIRED',
+        message: 'An active session is required to acknowledge a reading.',
+        retryable: true,
+        statusCode: 401,
+      });
+    case 'NOT_FOUND':
+      return new ApiHttpError({
+        code: 'NOT_FOUND',
+        message: 'The requested reading does not exist.',
+        statusCode: 404,
+      });
+  }
+}
+
+export function createFortuneViewedRoute(viewed: FortuneViewedHandler): RequestHandler {
+  return async (request, response, next) => {
+    response.setHeader('Cache-Control', 'no-store');
+    const parsedDrawId = uuidSchema.safeParse(request.params['id']);
+    if (!parsedDrawId.success) {
+      next(
+        new ApiHttpError({
+          code: 'VALIDATION_FAILED',
+          message: 'The reading identifier is invalid.',
+          statusCode: 400,
+        }),
+      );
+      return;
+    }
+    try {
+      response
+        .status(200)
+        .json(
+          fortuneViewedResponseSchema.parse(
+            await viewed.markViewed(request.authentication, parsedDrawId.data),
+          ),
+        );
+    } catch (error) {
+      next(error instanceof FortuneViewedError ? mapFortuneViewedError(error) : error);
+    }
+  };
+}
+
 export function registerFortuneRoutes(
   app: Express,
   handlers: {
     authenticate: RequestHandler;
     draw: FortuneDrawHandler;
     state: FortuneStateHandler;
+    viewed: FortuneViewedHandler;
   },
 ): void {
   app.get(apiPaths.fortuneState, handlers.authenticate, createFortuneStateRoute(handlers.state));
   app.post(apiPaths.fortuneDraw, handlers.authenticate, createFortuneDrawRoute(handlers.draw));
+  app.patch(
+    apiPaths.fortuneViewed,
+    handlers.authenticate,
+    createFortuneViewedRoute(handlers.viewed),
+  );
 }

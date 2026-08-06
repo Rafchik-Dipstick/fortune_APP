@@ -15,6 +15,7 @@ import { ApiReadiness } from '../health/readiness.js';
 import {
   type FortuneDrawHandler,
   type FortuneStateHandler,
+  type FortuneViewedHandler,
   registerFortuneRoutes,
 } from './fortunes.js';
 
@@ -81,12 +82,18 @@ const authenticate: RequestHandler = (request, _response, next) => {
 function createFixture(
   get: FortuneStateHandler['get'] = vi.fn(),
   draw: FortuneDrawHandler['draw'] = vi.fn(),
+  markViewed: FortuneViewedHandler['markViewed'] = vi.fn(),
 ) {
   return createApiApp({
     environment: createTestApiEnvironment({ logLevel: 'silent' }),
     readiness: new ApiReadiness(vi.fn().mockResolvedValue(undefined)),
     configureRoutes: (app) => {
-      registerFortuneRoutes(app, { authenticate, draw: { draw }, state: { get } });
+      registerFortuneRoutes(app, {
+        authenticate,
+        draw: { draw },
+        state: { get },
+        viewed: { markViewed },
+      });
     },
   });
 }
@@ -167,5 +174,29 @@ describe('fortune draw route', () => {
       sameKeyRetrySafe: true,
       details: { state: drawResponse.state, unviewedDraw: drawResponse.draw },
     });
+  });
+});
+
+describe('fortune viewed route', () => {
+  it('acknowledges one owned reading idempotently through the handler', async () => {
+    const markViewed = vi.fn<FortuneViewedHandler['markViewed']>().mockResolvedValue({
+      draw: { ...drawResponse.draw, viewedAt: '2026-08-06T10:01:00.000Z' },
+    });
+    const response = await request(createFixture(undefined, undefined, markViewed))
+      .patch(`/v1/fortunes/${drawResponse.draw.id}/viewed`)
+      .expect(200);
+
+    expect(response.body.draw.viewedAt).toBe('2026-08-06T10:01:00.000Z');
+    expect(markViewed).toHaveBeenCalledWith(authentication, drawResponse.draw.id);
+  });
+
+  it('rejects malformed identifiers before delegation', async () => {
+    const markViewed = vi.fn<FortuneViewedHandler['markViewed']>();
+    const response = await request(createFixture(undefined, undefined, markViewed))
+      .patch('/v1/fortunes/not-a-uuid/viewed')
+      .expect(400);
+
+    expect(response.body.error.code).toBe('VALIDATION_FAILED');
+    expect(markViewed).not.toHaveBeenCalled();
   });
 });

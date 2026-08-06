@@ -1313,3 +1313,26 @@ git diff --check
 ```
 
 Deployment impact: local shared error/detail contracts, generated OpenAPI, API draw service/route/runtime wiring, and tests only. No schema migration, persistent database, content row, allowance, purchase, credential, Railway service, or deployed environment changed.
+
+### 2026-08-06 — Phase 7 reveal acknowledgement boundary
+
+- Added the shared `FortuneViewedResponse`, deterministic owned-reading path helper, and generated OpenAPI contract for `PATCH /v1/fortunes/:id/viewed`.
+- Added an idempotent acknowledgement transaction under `User → SessionFamily` locks with authoritative account/session checks. The first call sets `viewedAt` no earlier than issuance; repeats return the identical timestamp and another account receives indistinguishable `NOT_FOUND`.
+- Mounted the strict non-cacheable viewed route with UUID validation and caller-safe authentication, deletion, purge, and ownership errors.
+- Added route coverage and real PostgreSQL proof that acknowledgement is stable, removes the reading from resumable fortune state, and cannot cross account ownership. All 16 integration tests and invariants passed, and the generated database was dropped.
+
+Verification required before commit:
+
+```text
+TEST_DATABASE_ADMIN_URL=<injected local admin URL> corepack npm run test:db
+corepack npm run openapi:generate
+corepack npm run openapi:check
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: local shared contract/OpenAPI and API viewed service/route/runtime tests only. No schema migration, persistent reading, acknowledgement, allowance, credential, Railway service, or deployed environment changed.

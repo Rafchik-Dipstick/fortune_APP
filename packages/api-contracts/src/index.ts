@@ -11,9 +11,13 @@ export const apiPaths = {
   authRefresh: '/v1/auth/refresh',
   fortuneDraw: '/v1/fortunes/draw',
   fortuneState: '/v1/fortune/state',
+  fortuneViewed: '/v1/fortunes/:id/viewed',
   health: '/health',
   me: '/v1/me',
 } as const;
+
+export const fortuneViewedPath = (drawId: string): string =>
+  apiPaths.fortuneViewed.replace(':id', drawId);
 
 export const stableApiErrorCodes = [
   'VALIDATION_FAILED',
@@ -161,6 +165,7 @@ export {
   fortuneIntentionSchema,
   fortuneOrientationSchema,
   fortuneStateResponseSchema,
+  fortuneViewedResponseSchema,
   noDrawsAvailableDetailsSchema,
   subscriptionAllowanceSchema,
   unviewedReadingPendingDetailsSchema,
@@ -174,6 +179,7 @@ export type {
   FortuneIntention,
   FortuneOrientation,
   FortuneStateResponse,
+  FortuneViewedResponse,
   NoDrawsAvailableDetails,
   SubscriptionAllowance,
   UnviewedReadingPendingDetails,
