@@ -122,6 +122,19 @@ export const fortuneDrawResponseSchema = z
   .strict()
   .meta({ id: 'FortuneDrawResponse' });
 
+export const noDrawsAvailableDetailsSchema = z
+  .object({ state: fortuneAllowanceStateSchema })
+  .strict()
+  .meta({ id: 'NoDrawsAvailableDetails' });
+
+export const unviewedReadingPendingDetailsSchema = z
+  .object({
+    state: fortuneAllowanceStateSchema,
+    unviewedDraw: fortuneDrawSchema,
+  })
+  .strict()
+  .meta({ id: 'UnviewedReadingPendingDetails' });
+
 export type AllowanceSource = z.infer<typeof allowanceSourceSchema>;
 export type FortuneAllowanceState = z.infer<typeof fortuneAllowanceStateSchema>;
 export type FortuneDraw = z.infer<typeof fortuneDrawSchema>;
@@ -130,4 +143,6 @@ export type FortuneDrawResponse = z.infer<typeof fortuneDrawResponseSchema>;
 export type FortuneIntention = z.infer<typeof fortuneIntentionSchema>;
 export type FortuneOrientation = z.infer<typeof fortuneOrientationSchema>;
 export type FortuneStateResponse = z.infer<typeof fortuneStateResponseSchema>;
+export type NoDrawsAvailableDetails = z.infer<typeof noDrawsAvailableDetailsSchema>;
 export type SubscriptionAllowance = z.infer<typeof subscriptionAllowanceSchema>;
+export type UnviewedReadingPendingDetails = z.infer<typeof unviewedReadingPendingDetailsSchema>;

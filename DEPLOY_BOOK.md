@@ -1286,3 +1286,30 @@ git diff --check
 ```
 
 Deployment impact: local pure selection code and tests only. No database query/row, allowance, content activation, client seed, route, credential, or deployed environment changed.
+
+### 2026-08-06 — Phase 6 atomic fortune issuance
+
+- Added the authenticated draw transaction under the required `User → SessionFamily → FinancialSubject` lock order, with authoritative account/session/expiry/financial cutoff rechecks before any allowance or idempotency mutation.
+- Canonicalized the intention-only body and hashed it with SHA-256. User/method/route/key records live for the account lifetime; exact successful and terminal retries parse and replay their bounded stored domain outcome, while changed input returns `IDEMPOTENCY_KEY_REUSED`.
+- Made terminal unviewed-reading and exhausted-allowance outcomes return from—and therefore commit—the transaction before surfacing `409`. Their strict code-specific error details carry only the owned immutable draw and/or authoritative allowance state; all unrelated error codes still reject free-form details.
+- Queried active server-owned locale/intention content, 30-day template history, last-three-card history, unlocked cards, and the canonical 78-card count inside the transaction, then persisted the complete immutable card/text/alt/content-version snapshot. Content failure rolls back the period and consumes/reserves nothing.
+- Consumed free, then verified subscription, then FIFO spendable pack allowance in the same transaction. Pack draws increment only a live grant and append a unique `-1` ledger effect with a nonnegative balance; fully refunded grants are skipped and cannot absorb later purchases.
+- Mounted strict non-cacheable `POST /v1/fortunes/draw`; first issuance returns `201`, exact replay `200`, and keyed responses echo `Idempotency-Key`.
+- Added route tests and disposable PostgreSQL proof for same-key replay, changed-input rejection, stable terminal replay, 51 simultaneous distinct-key requests, exactly one free plus ten paid-through subscription draws, exact subscription expiry, refunded-versus-later pack-grant isolation, and content rollback. All 14 integration tests and invariants passed, and the harness dropped its generated database.
+
+Verification required before commit:
+
+```text
+TEST_DATABASE_ADMIN_URL=<injected local admin URL> corepack npm run test:db
+corepack npm run openapi:generate
+corepack npm run openapi:check
+corepack npm run db:schema:validate
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: local shared error/detail contracts, generated OpenAPI, API draw service/route/runtime wiring, and tests only. No schema migration, persistent database, content row, allowance, purchase, credential, Railway service, or deployed environment changed.

@@ -65,42 +65,195 @@
         "additionalProperties": false
       },
       "ApiError": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "message": { "type": "string", "minLength": 1 },
+              "requestId": { "type": "string", "format": "uuid" },
+              "retryable": { "type": "boolean" },
+              "sameKeyRetrySafe": { "type": "boolean" },
+              "code": {
+                "type": "string",
+                "enum": [
+                  "VALIDATION_FAILED",
+                  "AUTH_REQUIRED",
+                  "GAME_CENTER_REAUTH_REQUIRED",
+                  "GAME_CENTER_UNAVAILABLE",
+                  "GAME_CENTER_ID_NOT_PERSISTENT",
+                  "GAME_CENTER_PROOF_INVALID",
+                  "GAME_CENTER_PROOF_EXPIRED",
+                  "ACCOUNT_DELETION_PENDING",
+                  "ACCOUNT_PURGED",
+                  "NOT_FOUND",
+                  "CONTENT_UNAVAILABLE",
+                  "PRODUCT_NOT_ALLOWED",
+                  "TRANSACTION_UNVERIFIED",
+                  "TRANSACTION_OWNER_UNKNOWN",
+                  "COMMERCE_REVIEW_REQUIRED",
+                  "IDEMPOTENCY_KEY_REUSED",
+                  "TIME_ZONE_CHANGE_LIMITED",
+                  "RETRYABLE_CONFLICT",
+                  "RATE_LIMITED",
+                  "INTERNAL_ERROR"
+                ]
+              }
+            },
+            "required": ["message", "requestId", "retryable", "sameKeyRetrySafe", "code"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "message": { "type": "string", "minLength": 1 },
+              "requestId": { "type": "string", "format": "uuid" },
+              "retryable": { "type": "boolean" },
+              "sameKeyRetrySafe": { "type": "boolean" },
+              "code": { "type": "string", "enum": ["NO_DRAWS_AVAILABLE"] },
+              "details": { "$ref": "#/components/schemas/NoDrawsAvailableDetails" }
+            },
+            "required": [
+              "message",
+              "requestId",
+              "retryable",
+              "sameKeyRetrySafe",
+              "code",
+              "details"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "message": { "type": "string", "minLength": 1 },
+              "requestId": { "type": "string", "format": "uuid" },
+              "retryable": { "type": "boolean" },
+              "sameKeyRetrySafe": { "type": "boolean" },
+              "code": { "type": "string", "enum": ["UNVIEWED_READING_PENDING"] },
+              "details": { "$ref": "#/components/schemas/UnviewedReadingPendingDetails" }
+            },
+            "required": [
+              "message",
+              "requestId",
+              "retryable",
+              "sameKeyRetrySafe",
+              "code",
+              "details"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "NoDrawsAvailableDetails": {
+        "type": "object",
+        "properties": { "state": { "$ref": "#/components/schemas/FortuneAllowanceState" } },
+        "required": ["state"],
+        "additionalProperties": false
+      },
+      "FortuneAllowanceState": {
         "type": "object",
         "properties": {
-          "code": {
-            "type": "string",
-            "enum": [
-              "VALIDATION_FAILED",
-              "AUTH_REQUIRED",
-              "GAME_CENTER_REAUTH_REQUIRED",
-              "GAME_CENTER_UNAVAILABLE",
-              "GAME_CENTER_ID_NOT_PERSISTENT",
-              "GAME_CENTER_PROOF_INVALID",
-              "GAME_CENTER_PROOF_EXPIRED",
-              "ACCOUNT_DELETION_PENDING",
-              "ACCOUNT_PURGED",
-              "NOT_FOUND",
-              "NO_DRAWS_AVAILABLE",
-              "UNVIEWED_READING_PENDING",
-              "CONTENT_UNAVAILABLE",
-              "PRODUCT_NOT_ALLOWED",
-              "TRANSACTION_UNVERIFIED",
-              "TRANSACTION_OWNER_UNKNOWN",
-              "COMMERCE_REVIEW_REQUIRED",
-              "IDEMPOTENCY_KEY_REUSED",
-              "TIME_ZONE_CHANGE_LIMITED",
-              "RETRYABLE_CONFLICT",
-              "RATE_LIMITED",
-              "INTERNAL_ERROR"
-            ]
-          },
-          "message": { "type": "string", "minLength": 1 },
-          "requestId": { "type": "string", "format": "uuid" },
-          "retryable": { "type": "boolean" },
-          "sameKeyRetrySafe": { "type": "boolean" }
+          "serverTime": { "type": "string", "format": "date-time" },
+          "freeRemaining": { "type": "integer", "minimum": 0, "maximum": 1 },
+          "subscriptionRemaining": { "type": "integer", "minimum": 0, "maximum": 10 },
+          "spendablePackCredits": { "type": "integer", "minimum": 0 },
+          "availableDraws": { "type": "integer", "minimum": 0 },
+          "allowancePeriodId": { "type": "string", "format": "uuid" },
+          "currentPeriodStartedAt": { "type": "string", "format": "date-time" },
+          "nextResetAt": { "type": "string", "format": "date-time" },
+          "accountTimeZone": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "reportedDeviceTimeZone": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "pendingTimeZone": { "type": ["string", "null"], "minLength": 1, "maxLength": 128 },
+          "timeZoneEffectiveAt": { "type": ["string", "null"], "format": "date-time" },
+          "nextTimeZoneChangeEligibleAt": { "type": ["string", "null"], "format": "date-time" },
+          "subscription": { "$ref": "#/components/schemas/SubscriptionAllowance" }
         },
-        "required": ["code", "message", "requestId", "retryable", "sameKeyRetrySafe"],
+        "required": [
+          "serverTime",
+          "freeRemaining",
+          "subscriptionRemaining",
+          "spendablePackCredits",
+          "availableDraws",
+          "allowancePeriodId",
+          "currentPeriodStartedAt",
+          "nextResetAt",
+          "accountTimeZone",
+          "reportedDeviceTimeZone",
+          "pendingTimeZone",
+          "timeZoneEffectiveAt",
+          "nextTimeZoneChangeEligibleAt",
+          "subscription"
+        ],
         "additionalProperties": false
+      },
+      "SubscriptionAllowance": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["NONE", "ACTIVE", "GRACE_PERIOD", "BILLING_RETRY", "EXPIRED", "REVOKED"]
+          },
+          "entitled": { "type": "boolean" },
+          "paidThrough": { "type": ["string", "null"], "format": "date-time" },
+          "graceThrough": { "type": ["string", "null"], "format": "date-time" }
+        },
+        "required": ["status", "entitled", "paidThrough", "graceThrough"],
+        "additionalProperties": false
+      },
+      "UnviewedReadingPendingDetails": {
+        "type": "object",
+        "properties": {
+          "state": { "$ref": "#/components/schemas/FortuneAllowanceState" },
+          "unviewedDraw": { "$ref": "#/components/schemas/FortuneDraw" }
+        },
+        "required": ["state", "unviewedDraw"],
+        "additionalProperties": false
+      },
+      "FortuneDraw": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "cardKey": { "type": "string", "minLength": 1, "maxLength": 48 },
+          "cardDisplayNumber": { "type": "string", "minLength": 1, "maxLength": 16 },
+          "cardName": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "orientation": { "$ref": "#/components/schemas/FortuneOrientation" },
+          "intention": { "$ref": "#/components/schemas/FortuneIntention" },
+          "resolvedLocale": { "type": "string", "minLength": 2, "maxLength": 16 },
+          "artAltText": { "type": "string", "minLength": 1, "maxLength": 500 },
+          "headline": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "message": { "type": "string", "minLength": 1, "maxLength": 1200 },
+          "action": { "type": "string", "minLength": 1, "maxLength": 500 },
+          "affirmation": { "type": "string", "minLength": 1, "maxLength": 300 },
+          "allowanceSource": { "$ref": "#/components/schemas/AllowanceSource" },
+          "contentVersion": { "type": "string", "minLength": 1, "maxLength": 48 },
+          "issuedAt": { "type": "string", "format": "date-time" },
+          "viewedAt": { "type": ["string", "null"], "format": "date-time" }
+        },
+        "required": [
+          "id",
+          "cardKey",
+          "cardDisplayNumber",
+          "cardName",
+          "orientation",
+          "intention",
+          "resolvedLocale",
+          "artAltText",
+          "headline",
+          "message",
+          "action",
+          "affirmation",
+          "allowanceSource",
+          "contentVersion",
+          "issuedAt",
+          "viewedAt"
+        ],
+        "additionalProperties": false
+      },
+      "FortuneOrientation": { "type": "string", "enum": ["UPRIGHT", "REVERSED"] },
+      "FortuneIntention": { "type": "string", "enum": ["GENERAL", "LOVE", "WORK", "GROWTH"] },
+      "AllowanceSource": {
+        "type": "string",
+        "enum": ["FREE_DAILY", "SUBSCRIPTION_DAILY", "PACK_CREDIT"]
       },
       "GameCenterAuthResponse": {
         "type": "object",
@@ -313,106 +466,15 @@
         "type": "object",
         "properties": {
           "state": { "$ref": "#/components/schemas/FortuneAllowanceState" },
-          "unviewedDraw": { "$ref": "#/components/schemas/FortuneDraw" }
+          "unviewedDraw": {
+            "allOf": [
+              { "$ref": "#/components/schemas/FortuneDraw" },
+              { "type": ["object", "null"] }
+            ]
+          }
         },
         "required": ["state", "unviewedDraw"],
         "additionalProperties": false
-      },
-      "FortuneAllowanceState": {
-        "type": "object",
-        "properties": {
-          "serverTime": { "type": "string", "format": "date-time" },
-          "freeRemaining": { "type": "integer", "minimum": 0, "maximum": 1 },
-          "subscriptionRemaining": { "type": "integer", "minimum": 0, "maximum": 10 },
-          "spendablePackCredits": { "type": "integer", "minimum": 0 },
-          "availableDraws": { "type": "integer", "minimum": 0 },
-          "allowancePeriodId": { "type": "string", "format": "uuid" },
-          "currentPeriodStartedAt": { "type": "string", "format": "date-time" },
-          "nextResetAt": { "type": "string", "format": "date-time" },
-          "accountTimeZone": { "type": "string", "minLength": 1, "maxLength": 128 },
-          "reportedDeviceTimeZone": { "type": "string", "minLength": 1, "maxLength": 128 },
-          "pendingTimeZone": { "type": ["string", "null"], "minLength": 1, "maxLength": 128 },
-          "timeZoneEffectiveAt": { "type": ["string", "null"], "format": "date-time" },
-          "nextTimeZoneChangeEligibleAt": { "type": ["string", "null"], "format": "date-time" },
-          "subscription": { "$ref": "#/components/schemas/SubscriptionAllowance" }
-        },
-        "required": [
-          "serverTime",
-          "freeRemaining",
-          "subscriptionRemaining",
-          "spendablePackCredits",
-          "availableDraws",
-          "allowancePeriodId",
-          "currentPeriodStartedAt",
-          "nextResetAt",
-          "accountTimeZone",
-          "reportedDeviceTimeZone",
-          "pendingTimeZone",
-          "timeZoneEffectiveAt",
-          "nextTimeZoneChangeEligibleAt",
-          "subscription"
-        ],
-        "additionalProperties": false
-      },
-      "SubscriptionAllowance": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": ["NONE", "ACTIVE", "GRACE_PERIOD", "BILLING_RETRY", "EXPIRED", "REVOKED"]
-          },
-          "entitled": { "type": "boolean" },
-          "paidThrough": { "type": ["string", "null"], "format": "date-time" },
-          "graceThrough": { "type": ["string", "null"], "format": "date-time" }
-        },
-        "required": ["status", "entitled", "paidThrough", "graceThrough"],
-        "additionalProperties": false
-      },
-      "FortuneDraw": {
-        "type": ["object", "null"],
-        "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "cardKey": { "type": "string", "minLength": 1, "maxLength": 48 },
-          "cardDisplayNumber": { "type": "string", "minLength": 1, "maxLength": 16 },
-          "cardName": { "type": "string", "minLength": 1, "maxLength": 80 },
-          "orientation": { "$ref": "#/components/schemas/FortuneOrientation" },
-          "intention": { "$ref": "#/components/schemas/FortuneIntention" },
-          "resolvedLocale": { "type": "string", "minLength": 2, "maxLength": 16 },
-          "artAltText": { "type": "string", "minLength": 1, "maxLength": 500 },
-          "headline": { "type": "string", "minLength": 1, "maxLength": 120 },
-          "message": { "type": "string", "minLength": 1, "maxLength": 1200 },
-          "action": { "type": "string", "minLength": 1, "maxLength": 500 },
-          "affirmation": { "type": "string", "minLength": 1, "maxLength": 300 },
-          "allowanceSource": { "$ref": "#/components/schemas/AllowanceSource" },
-          "contentVersion": { "type": "string", "minLength": 1, "maxLength": 48 },
-          "issuedAt": { "type": "string", "format": "date-time" },
-          "viewedAt": { "type": ["string", "null"], "format": "date-time" }
-        },
-        "required": [
-          "id",
-          "cardKey",
-          "cardDisplayNumber",
-          "cardName",
-          "orientation",
-          "intention",
-          "resolvedLocale",
-          "artAltText",
-          "headline",
-          "message",
-          "action",
-          "affirmation",
-          "allowanceSource",
-          "contentVersion",
-          "issuedAt",
-          "viewedAt"
-        ],
-        "additionalProperties": false
-      },
-      "FortuneOrientation": { "type": "string", "enum": ["UPRIGHT", "REVERSED"] },
-      "FortuneIntention": { "type": "string", "enum": ["GENERAL", "LOVE", "WORK", "GROWTH"] },
-      "AllowanceSource": {
-        "type": "string",
-        "enum": ["FREE_DAILY", "SUBSCRIPTION_DAILY", "PACK_CREDIT"]
       },
       "FortuneDrawResponse": {
         "type": "object",

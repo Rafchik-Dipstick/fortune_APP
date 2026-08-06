@@ -15,6 +15,8 @@ import { type VerifiedGameCenterIdentity } from '../auth/game-center-proof.js';
 import { LogoutSessionError, LogoutSessionService } from '../auth/logout-session.js';
 import { RefreshSessionError, RefreshSessionService } from '../auth/refresh-session.js';
 import { createTestApiEnvironment } from '../config/environment.fixture.js';
+import { FortuneDrawError, FortuneDrawService } from '../fortune/draw.js';
+import { type FortuneRandomSource } from '../fortune/selection.js';
 import { FortuneStateService } from '../fortune/state.js';
 import { AccountTimeZoneService, TimeZoneChangeLimitedError } from '../fortune/time-zone-change.js';
 import { PrismaClient } from '../generated/prisma/client.js';
@@ -26,6 +28,11 @@ if (databaseUrl === undefined || databaseUrl.trim().length === 0) {
 }
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl }) });
+
+const firstCandidateRandom: FortuneRandomSource = {
+  index: () => 0,
+  unit: () => 0.1,
+};
 
 beforeAll(async () => {
   await prisma.$queryRaw`SELECT 1`;
@@ -475,5 +482,301 @@ describe('PostgreSQL integrity', { concurrent: false }, () => {
     await expect(timeZones.request(fixture.user.id, 'Asia/Tokyo')).rejects.toSatisfy(
       (error: unknown) => error instanceof TimeZoneChangeLimitedError,
     );
+  });
+
+  it('issues one free draw and replays the exact same-key result', async () => {
+    const now = new Date('2026-08-06T10:00:00.000Z');
+    const fixture = await createFortuneStateFixture({ now });
+    const draws = new FortuneDrawService({
+      client: prisma,
+      now: () => now,
+      random: firstCandidateRandom,
+    });
+    const idempotencyKey = randomUUID();
+
+    const issued = await draws.draw(
+      fixture.authentication,
+      { intention: 'GROWTH' },
+      idempotencyKey,
+    );
+    const replayed = await draws.draw(
+      fixture.authentication,
+      { intention: 'GROWTH' },
+      idempotencyKey,
+    );
+
+    expect(issued.created).toBe(true);
+    expect(replayed).toEqual({ created: false, response: issued.response });
+    expect(issued.response).toMatchObject({
+      draw: { allowanceSource: 'FREE_DAILY', intention: 'GROWTH', viewedAt: null },
+      state: { freeRemaining: 0, availableDraws: 0 },
+    });
+    await expect(prisma.fortuneDraw.count({ where: { userId: fixture.user.id } })).resolves.toBe(1);
+    await expect(
+      prisma.idempotencyRecord.count({ where: { actorId: fixture.user.id } }),
+    ).resolves.toBe(1);
+  });
+
+  it('rejects changed input and stores stable unviewed and exhausted terminal outcomes', async () => {
+    const now = new Date('2026-08-06T10:00:00.000Z');
+    const fixture = await createFortuneStateFixture({ now });
+    const draws = new FortuneDrawService({
+      client: prisma,
+      now: () => now,
+      random: firstCandidateRandom,
+    });
+    const issuedKey = randomUUID();
+    const issued = await draws.draw(fixture.authentication, { intention: 'GENERAL' }, issuedKey);
+
+    await expect(
+      draws.draw(fixture.authentication, { intention: 'LOVE' }, issuedKey),
+    ).rejects.toSatisfy(
+      (error: unknown) =>
+        error instanceof FortuneDrawError && error.code === 'IDEMPOTENCY_KEY_REUSED',
+    );
+    const pendingKey = randomUUID();
+    let firstPendingDetails: Record<string, unknown> | undefined;
+    try {
+      await draws.draw(fixture.authentication, { intention: 'WORK' }, pendingKey);
+    } catch (error) {
+      expect(error).toSatisfy(
+        (candidate: unknown) =>
+          candidate instanceof FortuneDrawError && candidate.code === 'UNVIEWED_READING_PENDING',
+      );
+      firstPendingDetails = (error as FortuneDrawError).details;
+    }
+    await expect(
+      draws.draw(fixture.authentication, { intention: 'WORK' }, pendingKey),
+    ).rejects.toMatchObject({
+      code: 'UNVIEWED_READING_PENDING',
+      details: firstPendingDetails,
+    });
+
+    await prisma.fortuneDraw.update({
+      where: { id: issued.response.draw.id },
+      data: { viewedAt: now },
+    });
+    const exhaustedKey = randomUUID();
+    let exhaustedDetails: Record<string, unknown> | undefined;
+    try {
+      await draws.draw(fixture.authentication, { intention: 'WORK' }, exhaustedKey);
+    } catch (error) {
+      expect(error).toSatisfy(
+        (candidate: unknown) =>
+          candidate instanceof FortuneDrawError && candidate.code === 'NO_DRAWS_AVAILABLE',
+      );
+      exhaustedDetails = (error as FortuneDrawError).details;
+    }
+    await expect(
+      draws.draw(fixture.authentication, { intention: 'WORK' }, exhaustedKey),
+    ).rejects.toMatchObject({ code: 'NO_DRAWS_AVAILABLE', details: exhaustedDetails });
+    await expect(
+      prisma.idempotencyRecord.count({ where: { actorId: fixture.user.id } }),
+    ).resolves.toBe(3);
+  });
+
+  it('serializes 51 different keys without over-issuing a free allowance', async () => {
+    const now = new Date('2026-08-06T10:00:00.000Z');
+    const fixture = await createFortuneStateFixture({ now });
+    const draws = new FortuneDrawService({
+      client: prisma,
+      now: () => now,
+      random: firstCandidateRandom,
+    });
+    const results = await Promise.allSettled(
+      Array.from({ length: 51 }, () =>
+        draws.draw(fixture.authentication, { intention: 'GENERAL' }, randomUUID()),
+      ),
+    );
+
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+    expect(
+      results.filter(
+        (result) =>
+          result.status === 'rejected' &&
+          result.reason instanceof FortuneDrawError &&
+          result.reason.code === 'UNVIEWED_READING_PENDING',
+      ),
+    ).toHaveLength(50);
+    await expect(prisma.fortuneDraw.count({ where: { userId: fixture.user.id } })).resolves.toBe(1);
+    await expect(
+      prisma.allowanceUsage.findFirstOrThrow({ where: { userId: fixture.user.id } }),
+    ).resolves.toMatchObject({ freeUsed: 1, subscriptionUsed: 0 });
+  });
+
+  it('issues exactly one free plus ten paid-through subscription draws', async () => {
+    const now = new Date('2026-08-06T10:00:00.000Z');
+    const fixture = await createFortuneStateFixture({ now });
+    await prisma.subscriptionEntitlement.create({
+      data: {
+        environment: 'XCODE',
+        originalTransactionId: `subscription-${randomUUID()}`,
+        financialSubjectId: fixture.financialSubject.id,
+        productId: 'app.fortuneness.oracle-plus.monthly',
+        status: 'ACTIVE',
+        paidThrough: new Date('2026-09-06T10:00:00.000Z'),
+        lastAppleEventTime: new Date('2026-08-06T09:00:00.000Z'),
+        lastAppleSourceId: `fixture-${randomUUID()}`,
+      },
+    });
+    const draws = new FortuneDrawService({
+      client: prisma,
+      now: () => now,
+      random: firstCandidateRandom,
+    });
+    const sources: string[] = [];
+    for (let drawIndex = 0; drawIndex < 11; drawIndex += 1) {
+      const result = await draws.draw(
+        fixture.authentication,
+        { intention: 'GENERAL' },
+        randomUUID(),
+      );
+      sources.push(result.response.draw.allowanceSource);
+      await prisma.fortuneDraw.update({
+        where: { id: result.response.draw.id },
+        data: { viewedAt: now },
+      });
+    }
+
+    expect(sources).toEqual([
+      'FREE_DAILY',
+      ...Array.from({ length: 10 }, () => 'SUBSCRIPTION_DAILY'),
+    ]);
+    await expect(
+      draws.draw(fixture.authentication, { intention: 'GENERAL' }, randomUUID()),
+    ).rejects.toMatchObject({ code: 'NO_DRAWS_AVAILABLE' });
+  });
+
+  it('spends only a later live pack grant after an earlier grant was fully refunded', async () => {
+    const now = new Date('2026-08-06T10:00:00.000Z');
+    const fixture = await createFortuneStateFixture({ now });
+    const state = await new FortuneStateService(prisma, () => now).get(fixture.authentication);
+    await prisma.allowanceUsage.update({
+      where: { allowancePeriodId: state.state.allowancePeriodId },
+      data: { freeUsed: 1 },
+    });
+    const firstPurchase = await prisma.iapTransaction.create({
+      data: {
+        environment: 'XCODE',
+        transactionId: `tx-${randomUUID()}`,
+        originalTransactionId: `original-${randomUUID()}`,
+        productId: 'app.fortuneness.credits.10',
+        productType: 'CONSUMABLE',
+        financialSubjectId: fixture.financialSubject.id,
+        purchaseAt: now,
+        normalizedPayload: { fixture: true },
+        jwsHash: createHash('sha256').update(randomUUID()).digest('hex'),
+      },
+    });
+    const refundedGrant = await prisma.packCreditGrant.create({
+      data: {
+        financialSubjectId: fixture.financialSubject.id,
+        purchaseTransactionId: firstPurchase.id,
+      },
+    });
+    await prisma.creditLedgerEntry.create({
+      data: {
+        financialSubjectId: fixture.financialSubject.id,
+        delta: 10,
+        balanceAfter: 10,
+        reason: 'PACK_PURCHASE',
+        grantId: refundedGrant.id,
+        purchaseTransactionId: firstPurchase.id,
+        effectKey: `purchase:${firstPurchase.id}`,
+      },
+    });
+    await prisma.packCreditGrant.update({
+      where: { id: refundedGrant.id },
+      data: {
+        currentRefundTargetUnits: 10,
+        currentRefundedUnspentUnits: 10,
+        disposition: 'FULLY_REFUNDED',
+        greatestRefundSourceAt: now,
+        greatestRefundSourceId: `refund-${firstPurchase.id}`,
+        greatestRefundSourceType: 'REFUND',
+      },
+    });
+    await prisma.creditLedgerEntry.create({
+      data: {
+        financialSubjectId: fixture.financialSubject.id,
+        delta: -10,
+        balanceAfter: 0,
+        reason: 'REFUND_DEBIT',
+        grantId: refundedGrant.id,
+        refundSourceId: `refund-${firstPurchase.id}`,
+        effectKey: `refund:${firstPurchase.id}`,
+      },
+    });
+    const secondPurchase = await prisma.iapTransaction.create({
+      data: {
+        environment: 'XCODE',
+        transactionId: `tx-${randomUUID()}`,
+        originalTransactionId: `original-${randomUUID()}`,
+        productId: 'app.fortuneness.credits.10',
+        productType: 'CONSUMABLE',
+        financialSubjectId: fixture.financialSubject.id,
+        purchaseAt: new Date(now.getTime() + 1),
+        normalizedPayload: { fixture: true },
+        jwsHash: createHash('sha256').update(randomUUID()).digest('hex'),
+      },
+    });
+    const liveGrant = await prisma.packCreditGrant.create({
+      data: {
+        financialSubjectId: fixture.financialSubject.id,
+        purchaseTransactionId: secondPurchase.id,
+        createdAt: new Date(now.getTime() + 1),
+      },
+    });
+    await prisma.creditLedgerEntry.create({
+      data: {
+        financialSubjectId: fixture.financialSubject.id,
+        delta: 10,
+        balanceAfter: 10,
+        reason: 'PACK_PURCHASE',
+        grantId: liveGrant.id,
+        purchaseTransactionId: secondPurchase.id,
+        effectKey: `purchase:${secondPurchase.id}`,
+      },
+    });
+    const draws = new FortuneDrawService({
+      client: prisma,
+      now: () => new Date(now.getTime() + 2),
+      random: firstCandidateRandom,
+    });
+
+    const result = await draws.draw(fixture.authentication, { intention: 'GENERAL' }, randomUUID());
+
+    expect(result.response).toMatchObject({
+      draw: { allowanceSource: 'PACK_CREDIT' },
+      state: { spendablePackCredits: 9 },
+    });
+    await expect(
+      prisma.packCreditGrant.findUniqueOrThrow({ where: { id: refundedGrant.id } }),
+    ).resolves.toMatchObject({ drawnUnits: 0, currentRefundedUnspentUnits: 10 });
+    await expect(
+      prisma.packCreditGrant.findUniqueOrThrow({ where: { id: liveGrant.id } }),
+    ).resolves.toMatchObject({ drawnUnits: 1 });
+  });
+
+  it('rolls content failure back without consuming allowance or reserving a key', async () => {
+    const now = new Date('2026-08-06T10:00:00.000Z');
+    const fixture = await createFortuneStateFixture({ now });
+    await prisma.user.update({ where: { id: fixture.user.id }, data: { resolvedLocale: 'fr' } });
+    const draws = new FortuneDrawService({
+      client: prisma,
+      now: () => now,
+      random: firstCandidateRandom,
+    });
+
+    await expect(
+      draws.draw(fixture.authentication, { intention: 'GENERAL' }, randomUUID()),
+    ).rejects.toMatchObject({ code: 'CONTENT_UNAVAILABLE' });
+    await expect(
+      prisma.allowancePeriod.count({ where: { userId: fixture.user.id } }),
+    ).resolves.toBe(0);
+    await expect(prisma.fortuneDraw.count({ where: { userId: fixture.user.id } })).resolves.toBe(0);
+    await expect(
+      prisma.idempotencyRecord.count({ where: { actorId: fixture.user.id } }),
+    ).resolves.toBe(0);
   });
 });

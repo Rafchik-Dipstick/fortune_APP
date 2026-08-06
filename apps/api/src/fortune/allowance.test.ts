@@ -88,6 +88,13 @@ describe('allowance calculation', () => {
     ).toBe(false);
   });
 
+  it('expires a paid-through boundary at the exact server instant', () => {
+    expect(resolveSubscriptionAllowance([entitlement({ paidThrough: now })], now)).toMatchObject({
+      entitled: false,
+      status: 'ACTIVE',
+    });
+  });
+
   it('clamps used counters and externally supplied balances to nonnegative availability', () => {
     expect(
       calculateAllowanceAvailability({

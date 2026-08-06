@@ -6,6 +6,7 @@ import { type ApiLogger } from '../logging/logger.js';
 
 interface ApiErrorBody {
   code: ApiErrorCode;
+  details?: Record<string, unknown>;
   message: string;
   requestId: string;
   retryable: boolean;
@@ -19,12 +20,14 @@ interface ErrorWithHttpMetadata {
 
 export class ApiHttpError extends Error {
   readonly code: ApiErrorCode;
+  readonly details: Record<string, unknown> | undefined;
   readonly retryable: boolean;
   readonly sameKeyRetrySafe: boolean;
   readonly statusCode: number;
 
   constructor(options: {
     code: ApiErrorCode;
+    details?: Record<string, unknown>;
     message: string;
     retryable?: boolean;
     sameKeyRetrySafe?: boolean;
@@ -33,6 +36,7 @@ export class ApiHttpError extends Error {
     super(options.message);
     this.name = 'ApiHttpError';
     this.code = options.code;
+    this.details = options.details;
     this.retryable = options.retryable ?? false;
     this.sameKeyRetrySafe = options.sameKeyRetrySafe ?? false;
     this.statusCode = options.statusCode;
@@ -73,6 +77,7 @@ export const createErrorHandler =
     if (error instanceof ApiHttpError) {
       sendApiError(response, error.statusCode, request.requestId, {
         code: error.code,
+        ...(error.details === undefined ? {} : { details: error.details }),
         message: error.message,
         retryable: error.retryable,
         sameKeyRetrySafe: error.sameKeyRetrySafe,

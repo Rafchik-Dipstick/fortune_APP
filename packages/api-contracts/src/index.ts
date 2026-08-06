@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { uuidSchema } from './base.js';
+import { noDrawsAvailableDetailsSchema, unviewedReadingPendingDetailsSchema } from './fortune.js';
 
 export { apiVersionSchema, isoUtcDateTimeSchema, uuidSchema } from './base.js';
 
@@ -41,15 +42,59 @@ export const stableApiErrorCodes = [
 
 export const apiErrorCodeSchema = z.enum(stableApiErrorCodes);
 
-export const apiErrorSchema = z
+const apiErrorBase = {
+  message: z.string().min(1),
+  requestId: uuidSchema,
+  retryable: z.boolean(),
+  sameKeyRetrySafe: z.boolean(),
+} as const;
+
+const apiErrorWithoutDetailsSchema = z
   .object({
-    code: apiErrorCodeSchema,
-    message: z.string().min(1),
-    requestId: uuidSchema,
-    retryable: z.boolean(),
-    sameKeyRetrySafe: z.boolean(),
+    ...apiErrorBase,
+    code: z.enum([
+      'VALIDATION_FAILED',
+      'AUTH_REQUIRED',
+      'GAME_CENTER_REAUTH_REQUIRED',
+      'GAME_CENTER_UNAVAILABLE',
+      'GAME_CENTER_ID_NOT_PERSISTENT',
+      'GAME_CENTER_PROOF_INVALID',
+      'GAME_CENTER_PROOF_EXPIRED',
+      'ACCOUNT_DELETION_PENDING',
+      'ACCOUNT_PURGED',
+      'NOT_FOUND',
+      'CONTENT_UNAVAILABLE',
+      'PRODUCT_NOT_ALLOWED',
+      'TRANSACTION_UNVERIFIED',
+      'TRANSACTION_OWNER_UNKNOWN',
+      'COMMERCE_REVIEW_REQUIRED',
+      'IDEMPOTENCY_KEY_REUSED',
+      'TIME_ZONE_CHANGE_LIMITED',
+      'RETRYABLE_CONFLICT',
+      'RATE_LIMITED',
+      'INTERNAL_ERROR',
+    ]),
   })
-  .strict()
+  .strict();
+
+export const apiErrorSchema = z
+  .discriminatedUnion('code', [
+    apiErrorWithoutDetailsSchema,
+    z
+      .object({
+        ...apiErrorBase,
+        code: z.literal('NO_DRAWS_AVAILABLE'),
+        details: noDrawsAvailableDetailsSchema,
+      })
+      .strict(),
+    z
+      .object({
+        ...apiErrorBase,
+        code: z.literal('UNVIEWED_READING_PENDING'),
+        details: unviewedReadingPendingDetailsSchema,
+      })
+      .strict(),
+  ])
   .meta({ id: 'ApiError' });
 
 export const apiErrorEnvelopeSchema = z
@@ -116,7 +161,9 @@ export {
   fortuneIntentionSchema,
   fortuneOrientationSchema,
   fortuneStateResponseSchema,
+  noDrawsAvailableDetailsSchema,
   subscriptionAllowanceSchema,
+  unviewedReadingPendingDetailsSchema,
 } from './fortune.js';
 export type {
   AllowanceSource,
@@ -127,5 +174,7 @@ export type {
   FortuneIntention,
   FortuneOrientation,
   FortuneStateResponse,
+  NoDrawsAvailableDetails,
   SubscriptionAllowance,
+  UnviewedReadingPendingDetails,
 } from './fortune.js';

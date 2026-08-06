@@ -1,13 +1,22 @@
 import { type RequestHandler } from 'express';
 import request from 'supertest';
 import { describe, expect, it, vi } from 'vitest';
-import { apiPaths, type FortuneStateResponse } from '@fortuneness/api-contracts';
+import {
+  apiPaths,
+  type FortuneDrawResponse,
+  type FortuneStateResponse,
+} from '@fortuneness/api-contracts';
 
 import { createApiApp } from '../app.js';
 import { createTestApiEnvironment } from '../config/environment.fixture.js';
+import { FortuneDrawError } from '../fortune/draw.js';
 import { FortuneStateError } from '../fortune/state.js';
 import { ApiReadiness } from '../health/readiness.js';
-import { type FortuneStateHandler, registerFortuneRoutes } from './fortunes.js';
+import {
+  type FortuneDrawHandler,
+  type FortuneStateHandler,
+  registerFortuneRoutes,
+} from './fortunes.js';
 
 const authentication = {
   userId: '11111111-1111-4111-8111-111111111111',
@@ -42,17 +51,42 @@ const stateResponse: FortuneStateResponse = {
   unviewedDraw: null,
 };
 
+const drawResponse: FortuneDrawResponse = {
+  state: { ...stateResponse.state, freeRemaining: 0, availableDraws: 0 },
+  draw: {
+    id: '44444444-4444-4444-8444-444444444444',
+    cardKey: 'major-00-fool',
+    cardDisplayNumber: '0',
+    cardName: 'The Fool',
+    orientation: 'UPRIGHT',
+    intention: 'GROWTH',
+    resolvedLocale: 'en',
+    artAltText: 'A traveler steps toward dawn beneath a wandering star.',
+    headline: 'Begin before certainty arrives',
+    message: 'A gentle opening asks for curiosity rather than certainty.',
+    action: 'Give one small beginning ten honest minutes.',
+    affirmation: 'I can meet the unknown with curiosity.',
+    allowanceSource: 'FREE_DAILY',
+    contentVersion: 'development-v1',
+    issuedAt: '2026-08-06T10:00:00.000Z',
+    viewedAt: null,
+  },
+};
+
 const authenticate: RequestHandler = (request, _response, next) => {
   request.authentication = authentication;
   next();
 };
 
-function createFixture(get: FortuneStateHandler['get']) {
+function createFixture(
+  get: FortuneStateHandler['get'] = vi.fn(),
+  draw: FortuneDrawHandler['draw'] = vi.fn(),
+) {
   return createApiApp({
     environment: createTestApiEnvironment({ logLevel: 'silent' }),
     readiness: new ApiReadiness(vi.fn().mockResolvedValue(undefined)),
     configureRoutes: (app) => {
-      registerFortuneRoutes(app, { authenticate, state: { get } });
+      registerFortuneRoutes(app, { authenticate, draw: { draw }, state: { get } });
     },
   });
 }
@@ -79,5 +113,59 @@ describe('fortune state route', () => {
 
     expect(response.body.error.code).toBe(apiCode);
     expect(response.body).not.toHaveProperty('state');
+  });
+});
+
+describe('fortune draw route', () => {
+  const idempotencyKey = '55555555-5555-4555-8555-555555555555';
+
+  it.each([
+    [true, 201],
+    [false, 200],
+  ] as const)('returns the validated keyed result when created=%s', async (created, status) => {
+    const draw = vi
+      .fn<FortuneDrawHandler['draw']>()
+      .mockResolvedValue({ created, response: drawResponse });
+    const response = await request(createFixture(undefined, draw))
+      .post(apiPaths.fortuneDraw)
+      .set('Idempotency-Key', idempotencyKey)
+      .send({ intention: 'GROWTH' })
+      .expect(status);
+
+    expect(response.body).toEqual(drawResponse);
+    expect(response.headers['idempotency-key']).toBe(idempotencyKey);
+    expect(draw).toHaveBeenCalledWith(authentication, { intention: 'GROWTH' }, idempotencyKey);
+  });
+
+  it('rejects client-owned selection input before delegation', async () => {
+    const draw = vi.fn<FortuneDrawHandler['draw']>();
+    const response = await request(createFixture(undefined, draw))
+      .post(apiPaths.fortuneDraw)
+      .set('Idempotency-Key', idempotencyKey)
+      .send({ intention: 'GROWTH', cardKey: 'major-00-fool' })
+      .expect(400);
+
+    expect(response.body.error.code).toBe('VALIDATION_FAILED');
+    expect(draw).not.toHaveBeenCalled();
+  });
+
+  it('returns stored terminal state in code-specific details', async () => {
+    const draw = vi.fn<FortuneDrawHandler['draw']>().mockRejectedValue(
+      new FortuneDrawError('UNVIEWED_READING_PENDING', {
+        state: drawResponse.state,
+        unviewedDraw: drawResponse.draw,
+      }),
+    );
+    const response = await request(createFixture(undefined, draw))
+      .post(apiPaths.fortuneDraw)
+      .set('Idempotency-Key', idempotencyKey)
+      .send({ intention: 'GROWTH' })
+      .expect(409);
+
+    expect(response.body.error).toMatchObject({
+      code: 'UNVIEWED_READING_PENDING',
+      sameKeyRetrySafe: true,
+      details: { state: drawResponse.state, unviewedDraw: drawResponse.draw },
+    });
   });
 });
