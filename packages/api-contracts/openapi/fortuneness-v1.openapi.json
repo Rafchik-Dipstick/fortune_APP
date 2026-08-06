@@ -6,7 +6,7 @@
     "description": "Server-authoritative contracts for the Fortuneness iPhone and iPad application."
   },
   "servers": [{ "url": "/" }],
-  "tags": [{ "name": "Operations" }],
+  "tags": [{ "name": "Operations" }, { "name": "Authentication" }, { "name": "Account" }],
   "x-stable-error-codes": [
     "VALIDATION_FAILED",
     "AUTH_REQUIRED",
@@ -32,6 +32,9 @@
     "INTERNAL_ERROR"
   ],
   "components": {
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
+    },
     "schemas": {
       "HealthResponse": {
         "type": "object",
@@ -93,6 +96,213 @@
         },
         "required": ["code", "message", "requestId", "retryable", "sameKeyRetrySafe"],
         "additionalProperties": false
+      },
+      "GameCenterAuthResponse": {
+        "type": "object",
+        "properties": {
+          "user": { "$ref": "#/components/schemas/AuthenticatedUser" },
+          "session": { "$ref": "#/components/schemas/SessionTokens" },
+          "bootstrap": { "$ref": "#/components/schemas/AccountBootstrap" }
+        },
+        "required": ["user", "session", "bootstrap"],
+        "additionalProperties": false
+      },
+      "AuthenticatedUser": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "DELETION_PENDING", "PURGED", "BLOCKED"]
+          },
+          "resolvedLocale": { "type": "string", "enum": ["en"] },
+          "accountTimeZone": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "pendingTimeZone": { "type": ["string", "null"], "minLength": 1, "maxLength": 128 },
+          "timeZoneEffectiveAt": { "type": ["string", "null"], "format": "date-time" },
+          "nextTimeZoneChangeEligibleAt": { "type": ["string", "null"], "format": "date-time" },
+          "onboardingCompletedAt": { "type": ["string", "null"], "format": "date-time" },
+          "preferences": { "$ref": "#/components/schemas/UserPreferences" }
+        },
+        "required": [
+          "id",
+          "status",
+          "resolvedLocale",
+          "accountTimeZone",
+          "pendingTimeZone",
+          "timeZoneEffectiveAt",
+          "nextTimeZoneChangeEligibleAt",
+          "onboardingCompletedAt",
+          "preferences"
+        ],
+        "additionalProperties": false
+      },
+      "UserPreferences": {
+        "type": "object",
+        "properties": {
+          "reminderEnabled": { "type": "boolean" },
+          "reminderLocalMinutes": { "type": "integer", "minimum": 0, "maximum": 1439 },
+          "soundEnabled": { "type": "boolean" },
+          "hapticsEnabled": { "type": "boolean" },
+          "reduceMotionPreferred": { "type": "boolean" }
+        },
+        "required": [
+          "reminderEnabled",
+          "reminderLocalMinutes",
+          "soundEnabled",
+          "hapticsEnabled",
+          "reduceMotionPreferred"
+        ],
+        "additionalProperties": false
+      },
+      "SessionTokens": {
+        "type": "object",
+        "properties": {
+          "accessToken": { "type": "string", "minLength": 32, "maxLength": 4096 },
+          "refreshToken": { "type": "string", "minLength": 32, "maxLength": 512 },
+          "accessTokenExpiresAt": { "type": "string", "format": "date-time" },
+          "refreshTokenExpiresAt": { "type": "string", "format": "date-time" },
+          "authTime": { "type": "string", "format": "date-time" }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "accessTokenExpiresAt",
+          "refreshTokenExpiresAt",
+          "authTime"
+        ],
+        "additionalProperties": false
+      },
+      "AccountBootstrap": {
+        "type": "object",
+        "properties": {
+          "serverTime": { "type": "string", "format": "date-time" },
+          "reportedDeviceLocale": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 35,
+            "pattern": "^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/u"
+          },
+          "reportedDeviceTimeZone": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "appAccountToken": { "type": "string", "format": "uuid" }
+        },
+        "required": [
+          "serverTime",
+          "reportedDeviceLocale",
+          "reportedDeviceTimeZone",
+          "appAccountToken"
+        ],
+        "additionalProperties": false
+      },
+      "GameCenterAuthRequest": {
+        "type": "object",
+        "properties": {
+          "proof": { "$ref": "#/components/schemas/GameCenterProof" },
+          "scopedIdsPersistent": { "type": "boolean" },
+          "alias": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "restrictions": { "$ref": "#/components/schemas/GameCenterRestrictions" },
+          "reportedDeviceLocale": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 35,
+            "pattern": "^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/u"
+          },
+          "reportedDeviceTimeZone": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "device": { "$ref": "#/components/schemas/AuthDevice" }
+        },
+        "required": [
+          "proof",
+          "scopedIdsPersistent",
+          "alias",
+          "restrictions",
+          "reportedDeviceLocale",
+          "reportedDeviceTimeZone",
+          "device"
+        ],
+        "additionalProperties": false
+      },
+      "GameCenterProof": {
+        "type": "object",
+        "properties": {
+          "teamPlayerId": { "type": "string", "minLength": 1, "maxLength": 256 },
+          "gamePlayerId": { "type": "string", "minLength": 1, "maxLength": 256 },
+          "bundleId": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 255,
+            "pattern": "^[A-Za-z0-9]+(?:[.-][A-Za-z0-9]+)+$/u"
+          },
+          "publicKeyUrl": { "type": "string", "maxLength": 2048, "format": "uri" },
+          "signatureBase64": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 8192,
+            "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u"
+          },
+          "saltBase64": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 8192,
+            "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u"
+          },
+          "timestamp": { "type": "string", "pattern": "^\\d{1,20}$/u" }
+        },
+        "required": [
+          "teamPlayerId",
+          "gamePlayerId",
+          "bundleId",
+          "publicKeyUrl",
+          "signatureBase64",
+          "saltBase64",
+          "timestamp"
+        ],
+        "additionalProperties": false
+      },
+      "GameCenterRestrictions": {
+        "type": "object",
+        "properties": {
+          "isUnderage": { "type": "boolean" },
+          "isMultiplayerGamingRestricted": { "type": "boolean" },
+          "isPersonalizedCommunicationRestricted": { "type": "boolean" }
+        },
+        "required": [
+          "isUnderage",
+          "isMultiplayerGamingRestricted",
+          "isPersonalizedCommunicationRestricted"
+        ],
+        "additionalProperties": false
+      },
+      "AuthDevice": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "description": { "type": "string", "minLength": 1, "maxLength": 128 }
+        },
+        "required": ["id"],
+        "additionalProperties": false
+      },
+      "RefreshSessionResponse": {
+        "type": "object",
+        "properties": { "session": { "$ref": "#/components/schemas/SessionTokens" } },
+        "required": ["session"],
+        "additionalProperties": false
+      },
+      "RefreshSessionRequest": {
+        "type": "object",
+        "properties": {
+          "refreshToken": { "type": "string", "minLength": 32, "maxLength": 512 },
+          "device": { "$ref": "#/components/schemas/AuthDevice" }
+        },
+        "required": ["refreshToken", "device"],
+        "additionalProperties": false
+      },
+      "MeResponse": {
+        "type": "object",
+        "properties": {
+          "user": { "$ref": "#/components/schemas/AuthenticatedUser" },
+          "bootstrap": { "$ref": "#/components/schemas/AccountBootstrap" }
+        },
+        "required": ["user", "bootstrap"],
+        "additionalProperties": false
       }
     },
     "parameters": {}
@@ -120,6 +330,167 @@
             "description": "The process is draining or PostgreSQL is unavailable.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/HealthResponse" } }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/game-center": {
+      "post": {
+        "description": "Verifies a fresh, persistent Game Center identity proof and returns authoritative account bootstrap and rotating session tokens.",
+        "summary": "Authenticate with Game Center",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/GameCenterAuthRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The proof was verified and an active session was issued.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GameCenterAuthResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "The proof or advisory device context is malformed.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "401": {
+            "description": "The proof is invalid, stale, or signed for another bundle.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "409": {
+            "description": "The player identifiers are not persistent.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "423": {
+            "description": "The account is pending deletion and no normal session was issued.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "503": {
+            "description": "Apple proof verification or stable database state is temporarily unavailable.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/refresh": {
+      "post": {
+        "description": "Atomically consumes one refresh token and returns exactly one replacement. Exact same-key retries may replay the encrypted receipt for up to 120 seconds.",
+        "summary": "Rotate a session",
+        "tags": ["Authentication"],
+        "parameters": [
+          {
+            "schema": { "type": "string", "format": "uuid" },
+            "required": true,
+            "name": "Idempotency-Key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RefreshSessionRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The refresh token was rotated or an exact replay was returned.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RefreshSessionResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "The request or idempotency key is malformed.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "401": {
+            "description": "The refresh token or session family is invalid.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "409": {
+            "description": "The idempotency key was reused for different input.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "503": {
+            "description": "Stable database state is temporarily unavailable.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/logout": {
+      "post": {
+        "description": "Revokes the current refresh-token family after authoritative session checks.",
+        "summary": "Log out the current session",
+        "tags": ["Authentication"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "204": { "description": "The current session family was revoked." },
+          "401": {
+            "description": "The access token or authoritative session is no longer active.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "503": {
+            "description": "Stable database state is temporarily unavailable.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me": {
+      "get": {
+        "description": "Returns authoritative account preferences and bootstrap context.",
+        "summary": "Get the active account",
+        "tags": ["Account"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "The active account and current bootstrap context.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/MeResponse" } }
+            }
+          },
+          "401": {
+            "description": "The access token or authoritative session is no longer active.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "423": {
+            "description": "The account is pending deletion.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
             }
           }
         }

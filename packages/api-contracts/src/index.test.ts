@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   apiErrorEnvelopeSchema,
   apiPaths,
+  gameCenterAuthRequestSchema,
+  gameCenterAuthResponseSchema,
   healthResponseSchema,
   isoUtcDateTimeSchema,
   stableApiErrorCodes,
@@ -47,7 +49,7 @@ describe('base API contracts', () => {
   });
 
   it('owns the canonical Phase 3 path and response vocabulary', () => {
-    expect(apiPaths).toEqual({ health: '/health' });
+    expect(apiPaths.health).toBe('/health');
     expect(stableApiErrorCodes).toContain('RATE_LIMITED');
     expect(
       healthResponseSchema.safeParse({
@@ -55,5 +57,51 @@ describe('base API contracts', () => {
         status: 'not_ready',
       }).success,
     ).toBe(true);
+  });
+
+  it('validates exact Game Center proof and bootstrap boundaries', () => {
+    const request = {
+      proof: {
+        teamPlayerId: 'team-player',
+        gamePlayerId: 'game-player',
+        bundleId: 'app.fortuneness.dev',
+        publicKeyUrl: 'https://static.gc.apple.com/public-key.cer',
+        signatureBase64: 'c2lnbmF0dXJl',
+        saltBase64: 'c2FsdA==',
+        timestamp: '1786009600000',
+      },
+      scopedIdsPersistent: true,
+      alias: 'Stargazer',
+      restrictions: {
+        isUnderage: false,
+        isMultiplayerGamingRestricted: false,
+        isPersonalizedCommunicationRestricted: false,
+      },
+      reportedDeviceLocale: 'en-US',
+      reportedDeviceTimeZone: 'Europe/Kyiv',
+      device: { id: 'cce93010-158e-4d65-bdd8-38672203a59b', description: 'iPhone' },
+    };
+
+    expect(gameCenterAuthRequestSchema.parse(request)).toEqual(request);
+    expect(
+      gameCenterAuthRequestSchema.safeParse({
+        ...request,
+        scopedIdsPersistent: false,
+      }).success,
+    ).toBe(true);
+    expect(
+      gameCenterAuthRequestSchema.safeParse({
+        ...request,
+        proof: { ...request.proof, publicKeyUrl: 'http://127.0.0.1/key' },
+      }).success,
+    ).toBe(false);
+
+    expect(
+      gameCenterAuthResponseSchema.safeParse({
+        user: {},
+        session: {},
+        bootstrap: {},
+      }).success,
+    ).toBe(false);
   });
 });

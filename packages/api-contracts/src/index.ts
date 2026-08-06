@@ -1,11 +1,15 @@
 import { z } from 'zod';
 
-export const apiVersionSchema = z.literal('v1');
-export const uuidSchema = z.uuid();
-export const isoUtcDateTimeSchema = z.iso.datetime({ offset: true });
+import { uuidSchema } from './base.js';
+
+export { apiVersionSchema, isoUtcDateTimeSchema, uuidSchema } from './base.js';
 
 export const apiPaths = {
+  authGameCenter: '/v1/auth/game-center',
+  authLogout: '/v1/auth/logout',
+  authRefresh: '/v1/auth/refresh',
   health: '/health',
+  me: '/v1/me',
 } as const;
 
 export const stableApiErrorCodes = [
@@ -72,3 +76,30 @@ export type ApiError = z.infer<typeof apiErrorSchema>;
 export type ApiErrorEnvelope = z.infer<typeof apiErrorEnvelopeSchema>;
 export type ApiErrorCode = z.infer<typeof apiErrorCodeSchema>;
 export type HealthResponse = z.infer<typeof healthResponseSchema>;
+
+export {
+  accountBootstrapSchema,
+  authDeviceSchema,
+  authenticatedUserSchema,
+  gameCenterAuthRequestSchema,
+  gameCenterAuthResponseSchema,
+  gameCenterProofSchema,
+  gameCenterRestrictionsSchema,
+  idempotencyKeySchema,
+  meResponseSchema,
+  refreshSessionRequestSchema,
+  refreshSessionResponseSchema,
+  sessionTokensSchema,
+  userPreferencesSchema,
+} from './auth.js';
+export type {
+  AccountBootstrap,
+  AuthDevice,
+  AuthenticatedUser,
+  GameCenterAuthRequest,
+  GameCenterAuthResponse,
+  GameCenterProof,
+  RefreshSessionRequest,
+  RefreshSessionResponse,
+  SessionTokens,
+} from './auth.js';

@@ -948,3 +948,27 @@ git diff --check
 ```
 
 Deployment impact: local opt-in database test tooling, read-only invariant tooling, and operations documentation only. The generated local PostgreSQL database was removed; staging restore/backup verification remains an external gate and no Railway or production resource changed.
+
+### 2026-08-06 — Phase 5 Game Center and session contracts
+
+- Verified the current Apple GameKit identity contract before implementation: only persistent scoped IDs are usable; the non-Arcade signature bytes are `teamPlayerID` UTF-8, exact bundle ID UTF-8, timestamp as big-endian UInt64, then salt; verification uses RSASSA-PKCS1-v1_5 and treats aliases/restrictions as advisory.
+- Added strict shared schemas for the Game Center proof, explicit persistent-ID signal, three current restriction flags, advisory locale/time zone, and account-scoped device metadata. The UInt64 timestamp remains a bounded decimal string so JavaScript transport cannot lose signed-byte precision.
+- Kept `scopedIdsPersistent` as a domain boolean rather than schema-literal `true`, allowing the server to return the required `409 GAME_CENTER_ID_NOT_PERSISTENT` while the native client still blocks temporary identifiers locally.
+- Added versioned authenticated-user, preferences, session-token, bootstrap, refresh, and `/v1/me` response schemas. The bootstrap exposes only the separate purchase-token UUID, never the internal financial-subject ID.
+- Added canonical paths and generated OpenAPI 3.1 operations for Game Center authentication, keyed refresh rotation, authorized logout, and account bootstrap, including bearer security and stable error envelopes.
+- Added contract tests for HTTPS proof keys, exact request strictness, persistent-ID representation, response fail-closed behavior, refresh idempotency header publication, and bearer-protected operations.
+
+Verification required before commit:
+
+```text
+corepack npm run openapi:generate
+corepack npm run openapi:check
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: shared schemas and generated API documentation only. The routes are not yet mounted, no Apple proof was fetched, no account/session row was created, and no Apple, Railway, database, credential, or deployed environment changed.
