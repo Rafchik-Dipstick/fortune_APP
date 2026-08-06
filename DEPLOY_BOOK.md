@@ -1239,3 +1239,29 @@ git diff --check
 ```
 
 Deployment impact: local pure domain functions, tests, and shared login canonicalization only. No database schema/row, allowance, user time-zone state, subscription, credential, route, or deployed environment changed.
+
+### 2026-08-06 — Phase 6 monotonic allowance-period state
+
+- Added separate latest-reported device locale/time-zone fields to `User`, backfilled existing rows from their authoritative resolved/account values, and updated successful Game Center authentication plus `GET /v1/me` to preserve and return the latest advisory context without silently changing the account zone.
+- Added locked, lazy creation of one current monotonic `AllowancePeriod` and its usage row. Repeated state reads reuse the same half-open period and do not manufacture another allowance.
+- Added crash-safe pending-zone activation: when the effective instant wins the user lock, the old period remains closed at that exact boundary, one next-sequence period begins there under the requested zone, the user state advances atomically, and a later current period is created only when downtime crossed the activation period's next reset.
+- Added the material-zone request service. Requests matching the current or pending canonical zone are idempotent, one accepted change extends the current sole period to the later candidate boundary, and a different request inside the rolling 168-hour window fails with the authoritative next-eligible instant.
+- Added authoritative fortune-state reduction under `User → SessionFamily → FinancialSubject` locks. It activates period state, recomputes the append-only pack ledger sum and verified subscriptions, returns the latest unviewed immutable snapshot, and rejects stale/deleted/purged/closed ownership.
+- Mounted non-cacheable authenticated `GET /v1/fortune/state` with contract validation and caller-safe error mapping.
+- Expanded the disposable PostgreSQL suite to prove five forward migrations, deterministic double seed, single-period state replay, device-zone drift reporting, exact pending-zone activation after downtime, idempotent alias requests, and second-change limiting. All eight integration tests and invariants passed, and the harness dropped its generated database.
+
+Verification required before commit:
+
+```text
+TEST_DATABASE_ADMIN_URL=<injected local admin URL> corepack npm run test:db
+corepack npm run db:schema:format --workspace @fortuneness/api
+corepack npm run db:schema:validate
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: one additive/backfilled user-context migration plus local API period/state services, route/runtime wiring, and tests. The migration still requires the normal staging backup/restore and `migrate deploy` gate; no persistent database, user state, entitlement, allowance, credential, Railway service, or deployed environment changed.

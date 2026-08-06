@@ -96,8 +96,8 @@ export class AccountBootstrapService {
         user: serializeAuthenticatedUser(user),
         bootstrap: {
           serverTime: now.toISOString(),
-          reportedDeviceLocale: user.resolvedLocale,
-          reportedDeviceTimeZone: user.accountTimeZone,
+          reportedDeviceLocale: user.reportedDeviceLocale,
+          reportedDeviceTimeZone: user.reportedDeviceTimeZone,
           appAccountToken,
         },
       });

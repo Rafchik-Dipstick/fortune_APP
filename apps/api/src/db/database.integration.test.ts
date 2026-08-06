@@ -15,6 +15,8 @@ import { type VerifiedGameCenterIdentity } from '../auth/game-center-proof.js';
 import { LogoutSessionError, LogoutSessionService } from '../auth/logout-session.js';
 import { RefreshSessionError, RefreshSessionService } from '../auth/refresh-session.js';
 import { createTestApiEnvironment } from '../config/environment.fixture.js';
+import { FortuneStateService } from '../fortune/state.js';
+import { AccountTimeZoneService, TimeZoneChangeLimitedError } from '../fortune/time-zone-change.js';
 import { PrismaClient } from '../generated/prisma/client.js';
 import { mapDatabaseError } from './errors.js';
 
@@ -93,6 +95,42 @@ async function createPurchaseFixture(transactionId = `tx-${randomUUID()}`) {
     },
   });
   return { financialSubject, purchase };
+}
+
+async function createFortuneStateFixture(options: {
+  accountTimeZone?: string;
+  now: Date;
+  reportedDeviceTimeZone?: string;
+}) {
+  const financialSubject = await prisma.financialSubject.create({ data: {} });
+  const user = await prisma.user.create({
+    data: {
+      accountTimeZone: options.accountTimeZone ?? 'Europe/Kyiv',
+      reportedDeviceLocale: 'en-US',
+      reportedDeviceTimeZone: options.reportedDeviceTimeZone ?? 'Europe/Kyiv',
+      activeFinancialSubjectId: financialSubject.id,
+    },
+  });
+  const authTimeSeconds = Math.floor(options.now.getTime() / 1_000);
+  const family = await prisma.sessionFamily.create({
+    data: {
+      userId: user.id,
+      sessionVersion: user.sessionVersion,
+      gameCenterAuthenticatedAt: new Date(authTimeSeconds * 1_000),
+      expiresAt: new Date(options.now.getTime() + 30 * 86_400_000),
+    },
+  });
+  return {
+    financialSubject,
+    user,
+    authentication: {
+      userId: user.id,
+      sessionFamilyId: family.id,
+      sessionVersion: user.sessionVersion,
+      authTimeSeconds,
+      authTime: new Date(authTimeSeconds * 1_000),
+    },
+  };
 }
 
 function createLoginRequest(marker: string): GameCenterAuthRequest {
@@ -338,5 +376,104 @@ describe('PostgreSQL integrity', { concurrent: false }, () => {
         data: { balanceAfter: 11 },
       }),
     ).rejects.toSatisfy((error: unknown) => mapDatabaseError(error)?.kind === 'CHECK_CONSTRAINT');
+  });
+
+  it('creates one monotonic current period and returns reported device-zone drift', async () => {
+    const now = new Date('2026-08-06T10:00:00.000Z');
+    const fixture = await createFortuneStateFixture({
+      now,
+      reportedDeviceTimeZone: 'America/Los_Angeles',
+    });
+    const service = new FortuneStateService(prisma, () => now);
+
+    const first = await service.get(fixture.authentication);
+    const replay = await service.get(fixture.authentication);
+
+    expect(first).toEqual(replay);
+    expect(first.state).toMatchObject({
+      accountTimeZone: 'Europe/Kyiv',
+      reportedDeviceTimeZone: 'America/Los_Angeles',
+      freeRemaining: 1,
+      availableDraws: 1,
+      currentPeriodStartedAt: '2026-08-05T21:00:00.000Z',
+      nextResetAt: '2026-08-06T21:00:00.000Z',
+    });
+    await expect(
+      prisma.allowancePeriod.count({ where: { userId: fixture.user.id } }),
+    ).resolves.toBe(1);
+    await expect(prisma.allowanceUsage.count({ where: { userId: fixture.user.id } })).resolves.toBe(
+      1,
+    );
+  });
+
+  it('activates a pending time zone exactly once after process downtime', async () => {
+    const effectiveAt = new Date('2026-08-06T21:00:00.000Z');
+    const now = new Date('2026-08-06T22:00:00.000Z');
+    const fixture = await createFortuneStateFixture({ now, accountTimeZone: 'Europe/Kyiv' });
+    await prisma.user.update({
+      where: { id: fixture.user.id },
+      data: {
+        pendingTimeZone: 'Asia/Tokyo',
+        timeZoneEffectiveAt: effectiveAt,
+        nextTimeZoneChangeEligibleAt: new Date('2026-08-13T10:00:00.000Z'),
+      },
+    });
+    await prisma.allowancePeriod.create({
+      data: {
+        userId: fixture.user.id,
+        sequence: 1n,
+        startedAt: new Date('2026-08-05T21:00:00.000Z'),
+        resetAt: effectiveAt,
+        timeZoneSnapshot: 'Europe/Kyiv',
+      },
+    });
+
+    const state = await new FortuneStateService(prisma, () => now).get(fixture.authentication);
+
+    expect(state.state).toMatchObject({
+      accountTimeZone: 'Asia/Tokyo',
+      pendingTimeZone: null,
+      timeZoneEffectiveAt: null,
+      currentPeriodStartedAt: effectiveAt.toISOString(),
+      nextResetAt: '2026-08-07T15:00:00.000Z',
+    });
+    await expect(
+      prisma.allowancePeriod.findMany({
+        where: { userId: fixture.user.id },
+        orderBy: { sequence: 'asc' },
+        select: { sequence: true, startedAt: true, resetAt: true },
+      }),
+    ).resolves.toEqual([
+      {
+        sequence: 1n,
+        startedAt: new Date('2026-08-05T21:00:00.000Z'),
+        resetAt: effectiveAt,
+      },
+      {
+        sequence: 2n,
+        startedAt: effectiveAt,
+        resetAt: new Date('2026-08-07T15:00:00.000Z'),
+      },
+    ]);
+  });
+
+  it('keeps repeated zone requests idempotent and limits a second material change', async () => {
+    const now = new Date('2026-08-06T10:00:00.000Z');
+    const fixture = await createFortuneStateFixture({ now });
+    const state = new FortuneStateService(prisma, () => now);
+    await state.get(fixture.authentication);
+    const timeZones = new AccountTimeZoneService(prisma, () => now);
+
+    const accepted = await timeZones.request(fixture.user.id, 'America/Los_Angeles');
+    const repeated = await timeZones.request(fixture.user.id, 'US/Pacific');
+
+    expect(repeated).toMatchObject({
+      pendingTimeZone: 'America/Los_Angeles',
+      timeZoneEffectiveAt: accepted.timeZoneEffectiveAt,
+      nextTimeZoneChangeEligibleAt: accepted.nextTimeZoneChangeEligibleAt,
+    });
+    await expect(timeZones.request(fixture.user.id, 'Asia/Tokyo')).rejects.toSatisfy(
+      (error: unknown) => error instanceof TimeZoneChangeLimitedError,
+    );
   });
 });

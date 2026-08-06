@@ -168,6 +168,8 @@ model User {
   status                       UserStatus               @default(ACTIVE)
   sessionVersion               Int                      @default(1)
   resolvedLocale               String                   @default("en") @db.VarChar(16)
+  reportedDeviceLocale         String                   @default("en") @db.VarChar(35)
+  reportedDeviceTimeZone       String                   @default("UTC") @db.VarChar(128)
   accountTimeZone              String                   @db.VarChar(128)
   pendingTimeZone              String?                  @db.VarChar(128)
   timeZoneEffectiveAt          DateTime?                @db.Timestamptz(3)

@@ -147,7 +147,13 @@ export class GameCenterLoginService {
     return runReadCommittedTransaction(this.client, async (transaction) => {
       const now = this.now();
       await this.reserveProof(transaction, verifiedIdentity, now);
-      const user = await this.resolveUser(transaction, verifiedIdentity, accountTimeZone, now);
+      const user = await this.resolveUser(
+        transaction,
+        verifiedIdentity,
+        accountTimeZone,
+        request.reportedDeviceLocale,
+        now,
+      );
       assertAccountCanCreateNormalSession(user);
 
       const appAccountToken = await this.loadOrCreatePurchaseToken(transaction, user, now);
@@ -238,6 +244,7 @@ export class GameCenterLoginService {
     transaction: Prisma.TransactionClient,
     verifiedIdentity: VerifiedGameCenterIdentity,
     accountTimeZone: string,
+    reportedDeviceLocale: string,
     now: Date,
   ): Promise<FullUser> {
     const matches = await transaction.externalIdentity.findMany({
@@ -262,7 +269,13 @@ export class GameCenterLoginService {
           match.subjectDigest === verifiedIdentity.currentIdentity.digest,
       ) ?? matches[0];
     if (matchedIdentity === undefined) {
-      return this.createAccount(transaction, verifiedIdentity, accountTimeZone, now);
+      return this.createAccount(
+        transaction,
+        verifiedIdentity,
+        accountTimeZone,
+        reportedDeviceLocale,
+        now,
+      );
     }
 
     await lockUserForUpdate(transaction, matchedIdentity.userId);
@@ -284,13 +297,21 @@ export class GameCenterLoginService {
         where: { id: { in: duplicateIdentityIds } },
       });
     }
-    return transaction.user.findUniqueOrThrow({ where: { id: matchedIdentity.userId } });
+    return transaction.user.update({
+      where: { id: matchedIdentity.userId },
+      data: {
+        reportedDeviceLocale,
+        reportedDeviceTimeZone: accountTimeZone,
+        updatedAt: now,
+      },
+    });
   }
 
   private async createAccount(
     transaction: Prisma.TransactionClient,
     verifiedIdentity: VerifiedGameCenterIdentity,
     accountTimeZone: string,
+    reportedDeviceLocale: string,
     now: Date,
   ): Promise<FullUser> {
     const financialSubjectId = this.uuidFactory();
@@ -300,6 +321,8 @@ export class GameCenterLoginService {
       data: {
         id: userId,
         accountTimeZone,
+        reportedDeviceLocale,
+        reportedDeviceTimeZone: accountTimeZone,
         activeFinancialSubjectId: financialSubjectId,
         createdAt: now,
         updatedAt: now,

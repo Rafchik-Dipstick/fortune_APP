@@ -11,9 +11,11 @@ import { RefreshSessionService } from './auth/refresh-session.js';
 import { type ApiEnvironment, parseApiEnvironment } from './config/environment.js';
 import { type DatabaseRuntime, createDatabaseRuntime } from './db/database.js';
 import { ApiReadiness } from './health/readiness.js';
+import { FortuneStateService } from './fortune/state.js';
 import { type ApiLogger, createApiLogger } from './logging/logger.js';
 import { createAuthoritativeAuthentication } from './middleware/authentication.js';
 import { registerAuthenticationRoutes } from './routes/authentication.js';
+import { registerFortuneRoutes } from './routes/fortunes.js';
 
 export interface ApiRuntime {
   app: Express;
@@ -47,6 +49,7 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
   });
   const logoutSessions = new LogoutSessionService(database.client);
   const accountBootstrap = new AccountBootstrapService(database.client, environment.authentication);
+  const fortuneState = new FortuneStateService(database.client);
   const authenticate = createAuthoritativeAuthentication(database.client, accessTokens);
   const app = createApiApp({
     environment,
@@ -59,6 +62,10 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
         login: gameCenterLogin,
         logout: logoutSessions,
         refresh: refreshSessions,
+      });
+      registerFortuneRoutes(configuredApp, {
+        authenticate,
+        state: fortuneState,
       });
     },
   });
