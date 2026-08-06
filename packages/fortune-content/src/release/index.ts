@@ -6,6 +6,7 @@ import {
   type AuthoredCard,
 } from './authoring.js';
 import { majorArcanaCards } from './major-arcana.js';
+import { cupsCards } from './cups.js';
 import { wandsCards } from './wands.js';
 
 /**
@@ -13,7 +14,11 @@ import { wandsCards } from './wands.js';
  * card by card through the editorial workstream; the release gate reports the
  * distance to the full 78 on each run.
  */
-export const authoredReleaseCards: readonly AuthoredCard[] = [...majorArcanaCards, ...wandsCards];
+export const authoredReleaseCards: readonly AuthoredCard[] = [
+  ...majorArcanaCards,
+  ...wandsCards,
+  ...cupsCards,
+];
 
 export { releaseContentVersion } from './authoring.js';
 export type { AuthoredCard, CardReadings, Reading } from './authoring.js';
