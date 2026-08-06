@@ -55,11 +55,7 @@ export interface SubscriptionPeriod {
 }
 
 export type DerivedSubscriptionStatus =
-  | 'ACTIVE'
-  | 'GRACE_PERIOD'
-  | 'BILLING_RETRY'
-  | 'EXPIRED'
-  | 'REVOKED';
+  'ACTIVE' | 'GRACE_PERIOD' | 'BILLING_RETRY' | 'EXPIRED' | 'REVOKED';
 
 export interface SubscriptionEntitlementDerivation {
   graceThrough: Date | null;

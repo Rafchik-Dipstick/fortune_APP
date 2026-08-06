@@ -4,7 +4,6 @@ import { type CommerceEnvironment } from '../config/environment.js';
 import { runReadCommittedTransaction } from '../db/transactions.js';
 import {
   type AppStoreNotificationProcessingStatus,
-  type Prisma,
   type PrismaClient,
 } from '../generated/prisma/client.js';
 import { type ApiLogger } from '../logging/logger.js';
@@ -104,8 +103,8 @@ export class AppStoreNotificationIngestService {
         where: { notificationUuid },
         create: {
           notificationUuid,
-          notificationType: String(notificationType),
-          notificationSubtype: decoded.subtype === undefined ? null : String(decoded.subtype),
+          notificationType,
+          notificationSubtype: decoded.subtype ?? null,
           environment: this.commerce.environment,
           payloadHash: createHash('sha256').update(signedPayload, 'utf8').digest('hex'),
           encryptedPayload: new Uint8Array(encrypted.encrypted),

@@ -1,7 +1,4 @@
-import {
-  type IapReconcileResponse,
-  type IapTransactionResponse,
-} from '@fortuneness/api-contracts';
+import { type IapReconcileResponse, type IapTransactionResponse } from '@fortuneness/api-contracts';
 
 import { MobileApiError } from '../auth/api-client';
 
@@ -114,11 +111,9 @@ export class CommerceDeliveryCoordinator {
 
     const unfinishedIds = new Set(unfinished.map((transaction) => transaction.transactionId));
     for (const disposition of response.dispositions) {
-      if (
-        disposition.deliveryAccepted &&
-        disposition.safeToFinish &&
-        unfinishedIds.has(disposition.transactionId)
-      ) {
+      // Accepted dispositions are safe to finish by contract; rejected items
+      // stay unfinished for a later attempt or support resolution.
+      if (disposition.deliveryAccepted && unfinishedIds.has(disposition.transactionId)) {
         await this.dependencies.finishTransaction(disposition.transactionId);
       }
     }
@@ -139,13 +134,10 @@ export class CommerceDeliveryCoordinator {
     transaction: DeliverableTransaction,
   ): Promise<DeliveryResult> {
     try {
-      const response = await this.dependencies.deliver(
-        accessToken,
-        transaction.signedTransaction,
-      );
-      if (response.deliveryAccepted && response.safeToFinish) {
-        await this.dependencies.finishTransaction(transaction.transactionId);
-      }
+      const response = await this.dependencies.deliver(accessToken, transaction.signedTransaction);
+      // Every accepted delivery shape carries safeToFinish: true; anything
+      // unsafe surfaces as a typed error instead of a success response.
+      await this.dependencies.finishTransaction(transaction.transactionId);
       return { kind: 'DELIVERED', response };
     } catch (error) {
       // Verification failure, unknown ownership, and retryable server

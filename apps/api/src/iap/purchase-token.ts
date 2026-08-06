@@ -51,7 +51,7 @@ export async function resolveCurrentPurchaseToken(
     orderBy: { validFrom: 'desc' },
   });
 
-  if (current !== null && current.encryptedToken !== null && current.encryptionKeyVersion !== null) {
+  if (current?.encryptedToken != null && current.encryptionKeyVersion !== null) {
     const token = decryptBytes(
       Buffer.from(current.encryptedToken),
       current.encryptionKeyVersion,

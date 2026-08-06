@@ -23,7 +23,7 @@ import { type Prisma, type PrismaClient } from '../generated/prisma/client.js';
 import { type AuthenticationContext } from '../middleware/authentication.js';
 import {
   IapApplicationError,
-  IapApplicationService,
+  type IapApplicationService,
   type TransactionApplicationOutcome,
 } from './application.js';
 import { resolveCurrentPurchaseToken, type PurchaseTokenKeys } from './purchase-token.js';
@@ -308,9 +308,7 @@ export class CommerceService {
     return { ...base, appliedNow: false, disposition: 'ALREADY_APPLIED' };
   }
 
-  private async callerFinancialSubjectId(
-    authentication: AuthenticationContext,
-  ): Promise<string> {
+  private async callerFinancialSubjectId(authentication: AuthenticationContext): Promise<string> {
     return runReadCommittedTransaction(this.client, async (transaction) => {
       const caller = await this.assertAuthorized(transaction, authentication);
       return caller.financialSubject.id;

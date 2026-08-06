@@ -165,14 +165,6 @@ export function registerIapRoutes(
 ): void {
   app.get(apiPaths.iapCatalog, handlers.authenticate, createCatalogRoute(handlers.commerce));
   app.get(apiPaths.iapStatus, handlers.authenticate, createStatusRoute(handlers.commerce));
-  app.post(
-    apiPaths.iapTransactions,
-    handlers.authenticate,
-    createDeliveryRoute(handlers.commerce),
-  );
-  app.post(
-    apiPaths.iapReconcile,
-    handlers.authenticate,
-    createReconcileRoute(handlers.commerce),
-  );
+  app.post(apiPaths.iapTransactions, handlers.authenticate, createDeliveryRoute(handlers.commerce));
+  app.post(apiPaths.iapReconcile, handlers.authenticate, createReconcileRoute(handlers.commerce));
 }

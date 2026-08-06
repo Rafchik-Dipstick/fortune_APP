@@ -12,10 +12,7 @@ export interface AppleFactOrder {
   sourceId: string;
 }
 
-export function compareAppleFactOrder(
-  candidate: AppleFactOrder,
-  applied: AppleFactOrder,
-): number {
+export function compareAppleFactOrder(candidate: AppleFactOrder, applied: AppleFactOrder): number {
   const timeDelta = candidate.sourceAt.getTime() - applied.sourceAt.getTime();
   if (timeDelta !== 0) {
     return timeDelta;

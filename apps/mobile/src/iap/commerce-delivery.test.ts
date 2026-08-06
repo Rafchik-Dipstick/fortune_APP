@@ -44,24 +44,26 @@ function createHarness(options: HarnessOptions = {}) {
   const coordinator = new CommerceDeliveryCoordinator({
     deliver:
       options.deliver ??
-      (async (_accessToken, signedTransaction) => {
+      ((_accessToken, signedTransaction) => {
         delivered.push(signedTransaction);
-        return acceptedResponse(signedTransaction.replace('signed-', ''), true);
+        return Promise.resolve(acceptedResponse(signedTransaction.replace('signed-', ''), true));
       }),
-    finishTransaction: async (transactionId) => {
+    finishTransaction: (transactionId) => {
       finished.push(transactionId);
-      return true;
+      return Promise.resolve(true);
     },
-    getAccessToken: async () => options.accessToken ?? 'access-token',
-    getCurrentEntitlements: async () => options.entitlements ?? [],
-    getUnfinishedTransactions: async () => options.unfinished ?? [],
+    getAccessToken: () => Promise.resolve(options.accessToken ?? 'access-token'),
+    getCurrentEntitlements: () => Promise.resolve(options.entitlements ?? []),
+    getUnfinishedTransactions: () => Promise.resolve(options.unfinished ?? []),
     reconcile:
       options.reconcile ??
-      (async () => ({
-        dispositions: [],
-      })),
-    sync: async () => {
+      (() =>
+        Promise.resolve({
+          dispositions: [],
+        })),
+    sync: () => {
       synced.count += 1;
+      return Promise.resolve();
     },
   });
   return { coordinator, delivered, finished, synced };
@@ -81,19 +83,19 @@ describe('CommerceDeliveryCoordinator', () => {
     const delivered: string[] = [];
     const finished: string[] = [];
     const coordinator = new CommerceDeliveryCoordinator({
-      deliver: async (_token, signedTransaction) => {
+      deliver: (_token, signedTransaction) => {
         delivered.push(signedTransaction);
-        return acceptedResponse(signedTransaction.replace('signed-', ''), true);
+        return Promise.resolve(acceptedResponse(signedTransaction.replace('signed-', ''), true));
       },
-      finishTransaction: async (transactionId) => {
+      finishTransaction: (transactionId) => {
         finished.push(transactionId);
-        return true;
+        return Promise.resolve(true);
       },
-      getAccessToken: async () => accessToken,
-      getCurrentEntitlements: async () => [],
-      getUnfinishedTransactions: async () => [],
-      reconcile: async () => ({ dispositions: [] }),
-      sync: async () => undefined,
+      getAccessToken: () => Promise.resolve(accessToken),
+      getCurrentEntitlements: () => Promise.resolve([]),
+      getUnfinishedTransactions: () => Promise.resolve([]),
+      reconcile: () => Promise.resolve({ dispositions: [] }),
+      sync: () => Promise.resolve(),
     });
 
     const result = await coordinator.handleVerifiedTransaction(transaction('200'));
@@ -115,9 +117,7 @@ describe('CommerceDeliveryCoordinator', () => {
       'RETRYABLE_CONFLICT',
     ] as const) {
       const harness = createHarness({
-        deliver: async () => {
-          throw new MobileApiError({ code, message: code, retryable: true });
-        },
+        deliver: () => Promise.reject(new MobileApiError({ code, message: code, retryable: true })),
       });
       const result = await harness.coordinator.handleVerifiedTransaction(transaction('300'));
       expect(result).toEqual({ kind: 'UNFINISHED', reason: code });
@@ -127,13 +127,14 @@ describe('CommerceDeliveryCoordinator', () => {
 
   it('finishes duplicate and other-owner deliveries the server marks safe', async () => {
     const harness = createHarness({
-      deliver: async () => ({
-        transactionId: '400',
-        deliveryAccepted: true,
-        safeToFinish: true,
-        appliedNow: false,
-        disposition: 'DELIVERED_TO_OTHER_ACCOUNT',
-      }),
+      deliver: () =>
+        Promise.resolve({
+          transactionId: '400',
+          deliveryAccepted: true,
+          safeToFinish: true,
+          appliedNow: false,
+          disposition: 'DELIVERED_TO_OTHER_ACCOUNT',
+        } as const),
     });
     const result = await harness.coordinator.handleVerifiedTransaction(transaction('400'));
     expect(result.kind).toBe('DELIVERED');
@@ -145,30 +146,33 @@ describe('CommerceDeliveryCoordinator', () => {
     const harness = createHarness({
       unfinished: [transaction('500')],
       entitlements: [transaction('500'), transaction('501')],
-      reconcile: async (_token, signedTransactions) => {
+      reconcile: (_token, signedTransactions) => {
         reconciled.push([...signedTransactions]);
-        return {
+        return Promise.resolve({
           dispositions: [
             { index: 0, ...acceptedResponse('500', true) },
             { index: 1, ...acceptedResponse('501', false) },
           ],
-        };
+        });
       },
     });
 
     await harness.coordinator.reconcileWithServer();
 
     // Duplicates collapse; only the StoreKit-unfinished item is finished.
-    expect(reconciled).toEqual([[transaction('500').signedTransaction, transaction('501').signedTransaction]]);
+    expect(reconciled).toEqual([
+      [transaction('500').signedTransaction, transaction('501').signedTransaction],
+    ]);
     expect(harness.finished).toEqual(['500']);
   });
 
   it('restore purchases syncs explicitly and then reconciles', async () => {
     const harness = createHarness({
       unfinished: [transaction('600')],
-      reconcile: async () => ({
-        dispositions: [{ index: 0, ...acceptedResponse('600', false) }],
-      }),
+      reconcile: () =>
+        Promise.resolve({
+          dispositions: [{ index: 0, ...acceptedResponse('600', false) }],
+        }),
     });
 
     await harness.coordinator.restorePurchases();

@@ -23,8 +23,7 @@ export type VerifiedIapEnvironment = 'SANDBOX' | 'PRODUCTION' | 'XCODE';
 export type VerifiedIapProductType = 'CONSUMABLE' | 'AUTO_RENEWABLE_SUBSCRIPTION';
 
 export type SignedTransactionVerificationErrorCode =
-  | 'TRANSACTION_UNVERIFIED'
-  | 'PRODUCT_NOT_ALLOWED';
+  'TRANSACTION_UNVERIFIED' | 'PRODUCT_NOT_ALLOWED';
 
 export class SignedTransactionVerificationError extends Error {
   readonly code: SignedTransactionVerificationErrorCode;
@@ -129,8 +128,9 @@ export function normalizeVerifiedTransaction(
     );
   }
 
-  const environment = payload.environment;
-  if (environment !== undefined && toEnvironment(policy.environment) !== environment) {
+  const receivingEnvironment: string = toEnvironment(policy.environment);
+  const payloadEnvironment: string | undefined = payload.environment;
+  if (payloadEnvironment !== undefined && payloadEnvironment !== receivingEnvironment) {
     throw new SignedTransactionVerificationError(
       'TRANSACTION_UNVERIFIED',
       'Verified transaction environment does not match the receiving environment.',
@@ -202,9 +202,7 @@ export function normalizeVerifiedTransaction(
     // The database requires the pair shape: subscriptions always record a
     // billing plan and consumables never carry subscription-only fields.
     billingPlanType: isSubscription
-      ? payload.billingPlanType === undefined
-        ? (policy.expectedSubscriptionBillingPlanType ?? 'MONTHLY')
-        : String(payload.billingPlanType)
+      ? (payload.billingPlanType ?? policy.expectedSubscriptionBillingPlanType ?? 'MONTHLY')
       : null,
     environment: policy.environment,
     expiresAt: isSubscription ? optionalDate(payload.expiresDate) : null,
@@ -301,7 +299,7 @@ export class AppleSignedDataVerifier
       const payload = await this.verifier.verifyAndDecodeRenewalInfo(signedRenewalInfo);
       return {
         autoRenewEnabled:
-          payload.autoRenewStatus === undefined ? null : Number(payload.autoRenewStatus) === 1,
+          payload.autoRenewStatus === undefined ? null : payload.autoRenewStatus === 1,
         billingRetry: payload.isInBillingRetryPeriod ?? null,
         graceThrough:
           payload.gracePeriodExpiresDate === undefined

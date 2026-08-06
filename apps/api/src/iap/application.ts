@@ -16,14 +16,13 @@ import {
   reduceRenewalFacts,
   reduceTransactionRevocation,
   type RenewalFact,
+  type RenewalState,
   type SubscriptionEventKind,
 } from './subscription.js';
 import { type VerifiedAppleTransaction } from './verification.js';
 
 export type IapApplicationErrorCode =
-  | 'TRANSACTION_OWNER_UNKNOWN'
-  | 'RETRYABLE_CONFLICT'
-  | 'INTERNAL_CONFLICT';
+  'TRANSACTION_OWNER_UNKNOWN' | 'RETRYABLE_CONFLICT' | 'INTERNAL_CONFLICT';
 
 export class IapApplicationError extends Error {
   readonly code: IapApplicationErrorCode;
@@ -66,12 +65,10 @@ interface ResolvedOwnership {
   tokenBindingId: string | null;
 }
 
-export interface TokenOwnerResolver {
-  (
-    transaction: Prisma.TransactionClient,
-    rawToken: string,
-  ): Promise<{ bindingId: string; financialSubjectId: string } | null>;
-}
+export type TokenOwnerResolver = (
+  transaction: Prisma.TransactionClient,
+  rawToken: string,
+) => Promise<{ bindingId: string; financialSubjectId: string } | null>;
 
 interface IapApplicationServiceOptions {
   client: PrismaClient;
@@ -547,17 +544,17 @@ export class IapApplicationService {
       },
     });
 
-    let renewalState = {
+    const appliedRenewalAt = entitlement?.renewalAppliedAt ?? null;
+    const appliedRenewalId = entitlement?.renewalAppliedId ?? null;
+    let renewalState: RenewalState = {
       appliedFact:
-        entitlement === null ||
-        entitlement.renewalAppliedAt === null ||
-        entitlement.renewalAppliedId === null
+        appliedRenewalAt === null || appliedRenewalId === null
           ? null
           : {
-              authorityRank: (entitlement.renewalAppliedRank === 1 ? 1 : 0) as 0 | 1,
+              authorityRank: entitlement?.renewalAppliedRank === 1 ? 1 : 0,
               eventPrecedence: 0,
-              sourceAt: entitlement.renewalAppliedAt,
-              sourceId: entitlement.renewalAppliedId,
+              sourceAt: appliedRenewalAt,
+              sourceId: appliedRenewalId,
             },
       autoRenewEnabled: entitlement?.autoRenewEnabled ?? null,
       billingRetry: entitlement?.billingRetry ?? false,

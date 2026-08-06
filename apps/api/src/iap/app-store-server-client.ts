@@ -9,7 +9,10 @@ import {
   type AppStoreServerApiCredentials,
   type CommerceEnvironment,
 } from '../config/environment.js';
-import { type ConsumptionInformationSender, type MinimizedConsumptionPayload } from './consumption.js';
+import {
+  type ConsumptionInformationSender,
+  type MinimizedConsumptionPayload,
+} from './consumption.js';
 import { type AppStoreSignedDataSource } from './reconciliation.js';
 
 function toEnvironment(environment: CommerceEnvironment['environment']): Environment {

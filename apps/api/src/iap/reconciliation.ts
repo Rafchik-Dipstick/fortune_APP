@@ -103,7 +103,10 @@ export class AppStoreReconciliationJob {
         return subscriptions + packs;
       },
     );
-    return { ran: outcome.ran, ...(outcome.result === undefined ? {} : { reconciled: outcome.result }) };
+    return {
+      ran: outcome.ran,
+      ...(outcome.result === undefined ? {} : { reconciled: outcome.result }),
+    };
   }
 
   private async reconcileSubscriptions(): Promise<number> {
@@ -126,12 +129,11 @@ export class AppStoreReconciliationJob {
         const signedData = await this.source.getSubscriptionSignedData(
           entitlement.originalTransactionId,
         );
+        const latestRenewalInfo = signedData.signedRenewalInfos.at(-1);
         const renewalFact =
-          signedData.signedRenewalInfos.length === 0
+          latestRenewalInfo === undefined
             ? null
-            : await this.verifier.verifyRenewalInfo(
-                signedData.signedRenewalInfos[signedData.signedRenewalInfos.length - 1] as string,
-              );
+            : await this.verifier.verifyRenewalInfo(latestRenewalInfo);
         for (const signedTransaction of signedData.signedTransactions) {
           const verified = await this.verifier.verifyTransaction(signedTransaction);
           await this.application.apply(verified, {

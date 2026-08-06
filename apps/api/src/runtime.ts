@@ -92,8 +92,7 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
     bundleId: environment.authentication.bundleId,
     commerce: {
       environment: environment.commerce.environment,
-      expectedSubscriptionBillingPlanType:
-        environment.commerce.expectedSubscriptionBillingPlanType,
+      expectedSubscriptionBillingPlanType: environment.commerce.expectedSubscriptionBillingPlanType,
       fortunePack10ProductId: environment.commerce.fortunePack10ProductId,
       oraclePlusMonthlyProductId: environment.commerce.oraclePlusMonthlyProductId,
     },

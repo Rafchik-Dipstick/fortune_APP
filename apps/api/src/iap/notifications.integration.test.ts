@@ -8,10 +8,7 @@ import { runReadCommittedTransaction } from '../db/transactions.js';
 import { PrismaClient } from '../generated/prisma/client.js';
 import { IapApplicationService } from './application.js';
 import { ConsumptionService, type ConsumptionInformationSender } from './consumption.js';
-import {
-  AppStoreNotificationIngestService,
-  AppStoreNotificationWorker,
-} from './notifications.js';
+import { AppStoreNotificationIngestService, AppStoreNotificationWorker } from './notifications.js';
 import { findBindingByToken, resolveCurrentPurchaseToken } from './purchase-token.js';
 import {
   type ResponseBodyV2DecodedPayload,
@@ -42,33 +39,33 @@ let counter = 5000;
  * produce. Signature checks themselves are covered by the Sandbox gate.
  */
 class FakeVerifier implements SignedNotificationVerifier, SignedTransactionVerifier {
-  async verifyNotification(signedPayload: string): Promise<ResponseBodyV2DecodedPayload> {
+  verifyNotification(signedPayload: string): Promise<ResponseBodyV2DecodedPayload> {
     const parsed = JSON.parse(signedPayload) as {
       decoded: ResponseBodyV2DecodedPayload;
       fail?: boolean;
     };
     if (parsed.fail === true) {
-      throw new Error('Fake verification failure');
+      return Promise.reject(new Error('Fake verification failure'));
     }
-    return parsed.decoded;
+    return Promise.resolve(parsed.decoded);
   }
 
-  async verifyTransaction(signedTransaction: string): Promise<VerifiedAppleTransaction> {
+  verifyTransaction(signedTransaction: string): Promise<VerifiedAppleTransaction> {
     const parsed = JSON.parse(signedTransaction) as Record<string, unknown>;
     for (const field of ['expiresAt', 'purchaseAt', 'revocationAt', 'signedAt']) {
       if (typeof parsed[field] === 'string') {
         parsed[field] = new Date(parsed[field]);
       }
     }
-    return parsed as unknown as VerifiedAppleTransaction;
+    return Promise.resolve(parsed as unknown as VerifiedAppleTransaction);
   }
 
-  async verifyRenewalInfo(signedRenewalInfo: string): Promise<VerifiedRenewalInfo> {
+  verifyRenewalInfo(signedRenewalInfo: string): Promise<VerifiedRenewalInfo> {
     const parsed = JSON.parse(signedRenewalInfo) as Record<string, unknown>;
     if (typeof parsed['graceThrough'] === 'string') {
       parsed['graceThrough'] = new Date(parsed['graceThrough']);
     }
-    return parsed as unknown as VerifiedRenewalInfo;
+    return Promise.resolve(parsed as unknown as VerifiedRenewalInfo);
   }
 }
 
@@ -142,11 +139,9 @@ function notificationEnvelope(
     notificationType,
     notificationUUID: uuid,
     signedDate: baseTime.getTime(),
-    ...(verified === null
-      ? {}
-      : { data: { signedTransactionInfo: JSON.stringify(verified) } }),
+    ...(verified === null ? {} : { data: { signedTransactionInfo: JSON.stringify(verified) } }),
     ...overrides,
-  } as ResponseBodyV2DecodedPayload;
+  };
   return { signedPayload: JSON.stringify({ decoded }), uuid };
 }
 
@@ -175,9 +170,9 @@ describe('App Store notification pipeline', () => {
   });
 
   it('rejects an unverifiable envelope without storing it', async () => {
-    await expect(
-      ingest.ingest(JSON.stringify({ decoded: {}, fail: true })),
-    ).rejects.toMatchObject({ code: 'NOTIFICATION_UNVERIFIED' });
+    await expect(ingest.ingest(JSON.stringify({ decoded: {}, fail: true }))).rejects.toMatchObject({
+      code: 'NOTIFICATION_UNVERIFIED',
+    });
   });
 
   it('grants a pack from ONE_TIME_CHARGE even when the client never returns', async () => {
@@ -205,11 +200,9 @@ describe('App Store notification pipeline', () => {
       revocationPercentage: 100_000,
       revocationReason: '0',
     });
-    const reversalEnvelope = notificationEnvelope(
-      'REFUND_REVERSED',
-      purchase,
-      { signedDate: baseTime.getTime() + 7_200_000 },
-    );
+    const reversalEnvelope = notificationEnvelope('REFUND_REVERSED', purchase, {
+      signedDate: baseTime.getTime() + 7_200_000,
+    });
 
     await ingest.ingest(purchaseEnvelope.signedPayload);
     await ingest.ingest(refundEnvelope.signedPayload);
@@ -267,8 +260,9 @@ describe('App Store notification pipeline', () => {
 
     const sent: string[] = [];
     const worker = createWorker({
-      send: async (transactionId) => {
+      send: (transactionId) => {
         sent.push(transactionId);
+        return Promise.resolve();
       },
     });
     const envelope = notificationEnvelope('CONSUMPTION_REQUEST', purchase);

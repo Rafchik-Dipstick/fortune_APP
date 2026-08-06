@@ -143,8 +143,5 @@ export function dispositionForTarget(targetUnits: number): PackGrantDisposition 
 }
 
 export function spendableUnits(state: PackGrantRefundState): number {
-  return Math.max(
-    grantUnits - state.drawnUnits - state.currentRefundedUnspentUnits,
-    0,
-  );
+  return Math.max(grantUnits - state.drawnUnits - state.currentRefundedUnspentUnits, 0);
 }
