@@ -11,7 +11,10 @@ const start = (): void => {
       port: runtime.environment.port,
     });
     const shutdown = createGracefulShutdown({
-      closeDependencies: runtime.database.close,
+      closeDependencies: async () => {
+        await runtime.backgroundJobs.stop();
+        await runtime.database.close();
+      },
       logger: runtime.logger,
       markProcessFailed: () => {
         process.exitCode = 1;
@@ -22,6 +25,7 @@ const start = (): void => {
 
     registerShutdownSignals(shutdown);
     server.once('listening', () => {
+      runtime.backgroundJobs.start();
       runtime.logger.info({ port: runtime.environment.port }, 'API listener ready');
     });
     server.once('error', (error) => {

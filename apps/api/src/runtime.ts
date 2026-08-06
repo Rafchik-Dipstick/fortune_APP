@@ -20,16 +20,26 @@ import { type ApiLogger, createApiLogger } from './logging/logger.js';
 import { createAuthoritativeAuthentication } from './middleware/authentication.js';
 import { LoggerFortuneDrawTelemetry } from './observability/fortune-draw-telemetry.js';
 import { IapApplicationService } from './iap/application.js';
+import { AppleAppStoreServerClient } from './iap/app-store-server-client.js';
 import { CommerceService } from './iap/commerce.js';
+import { ConsumptionService } from './iap/consumption.js';
+import { createCommerceBackgroundJobs, type CommerceBackgroundJobs } from './iap/jobs.js';
+import {
+  AppStoreNotificationIngestService,
+  AppStoreNotificationWorker,
+} from './iap/notifications.js';
 import { findBindingByToken } from './iap/purchase-token.js';
+import { AppStoreReconciliationJob } from './iap/reconciliation.js';
 import { AppleSignedDataVerifier } from './iap/verification.js';
 import { registerAuthenticationRoutes } from './routes/authentication.js';
 import { registerCollectionRoutes } from './routes/collection.js';
 import { registerFortuneRoutes } from './routes/fortunes.js';
 import { registerIapRoutes } from './routes/iap.js';
+import { registerWebhookRoutes } from './routes/webhooks.js';
 
 export interface ApiRuntime {
   app: Express;
+  backgroundJobs: CommerceBackgroundJobs;
   database: DatabaseRuntime;
   environment: ApiEnvironment;
   logger: ApiLogger;
@@ -100,6 +110,49 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
     tokenKeys: purchaseTokenKeys,
     verifier: signedDataVerifier,
   });
+  const appStoreServerClient =
+    environment.commerce.appStoreServerApi === null || environment.commerce.environment === 'XCODE'
+      ? undefined
+      : new AppleAppStoreServerClient(
+          environment.commerce.appStoreServerApi,
+          environment.authentication.bundleId,
+          environment.commerce.environment,
+        );
+  const notificationIngest = new AppStoreNotificationIngestService({
+    client: database.client,
+    commerce: environment.commerce,
+    verifier: signedDataVerifier,
+  });
+  const consumption = new ConsumptionService({
+    client: database.client,
+    commerce: environment.commerce,
+    logger,
+    ...(appStoreServerClient === undefined ? {} : { sender: appStoreServerClient }),
+  });
+  const notificationWorker = new AppStoreNotificationWorker({
+    application: iapApplication,
+    client: database.client,
+    commerce: environment.commerce,
+    consumption,
+    logger,
+    verifier: signedDataVerifier,
+  });
+  const reconciliation =
+    appStoreServerClient === undefined
+      ? undefined
+      : new AppStoreReconciliationJob({
+          application: iapApplication,
+          client: database.client,
+          connectionString: environment.databaseUrl,
+          logger,
+          source: appStoreServerClient,
+          verifier: signedDataVerifier,
+        });
+  const backgroundJobs = createCommerceBackgroundJobs({
+    logger,
+    worker: notificationWorker,
+    ...(reconciliation === undefined ? {} : { reconciliation }),
+  });
   const app = createApiApp({
     environment,
     logger,
@@ -122,8 +175,9 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
       });
       registerCollectionRoutes(configuredApp, { authenticate, collection });
       registerIapRoutes(configuredApp, { authenticate, commerce });
+      registerWebhookRoutes(configuredApp, { appStoreNotifications: notificationIngest });
     },
   });
 
-  return { app, database, environment, logger, readiness };
+  return { app, backgroundJobs, database, environment, logger, readiness };
 };

@@ -58,8 +58,15 @@ export interface SignedTransactionVerifier {
   verifyTransaction(signedTransaction: string): Promise<VerifiedAppleTransaction>;
 }
 
+export interface VerifiedRenewalInfo {
+  autoRenewEnabled: boolean | null;
+  billingRetry: boolean | null;
+  graceThrough: Date | null;
+}
+
 export interface SignedNotificationVerifier {
   verifyNotification(signedPayload: string): Promise<ResponseBodyV2DecodedPayload>;
+  verifyRenewalInfo(signedRenewalInfo: string): Promise<VerifiedRenewalInfo>;
 }
 
 function toEnvironment(environment: CommerceEnvironment['environment']): Environment {
@@ -284,6 +291,29 @@ export class AppleSignedDataVerifier
         error instanceof VerificationException
           ? `Apple notification verification failed with status ${String(error.status)}.`
           : 'Apple notification verification failed.',
+        error,
+      );
+    }
+  }
+
+  async verifyRenewalInfo(signedRenewalInfo: string): Promise<VerifiedRenewalInfo> {
+    try {
+      const payload = await this.verifier.verifyAndDecodeRenewalInfo(signedRenewalInfo);
+      return {
+        autoRenewEnabled:
+          payload.autoRenewStatus === undefined ? null : Number(payload.autoRenewStatus) === 1,
+        billingRetry: payload.isInBillingRetryPeriod ?? null,
+        graceThrough:
+          payload.gracePeriodExpiresDate === undefined
+            ? null
+            : new Date(payload.gracePeriodExpiresDate),
+      };
+    } catch (error) {
+      throw new SignedTransactionVerificationError(
+        'TRANSACTION_UNVERIFIED',
+        error instanceof VerificationException
+          ? `Apple renewal-info verification failed with status ${String(error.status)}.`
+          : 'Apple renewal-info verification failed.',
         error,
       );
     }
