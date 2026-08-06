@@ -1,0 +1,9 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "../../..",
+    "types": ["node"]
+  },
+  "include": ["seed.ts", "../../../tools/card-assets/full-deck-catalog.d.mts"]
+}

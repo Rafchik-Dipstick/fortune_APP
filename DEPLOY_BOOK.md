@@ -878,3 +878,28 @@ git diff --check
 ```
 
 Deployment impact: checked-in PostgreSQL schema and initial migration only. No database command connected to Railway or any other database, and no migration, seed, backup, or deployed service changed.
+
+### 2026-08-06 — Phase 4 deterministic deck and development-content seed
+
+- Exported the versioned English card/template schemas and strengthened card validation so Major Arcana cannot carry suit/rank fields and every Minor Arcana row requires a valid suit, rank, and matching pip/court role.
+- Added a canonical-deck transformer that accepts the existing 78-card art catalog and proves the exact 22 Major/56 Minor key sequence, stable 0–77 sort order, Roman/display labels, complete suit/rank matrix, English names, illustration descriptions, and bounded alternative text.
+- Corrected the Queen of Cups canonical sort order from 37 to 48 before seeding against the database's unique sort-order constraint.
+- Added a deterministic Prisma seed that upserts all 78 card rows, activates only the three-card development pool, and upserts its complete 24-template English intention/orientation matrix by the versioned logical key.
+- Made seed typechecking and Prisma Client generation explicit so the seed runs from a clean checkout and fails safely when `DATABASE_URL` is absent.
+- Removed the UTF-8 byte-order mark from the initial migration after a clean PostgreSQL 17 `migrate deploy` exposed that byte-zero portability failure.
+- Migrated a new isolated PostgreSQL 17 database, ran the seed twice, confirmed one applied migration, 78 cards, 3 active cards, 24 templates, and 24 active templates after the second run, then dropped the disposable database and confirmed no seed-probe database remained.
+
+Verification required before commit:
+
+```text
+corepack npm install-scripts ls
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/fortune-content --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/fortune-content --workspace @fortuneness/api
+corepack npm run content:validate
+corepack npm run db:schema:validate
+git diff --check
+```
+
+Deployment impact: local content-schema, migration-byte, and deterministic seed tooling only. The proof used and removed an isolated local database; no Railway database, credential, external service, or deployed environment changed.

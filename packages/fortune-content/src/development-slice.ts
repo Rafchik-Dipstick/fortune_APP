@@ -65,7 +65,7 @@ export const developmentContentManifest = {
         en: 'A composed queen cradles an ornate silver cup among white lilies beside moonlit teal water and a slim crescent moon.',
       },
       editorialStatus: 'READY_FOR_REVIEW',
-      sortOrder: 37,
+      sortOrder: 48,
       active: true,
     },
     {

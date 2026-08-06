@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+export const contentSchemaVersion = 1 as const;
 export const launchLocales = ['en'] as const;
 const orientations = ['UPRIGHT', 'REVERSED'] as const;
 const intentions = ['GENERAL', 'LOVE', 'WORK', 'GROWTH'] as const;
@@ -42,14 +43,31 @@ const localizedIllustrationDescriptionSchema = z
   })
   .strict();
 
-const tarotCardSchema = z
+export const tarotCardSchema = z
   .object({
     key: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u),
     displayNumber: z.string().trim().min(1).max(8),
     arcana: z.enum(['MAJOR', 'MINOR']),
     sliceRole: z.enum(['MAJOR', 'COURT', 'PIP']),
     suit: z.enum(['WANDS', 'CUPS', 'SWORDS', 'PENTACLES']).optional(),
-    rank: z.string().trim().min(1).max(16).optional(),
+    rank: z
+      .enum([
+        'ACE',
+        'TWO',
+        'THREE',
+        'FOUR',
+        'FIVE',
+        'SIX',
+        'SEVEN',
+        'EIGHT',
+        'NINE',
+        'TEN',
+        'PAGE',
+        'KNIGHT',
+        'QUEEN',
+        'KING',
+      ])
+      .optional(),
     assetKey: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u),
     localizedName: localizedNameSchema,
     localizedAltText: localizedAltTextSchema,
@@ -58,9 +76,37 @@ const tarotCardSchema = z
     sortOrder: z.number().int().nonnegative(),
     active: z.boolean(),
   })
-  .strict();
+  .strict()
+  .superRefine((card, context) => {
+    if (card.arcana === 'MAJOR') {
+      if (card.sliceRole !== 'MAJOR' || card.suit !== undefined || card.rank !== undefined) {
+        context.addIssue({
+          code: 'custom',
+          message: 'Major Arcana cards require the MAJOR role and cannot have a suit or rank.',
+        });
+      }
+      return;
+    }
 
-const fortuneTemplateSchema = z
+    if (card.suit === undefined || card.rank === undefined) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Minor Arcana cards require a suit and rank.',
+      });
+      return;
+    }
+
+    const expectedRole = ['PAGE', 'KNIGHT', 'QUEEN', 'KING'].includes(card.rank) ? 'COURT' : 'PIP';
+    if (card.sliceRole !== expectedRole) {
+      context.addIssue({
+        code: 'custom',
+        message: `${card.rank} requires the ${expectedRole} role.`,
+        path: ['sliceRole'],
+      });
+    }
+  });
+
+export const fortuneTemplateSchema = z
   .object({
     cardKey: z.string().min(1),
     locale: z.enum(launchLocales),
@@ -113,7 +159,7 @@ function normalizeCopy(value: string): string {
 
 export const contentManifestSchema = z
   .object({
-    schemaVersion: z.literal(1),
+    schemaVersion: z.literal(contentSchemaVersion),
     contentVersion: z.string().min(1),
     locales: z.array(z.enum(launchLocales)).min(1),
     cards: z.array(tarotCardSchema),

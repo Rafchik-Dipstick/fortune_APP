@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
+import { fullDeckCards } from '../../../tools/card-assets/full-deck-catalog.mjs';
+
 import {
   contentManifestSchema,
   countWords,
+  createCanonicalDeck,
   developmentContentManifest,
   developmentSliceExpectations,
   getTemplateReviewKey,
@@ -11,6 +14,18 @@ import {
 } from './index.js';
 
 describe('development fortune content', () => {
+  it('builds the exact canonical 78-card deck from the art catalog', () => {
+    const deck = createCanonicalDeck(fullDeckCards);
+
+    expect(deck.cards).toHaveLength(78);
+    expect(deck.cards.filter(({ arcana }) => arcana === 'MAJOR')).toHaveLength(22);
+    expect(deck.cards.filter(({ arcana }) => arcana === 'MINOR')).toHaveLength(56);
+    expect(deck.cards.map(({ sortOrder }) => sortOrder)).toEqual(
+      Array.from({ length: 78 }, (_, index) => index),
+    );
+    expect(deck.cards.find(({ key }) => key === 'cups-queen')?.sortOrder).toBe(48);
+  });
+
   it('contains the complete three-card and 24-template matrix', () => {
     const manifest = validateDevelopmentSlice(developmentContentManifest);
 
