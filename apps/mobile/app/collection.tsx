@@ -1,5 +1,12 @@
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import type { CollectionCard } from '@fortuneness/api-contracts';
 
@@ -89,6 +96,38 @@ export default function CollectionScreen() {
   const savedCount = syncStateQuery.data?.savedReadingCount ?? 0;
   const lastSync = firstPage?.syncedAt ?? syncStateQuery.data?.readingsSyncedAt ?? null;
   const activeFilterCount = countActiveFilters(selection);
+
+  const [manualRefreshing, setManualRefreshing] = useState(false);
+  const refreshCurrentMode = () => {
+    setManualRefreshing(true);
+    const refetches =
+      mode === 'deck'
+        ? [summaryQuery.refetch()]
+        : [readingsQuery.refetch(), syncStateQuery.refetch()];
+    void Promise.allSettled(refetches).then(() => {
+      setManualRefreshing(false);
+    });
+  };
+  const refreshControl = (
+    <RefreshControl
+      onRefresh={refreshCurrentMode}
+      refreshing={manualRefreshing}
+      tintColor={colors.goldMuted}
+    />
+  );
+
+  // The sheet must stay mounted through loading and error renders: a filter
+  // change re-keys the query, and unmounting the open modal would close it.
+  const filterSheet = (
+    <ArchiveFilterSheet
+      onChange={setSelection}
+      onClose={() => {
+        setFilterSheetVisible(false);
+      }}
+      selection={selection}
+      visible={filterSheetVisible}
+    />
+  );
 
   const header = (
     <View>
@@ -231,6 +270,7 @@ export default function CollectionScreen() {
           keyExtractor={(card) => card.key}
           ListHeaderComponent={header}
           numColumns={grid.columns}
+          refreshControl={refreshControl}
           renderItem={({ item }) => (
             <Pressable
               accessibilityLabel={deckCardAccessibilityLabel(item)}
@@ -276,6 +316,7 @@ export default function CollectionScreen() {
           {header}
           <LoadingSkeleton />
         </View>
+        {filterSheet}
       </ListScreen>
     );
   }
@@ -299,6 +340,7 @@ export default function CollectionScreen() {
             title={offline ? 'You appear to be offline' : 'Something went adrift'}
           />
         </View>
+        {filterSheet}
       </ListScreen>
     );
   }
@@ -318,14 +360,20 @@ export default function CollectionScreen() {
         ListEmptyComponent={
           <Surface>
             <AppText variant="headline">
-              {activeFilterCount === 0 ? 'No readings yet' : 'No readings match these filters'}
+              {activeFilterCount > 0
+                ? 'No readings match these filters'
+                : offlineReadings
+                  ? 'No readings are saved on this device yet'
+                  : 'No readings yet'}
             </AppText>
             <AppText color="textMuted">
-              {activeFilterCount === 0
-                ? 'Draw your first card on the Oracle page and it will be archived here.'
-                : offlineReadings
+              {activeFilterCount > 0
+                ? offlineReadings
                   ? 'Offline filters search only the readings saved on this device.'
-                  : 'Try removing a filter to see more of your archive.'}
+                  : 'Try removing a filter to see more of your archive.'
+                : offlineReadings
+                  ? 'Your archive is safely stored on the server. Reconnect once and your latest readings will be saved to this device.'
+                  : 'Draw your first card on the Oracle page and it will be archived here.'}
             </AppText>
           </Surface>
         }
@@ -370,16 +418,10 @@ export default function CollectionScreen() {
           }
         }}
         onEndReachedThreshold={0.6}
+        refreshControl={refreshControl}
         renderItem={({ item }) => <ReadingRow reading={item} />}
       />
-      <ArchiveFilterSheet
-        onChange={setSelection}
-        onClose={() => {
-          setFilterSheetVisible(false);
-        }}
-        selection={selection}
-        visible={filterSheetVisible}
-      />
+      {filterSheet}
     </ListScreen>
   );
 }

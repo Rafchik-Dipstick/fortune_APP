@@ -7,19 +7,25 @@ import { AppText } from './app-text';
 import { Surface } from './surface';
 
 interface ErrorStateProps {
+  actionLabel?: string;
   message: string;
   onRetry: () => void;
   title: string;
 }
 
-export function ErrorState({ message, onRetry, title }: ErrorStateProps) {
+export function ErrorState({
+  actionLabel = 'Try again',
+  message,
+  onRetry,
+  title,
+}: ErrorStateProps) {
   return (
     <Surface style={styles.state}>
       <AppText accessibilityLiveRegion="assertive" color="danger" variant="headline">
         {title}
       </AppText>
       <AppText color="textMuted">{message}</AppText>
-      <AppButton label="Try again" onPress={onRetry} variant="secondary" />
+      <AppButton label={actionLabel} onPress={onRetry} variant="secondary" />
     </Surface>
   );
 }

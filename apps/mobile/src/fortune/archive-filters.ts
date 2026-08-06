@@ -68,7 +68,11 @@ export function toReadingFilters(
   };
   if (selection.datePreset !== 'all') {
     const days = presetDays[selection.datePreset];
-    filters.issuedFrom = new Date(now.getTime() - days * 86_400_000).toISOString();
+    // Floor to the UTC day so the value — and the query key derived from it —
+    // stays stable across re-renders and facet toggles within the same day.
+    const dayMs = 86_400_000;
+    const startOfToday = Math.floor(now.getTime() / dayMs) * dayMs;
+    filters.issuedFrom = new Date(startOfToday - days * dayMs).toISOString();
   }
   return filters;
 }

@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { CollectionCard } from '@fortuneness/api-contracts';
 
@@ -17,7 +17,7 @@ import { MobileApiError } from '@/auth/api-client';
 import { useCollectionCardDetail } from '@/fortune/archive-data';
 import { deckIllustrations, suitSymbol } from '@/fortune/deck-art';
 import { useAdaptiveLayout } from '@/theme/adaptive';
-import { layout, spacing } from '@/theme/tokens';
+import { colors, layout, spacing } from '@/theme/tokens';
 
 function discoveryLine(card: CollectionCard): string {
   if (!card.unlocked || card.firstDiscoveredAt === null) {
@@ -46,6 +46,7 @@ export default function CardDetailScreen() {
   const card = pages?.[0]?.card;
   const offline = pages?.[0]?.source === 'cache';
   const cardWidth = Math.min(oracleCardWidth, 280);
+  const [manualRefreshing, setManualRefreshing] = useState(false);
 
   if (detailQuery.isPending) {
     return (
@@ -86,6 +87,7 @@ export default function CardDetailScreen() {
             title="Card"
           />
           <ErrorState
+            actionLabel={notFound ? 'Go back' : 'Try again'}
             message={
               notFound
                 ? 'This card is not part of the Fortuneness deck.'
@@ -221,6 +223,18 @@ export default function CardDetailScreen() {
           }
         }}
         onEndReachedThreshold={0.6}
+        refreshControl={
+          <RefreshControl
+            onRefresh={() => {
+              setManualRefreshing(true);
+              void detailQuery.refetch().then(() => {
+                setManualRefreshing(false);
+              });
+            }}
+            refreshing={manualRefreshing}
+            tintColor={colors.goldMuted}
+          />
+        }
         renderItem={({ item }) => <ReadingRow reading={item} showCardName={false} />}
       />
     </ListScreen>

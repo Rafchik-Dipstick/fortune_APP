@@ -66,6 +66,7 @@ export default function ReadingDetailScreen() {
           title="Reading"
         />
         <ErrorState
+          actionLabel={notFound ? 'Go back' : 'Try again'}
           message={
             notFound
               ? 'This reading does not exist in your archive.'
