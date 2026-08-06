@@ -903,3 +903,25 @@ git diff --check
 ```
 
 Deployment impact: local content-schema, migration-byte, and deterministic seed tooling only. The proof used and removed an isolated local database; no Railway database, credential, external service, or deployed environment changed.
+
+### 2026-08-06 — Phase 4 Prisma runtime and transaction foundation
+
+- Replaced the health-only raw PostgreSQL access path with one process-owned Prisma Client backed by the bounded `pg` pool; readiness now probes through the same client domain services will use, and shutdown disposes it exactly once.
+- Added safe mapping for Prisma and nested PostgreSQL adapter errors covering uniqueness, foreign-key, check/exclusion, not-found, unavailable, serialization, deadlock, and lock-contention outcomes without exposing database messages or constraint details to clients.
+- Added the canonical `READ COMMITTED` transaction wrapper with at most five attempts and jittered exponential conflict backoff capped at 200 ms; non-conflict failures are never retried blindly.
+- Added typed `FOR UPDATE` helpers that enforce the global `User → FinancialSubject` writer lock order and fail closed when a requested lock target does not exist.
+- Mapped transient database exhaustion/unavailability to the stable `503 RETRYABLE_CONFLICT` envelope with `retryable` and `sameKeyRetrySafe` both true; the response omits SQL state and internal causes.
+- Added unit coverage for every supported Prisma error class, nested adapter SQLSTATE mapping, retry bounds/backoff, nonretryable uniqueness, lock ordering, and safe HTTP normalization.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: local API database-runtime and transaction infrastructure only. No public route, schema, migration, seed data, credential, external database, Railway service, or deployed environment changed.

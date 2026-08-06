@@ -1,6 +1,7 @@
 import { type ErrorRequestHandler, type RequestHandler, type Response } from 'express';
 import { apiErrorEnvelopeSchema, type ApiErrorCode } from '@fortuneness/api-contracts';
 
+import { DatabaseError } from '../db/errors.js';
 import { type ApiLogger } from '../logging/logger.js';
 
 interface ApiErrorBody {
@@ -75,6 +76,16 @@ export const createErrorHandler =
         message: error.message,
         retryable: error.retryable,
         sameKeyRetrySafe: error.sameKeyRetrySafe,
+      });
+      return;
+    }
+
+    if (error instanceof DatabaseError && error.retryable) {
+      sendApiError(response, 503, request.requestId, {
+        code: 'RETRYABLE_CONFLICT',
+        message: 'The operation could not acquire stable database state. Retry the same request.',
+        retryable: true,
+        sameKeyRetrySafe: true,
       });
       return;
     }

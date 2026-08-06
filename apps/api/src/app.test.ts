@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 
 import { createApiApp } from './app.js';
 import { type ApiEnvironment } from './config/environment.js';
+import { DatabaseError } from './db/errors.js';
 import { ApiReadiness } from './health/readiness.js';
 
 const testEnvironment: ApiEnvironment = {
@@ -134,5 +135,23 @@ describe('createApiApp', () => {
 
     expect(response.body.error.code).toBe('INTERNAL_ERROR');
     expect(response.body.error.message).not.toContain('password');
+  });
+
+  it('returns a same-key-safe retry response for transient database failures', async () => {
+    const app = createTestApp({
+      configureRoutes: (configuredApp) => {
+        configuredApp.post('/retryable-database-operation', () => {
+          throw new DatabaseError('TRANSACTION_CONFLICT', { code: '40P01' });
+        });
+      },
+    });
+    const response = await request(app).post('/retryable-database-operation').expect(503);
+
+    expect(response.body.error).toMatchObject({
+      code: 'RETRYABLE_CONFLICT',
+      retryable: true,
+      sameKeyRetrySafe: true,
+    });
+    expect(JSON.stringify(response.body)).not.toContain('40P01');
   });
 });
