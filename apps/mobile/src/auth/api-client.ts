@@ -1,7 +1,13 @@
 import {
   apiErrorEnvelopeSchema,
   apiPaths,
+  collectionCardDetailResponseSchema,
+  collectionCardPath,
+  collectionResponseSchema,
+  fortuneDetailPath,
+  fortuneDetailResponseSchema,
   fortuneDrawResponseSchema,
+  fortuneHistoryResponseSchema,
   fortuneStateResponseSchema,
   fortuneViewedPath,
   fortuneViewedResponseSchema,
@@ -10,10 +16,15 @@ import {
   refreshSessionResponseSchema,
   type ApiErrorCode,
   type AuthDevice,
+  type CollectionCardDetailResponse,
+  type CollectionResponse,
+  type FortuneDetailResponse,
   type GameCenterAuthRequest,
   type GameCenterAuthResponse,
   type FortuneDrawRequest,
   type FortuneDrawResponse,
+  type FortuneHistoryQuery,
+  type FortuneHistoryResponse,
   type FortuneStateResponse,
   type FortuneViewedResponse,
   type MeResponse,
@@ -227,6 +238,95 @@ export async function drawFortune(
     throw new MobileApiError({
       code: 'RESPONSE_INVALID',
       message: 'The fortune draw did not match the application contract.',
+      retryable: true,
+      statusCode: response.status,
+    });
+  }
+  return parsed.data;
+}
+
+function buildQueryString(parameters: Record<string, string | number | undefined>): string {
+  const query = new URLSearchParams();
+  for (const [name, value] of Object.entries(parameters)) {
+    if (value !== undefined) {
+      query.set(name, String(value));
+    }
+  }
+  const serialized = query.toString();
+  return serialized.length === 0 ? '' : `?${serialized}`;
+}
+
+export async function getFortuneHistory(
+  accessToken: string,
+  query: Partial<FortuneHistoryQuery> = {},
+): Promise<FortuneHistoryResponse> {
+  const response = await request(`${apiPaths.fortunes}${buildQueryString(query)}`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const parsed = fortuneHistoryResponseSchema.safeParse(await requireSuccessJson(response));
+  if (!parsed.success) {
+    throw new MobileApiError({
+      code: 'RESPONSE_INVALID',
+      message: 'The reading history did not match the application contract.',
+      retryable: true,
+      statusCode: response.status,
+    });
+  }
+  return parsed.data;
+}
+
+export async function getFortuneDetail(
+  accessToken: string,
+  drawId: string,
+): Promise<FortuneDetailResponse> {
+  const response = await request(fortuneDetailPath(drawId), {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const parsed = fortuneDetailResponseSchema.safeParse(await requireSuccessJson(response));
+  if (!parsed.success) {
+    throw new MobileApiError({
+      code: 'RESPONSE_INVALID',
+      message: 'The reading detail did not match the application contract.',
+      retryable: true,
+      statusCode: response.status,
+    });
+  }
+  return parsed.data;
+}
+
+export async function getCollection(accessToken: string): Promise<CollectionResponse> {
+  const response = await request(apiPaths.collection, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const parsed = collectionResponseSchema.safeParse(await requireSuccessJson(response));
+  if (!parsed.success) {
+    throw new MobileApiError({
+      code: 'RESPONSE_INVALID',
+      message: 'The collection summary did not match the application contract.',
+      retryable: true,
+      statusCode: response.status,
+    });
+  }
+  return parsed.data;
+}
+
+export async function getCollectionCard(
+  accessToken: string,
+  cardKey: string,
+  query: { cursor?: string; limit?: number } = {},
+): Promise<CollectionCardDetailResponse> {
+  const response = await request(`${collectionCardPath(cardKey)}${buildQueryString(query)}`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const parsed = collectionCardDetailResponseSchema.safeParse(await requireSuccessJson(response));
+  if (!parsed.success) {
+    throw new MobileApiError({
+      code: 'RESPONSE_INVALID',
+      message: 'The card detail did not match the application contract.',
       retryable: true,
       statusCode: response.status,
     });

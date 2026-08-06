@@ -239,6 +239,10 @@ export function FortuneRitualProvider({ children }: { children: ReactNode }) {
             },
       );
       void queryClient.invalidateQueries({ queryKey: fortuneStateQueryKey(accountId) });
+      void queryClient.invalidateQueries({ queryKey: ['fortune', 'history', accountId] });
+      void queryClient.invalidateQueries({ queryKey: ['collection', 'summary', accountId] });
+      void queryClient.invalidateQueries({ queryKey: ['collection', 'card', accountId] });
+      void queryClient.invalidateQueries({ queryKey: ['archive', 'sync-state', accountId] });
     },
     onError: () => {
       void queryClient.invalidateQueries({ queryKey: fortuneStateQueryKey(accountId) });
