@@ -8,6 +8,8 @@ export const apiPaths = {
   authGameCenter: '/v1/auth/game-center',
   authLogout: '/v1/auth/logout',
   authRefresh: '/v1/auth/refresh',
+  fortuneDraw: '/v1/fortunes/draw',
+  fortuneState: '/v1/fortune/state',
   health: '/health',
   me: '/v1/me',
 } as const;
@@ -104,3 +106,26 @@ export type {
   RefreshSessionResponse,
   SessionTokens,
 } from './auth.js';
+
+export {
+  allowanceSourceSchema,
+  fortuneAllowanceStateSchema,
+  fortuneDrawRequestSchema,
+  fortuneDrawResponseSchema,
+  fortuneDrawSchema,
+  fortuneIntentionSchema,
+  fortuneOrientationSchema,
+  fortuneStateResponseSchema,
+  subscriptionAllowanceSchema,
+} from './fortune.js';
+export type {
+  AllowanceSource,
+  FortuneAllowanceState,
+  FortuneDraw,
+  FortuneDrawRequest,
+  FortuneDrawResponse,
+  FortuneIntention,
+  FortuneOrientation,
+  FortuneStateResponse,
+  SubscriptionAllowance,
+} from './fortune.js';

@@ -6,6 +6,9 @@ import {
   apiPaths,
   gameCenterAuthRequestSchema,
   gameCenterAuthResponseSchema,
+  fortuneDrawRequestSchema,
+  fortuneDrawResponseSchema,
+  fortuneStateResponseSchema,
   healthResponseSchema,
   idempotencyKeySchema,
   meResponseSchema,
@@ -204,6 +207,92 @@ export const generateOpenApiDocument = () => {
     },
   });
 
+  registry.registerPath({
+    method: 'get',
+    path: apiPaths.fortuneState,
+    description:
+      'Returns server-clock allowance, subscription, monotonic period, time-zone, pack-credit, and resumable-reading state.',
+    summary: 'Get authoritative fortune state',
+    tags: ['Fortunes'],
+    security: [{ bearerAuth: [] }],
+    responses: {
+      200: {
+        description: 'The active account fortune state and any owned unviewed reading.',
+        content: { 'application/json': { schema: fortuneStateResponseSchema } },
+      },
+      401: {
+        description: 'The access token or authoritative session is no longer active.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      410: {
+        description: 'The account has already been purged.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      423: {
+        description: 'The account is pending deletion.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      503: {
+        description: 'Stable database state is temporarily unavailable.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+    },
+  });
+
+  registry.registerPath({
+    method: 'post',
+    path: apiPaths.fortuneDraw,
+    description:
+      'Atomically selects server-owned content and consumes exactly one allowance after authoritative locks and keyed request validation.',
+    summary: 'Draw one fortune',
+    tags: ['Fortunes'],
+    security: [{ bearerAuth: [] }],
+    request: {
+      headers: z.object({
+        'Idempotency-Key': idempotencyKeySchema,
+      }),
+      body: {
+        content: { 'application/json': { schema: fortuneDrawRequestSchema } },
+      },
+    },
+    responses: {
+      200: {
+        description: 'An exact same-key issuance replay returned the original draw.',
+        content: { 'application/json': { schema: fortuneDrawResponseSchema } },
+      },
+      201: {
+        description: 'A new immutable fortune was issued and saved.',
+        content: { 'application/json': { schema: fortuneDrawResponseSchema } },
+      },
+      400: {
+        description: 'The intention or idempotency key is malformed.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      401: {
+        description: 'The access token or authoritative session is no longer active.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      409: {
+        description:
+          'The key was reused for other input, an unviewed reading is pending, or no allowance remains.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      410: {
+        description: 'The account has already been purged.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      423: {
+        description: 'The account is pending deletion.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      503: {
+        description:
+          'Content is incomplete or stable database state could not be acquired after bounded retries.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+    },
+  });
+
   return new OpenApiGeneratorV31(registry.definitions).generateDocument({
     openapi: '3.1.0',
     info: {
@@ -213,7 +302,12 @@ export const generateOpenApiDocument = () => {
         'Server-authoritative contracts for the Fortuneness iPhone and iPad application.',
     },
     servers: [{ url: '/' }],
-    tags: [{ name: 'Operations' }, { name: 'Authentication' }, { name: 'Account' }],
+    tags: [
+      { name: 'Operations' },
+      { name: 'Authentication' },
+      { name: 'Account' },
+      { name: 'Fortunes' },
+    ],
     'x-stable-error-codes': [...stableApiErrorCodes],
   });
 };

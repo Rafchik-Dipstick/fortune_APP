@@ -1194,3 +1194,26 @@ git diff --check
 ```
 
 Deployment impact: local Expo TypeScript, app configuration, workspace dependencies, and tests only. Physical Game Center verification and signed iOS setup remain deferred to the documented device gate; no Apple capability, credential, persistent database, API service, legal page, or deployed environment changed.
+
+### 2026-08-06 — Phase 6 fortune and allowance contracts
+
+- Added strict shared schemas for the four intentions, two orientations, three allowance sources, immutable public draw snapshots, current subscription allowance, monotonic period/time-zone state, the fortune-state response, and the intention-only draw request/response.
+- Made the authoritative available-draw total self-consistent with its free, subscription, and pack components; invalid period boundaries and subscription entitlement without a verified paid/grace boundary fail contract validation.
+- Kept server-owned selection inputs outside the request contract: unknown card keys, locales, seeds, orientation choices, and other properties are rejected.
+- Reserved `GET /v1/fortune/state` and `POST /v1/fortunes/draw`, documented bearer and `Idempotency-Key` requirements, first-issuance versus exact-replay statuses, terminal conflicts, deletion/purge outcomes, and retryable content/lock failures in generated OpenAPI.
+- Added contract and OpenAPI tests for immutable snapshot shape, strict requests, allowance arithmetic, period ordering, subscription boundaries, authenticated state access, and keyed draw publication.
+
+Verification required before commit:
+
+```text
+corepack npm run openapi:generate
+corepack npm run openapi:check
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api-contracts
+corepack npm run test --workspace @fortuneness/api-contracts
+corepack npm run build --workspace @fortuneness/api-contracts
+git diff --check
+```
+
+Deployment impact: shared Zod/OpenAPI contracts and tests only. No route was mounted, database row or schema changed, allowance was consumed, entitlement was granted, or deployed environment changed.

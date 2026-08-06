@@ -14,6 +14,8 @@ describe('generated OpenAPI document', () => {
       apiPaths.authRefresh,
       apiPaths.authLogout,
       apiPaths.me,
+      apiPaths.fortuneState,
+      apiPaths.fortuneDraw,
     ]);
     expect(healthOperation?.responses).toHaveProperty('200');
     expect(healthOperation?.responses).toHaveProperty('503');
@@ -32,6 +34,19 @@ describe('generated OpenAPI document', () => {
     expect(document.components?.securitySchemes).toHaveProperty('bearerAuth');
     expect(document.components?.schemas).toHaveProperty('GameCenterAuthRequest');
     expect(document.components?.schemas).toHaveProperty('SessionTokens');
+  });
+
+  it('publishes authenticated fortune state and keyed draw contracts', () => {
+    const document = generateOpenApiDocument();
+
+    expect(document.paths?.[apiPaths.fortuneState]?.get?.security).toEqual([{ bearerAuth: [] }]);
+    expect(document.paths?.[apiPaths.fortuneDraw]?.post?.responses).toHaveProperty('201');
+    expect(document.paths?.[apiPaths.fortuneDraw]?.post?.parameters).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: 'Idempotency-Key', in: 'header' })]),
+    );
+    expect(document.components?.schemas).toHaveProperty('FortuneAllowanceState');
+    expect(document.components?.schemas).toHaveProperty('FortuneDraw');
+    expect(document.components?.schemas).toHaveProperty('FortuneDrawRequest');
   });
 
   it('publishes every canonical server error code exactly once', () => {

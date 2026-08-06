@@ -6,7 +6,12 @@
     "description": "Server-authoritative contracts for the Fortuneness iPhone and iPad application."
   },
   "servers": [{ "url": "/" }],
-  "tags": [{ "name": "Operations" }, { "name": "Authentication" }, { "name": "Account" }],
+  "tags": [
+    { "name": "Operations" },
+    { "name": "Authentication" },
+    { "name": "Account" },
+    { "name": "Fortunes" }
+  ],
   "x-stable-error-codes": [
     "VALIDATION_FAILED",
     "AUTH_REQUIRED",
@@ -303,6 +308,126 @@
         },
         "required": ["user", "bootstrap"],
         "additionalProperties": false
+      },
+      "FortuneStateResponse": {
+        "type": "object",
+        "properties": {
+          "state": { "$ref": "#/components/schemas/FortuneAllowanceState" },
+          "unviewedDraw": { "$ref": "#/components/schemas/FortuneDraw" }
+        },
+        "required": ["state", "unviewedDraw"],
+        "additionalProperties": false
+      },
+      "FortuneAllowanceState": {
+        "type": "object",
+        "properties": {
+          "serverTime": { "type": "string", "format": "date-time" },
+          "freeRemaining": { "type": "integer", "minimum": 0, "maximum": 1 },
+          "subscriptionRemaining": { "type": "integer", "minimum": 0, "maximum": 10 },
+          "spendablePackCredits": { "type": "integer", "minimum": 0 },
+          "availableDraws": { "type": "integer", "minimum": 0 },
+          "allowancePeriodId": { "type": "string", "format": "uuid" },
+          "currentPeriodStartedAt": { "type": "string", "format": "date-time" },
+          "nextResetAt": { "type": "string", "format": "date-time" },
+          "accountTimeZone": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "reportedDeviceTimeZone": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "pendingTimeZone": { "type": ["string", "null"], "minLength": 1, "maxLength": 128 },
+          "timeZoneEffectiveAt": { "type": ["string", "null"], "format": "date-time" },
+          "nextTimeZoneChangeEligibleAt": { "type": ["string", "null"], "format": "date-time" },
+          "subscription": { "$ref": "#/components/schemas/SubscriptionAllowance" }
+        },
+        "required": [
+          "serverTime",
+          "freeRemaining",
+          "subscriptionRemaining",
+          "spendablePackCredits",
+          "availableDraws",
+          "allowancePeriodId",
+          "currentPeriodStartedAt",
+          "nextResetAt",
+          "accountTimeZone",
+          "reportedDeviceTimeZone",
+          "pendingTimeZone",
+          "timeZoneEffectiveAt",
+          "nextTimeZoneChangeEligibleAt",
+          "subscription"
+        ],
+        "additionalProperties": false
+      },
+      "SubscriptionAllowance": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["NONE", "ACTIVE", "GRACE_PERIOD", "BILLING_RETRY", "EXPIRED", "REVOKED"]
+          },
+          "entitled": { "type": "boolean" },
+          "paidThrough": { "type": ["string", "null"], "format": "date-time" },
+          "graceThrough": { "type": ["string", "null"], "format": "date-time" }
+        },
+        "required": ["status", "entitled", "paidThrough", "graceThrough"],
+        "additionalProperties": false
+      },
+      "FortuneDraw": {
+        "type": ["object", "null"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "cardKey": { "type": "string", "minLength": 1, "maxLength": 48 },
+          "cardDisplayNumber": { "type": "string", "minLength": 1, "maxLength": 16 },
+          "cardName": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "orientation": { "$ref": "#/components/schemas/FortuneOrientation" },
+          "intention": { "$ref": "#/components/schemas/FortuneIntention" },
+          "resolvedLocale": { "type": "string", "minLength": 2, "maxLength": 16 },
+          "artAltText": { "type": "string", "minLength": 1, "maxLength": 500 },
+          "headline": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "message": { "type": "string", "minLength": 1, "maxLength": 1200 },
+          "action": { "type": "string", "minLength": 1, "maxLength": 500 },
+          "affirmation": { "type": "string", "minLength": 1, "maxLength": 300 },
+          "allowanceSource": { "$ref": "#/components/schemas/AllowanceSource" },
+          "contentVersion": { "type": "string", "minLength": 1, "maxLength": 48 },
+          "issuedAt": { "type": "string", "format": "date-time" },
+          "viewedAt": { "type": ["string", "null"], "format": "date-time" }
+        },
+        "required": [
+          "id",
+          "cardKey",
+          "cardDisplayNumber",
+          "cardName",
+          "orientation",
+          "intention",
+          "resolvedLocale",
+          "artAltText",
+          "headline",
+          "message",
+          "action",
+          "affirmation",
+          "allowanceSource",
+          "contentVersion",
+          "issuedAt",
+          "viewedAt"
+        ],
+        "additionalProperties": false
+      },
+      "FortuneOrientation": { "type": "string", "enum": ["UPRIGHT", "REVERSED"] },
+      "FortuneIntention": { "type": "string", "enum": ["GENERAL", "LOVE", "WORK", "GROWTH"] },
+      "AllowanceSource": {
+        "type": "string",
+        "enum": ["FREE_DAILY", "SUBSCRIPTION_DAILY", "PACK_CREDIT"]
+      },
+      "FortuneDrawResponse": {
+        "type": "object",
+        "properties": {
+          "draw": { "$ref": "#/components/schemas/FortuneDraw" },
+          "state": { "$ref": "#/components/schemas/FortuneAllowanceState" }
+        },
+        "required": ["draw", "state"],
+        "additionalProperties": false
+      },
+      "FortuneDrawRequest": {
+        "type": "object",
+        "properties": { "intention": { "$ref": "#/components/schemas/FortuneIntention" } },
+        "required": ["intention"],
+        "additionalProperties": false
       }
     },
     "parameters": {}
@@ -525,6 +650,123 @@
           },
           "423": {
             "description": "The account is pending deletion.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          }
+        }
+      }
+    },
+    "/v1/fortune/state": {
+      "get": {
+        "description": "Returns server-clock allowance, subscription, monotonic period, time-zone, pack-credit, and resumable-reading state.",
+        "summary": "Get authoritative fortune state",
+        "tags": ["Fortunes"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "The active account fortune state and any owned unviewed reading.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FortuneStateResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "The access token or authoritative session is no longer active.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "410": {
+            "description": "The account has already been purged.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "423": {
+            "description": "The account is pending deletion.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "503": {
+            "description": "Stable database state is temporarily unavailable.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          }
+        }
+      }
+    },
+    "/v1/fortunes/draw": {
+      "post": {
+        "description": "Atomically selects server-owned content and consumes exactly one allowance after authoritative locks and keyed request validation.",
+        "summary": "Draw one fortune",
+        "tags": ["Fortunes"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "schema": { "type": "string", "format": "uuid" },
+            "required": true,
+            "name": "Idempotency-Key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/FortuneDrawRequest" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "An exact same-key issuance replay returned the original draw.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FortuneDrawResponse" }
+              }
+            }
+          },
+          "201": {
+            "description": "A new immutable fortune was issued and saved.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FortuneDrawResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "The intention or idempotency key is malformed.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "401": {
+            "description": "The access token or authoritative session is no longer active.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "409": {
+            "description": "The key was reused for other input, an unviewed reading is pending, or no allowance remains.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "410": {
+            "description": "The account has already been purged.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "423": {
+            "description": "The account is pending deletion.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "503": {
+            "description": "Content is incomplete or stable database state could not be acquired after bounded retries.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
             }
