@@ -1217,3 +1217,25 @@ git diff --check
 ```
 
 Deployment impact: shared Zod/OpenAPI contracts and tests only. No route was mounted, database row or schema changed, allowance was consumed, entitlement was granted, or deployed environment changed.
+
+### 2026-08-06 — Phase 6 account-day and allowance domain rules
+
+- Added dependency-free IANA time-zone canonicalization and account-day boundary calculation using the server ICU database. Boundaries are discovered as the first instant of each local calendar date, so short, long, repeated-hour, and skipped-hour days remain exact without assuming 24 hours.
+- Added material time-zone-change planning that chooses the later of the current-zone and requested-zone next resets and establishes the rolling 168-hour eligibility boundary, suppressing both earlier candidate resets.
+- Reused the canonical time-zone function during Game Center account creation so login and allowance behavior cannot disagree about aliases or invalid identifiers.
+- Added pure subscription reduction for active paid-through and verified future grace boundaries. Billing retry without grace, expiry, and revocation grant no daily bonus even when stale timestamps are present.
+- Added clamped allowance arithmetic and the mandatory `FREE_DAILY → SUBSCRIPTION_DAILY → PACK_CREDIT` priority. Pack balances and remaining counters cannot be represented as negative availability.
+- Added deterministic tests for UTC, Kyiv spring/fall DST boundaries, eastbound and westbound changes, IANA aliases, invalid zones, active/grace/retry/expired/revoked subscription states, allowance totals, clamping, and priority.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: local pure domain functions, tests, and shared login canonicalization only. No database schema/row, allowance, user time-zone state, subscription, credential, route, or deployed environment changed.

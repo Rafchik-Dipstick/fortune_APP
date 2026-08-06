@@ -11,6 +11,7 @@ import { type AuthenticationEnvironment } from '../config/environment.js';
 import { type Prisma, type PrismaClient } from '../generated/prisma/client.js';
 import { DatabaseError } from '../db/errors.js';
 import { lockUserForUpdate, runReadCommittedTransaction } from '../db/transactions.js';
+import { canonicalizeIanaTimeZone } from '../fortune/account-day.js';
 import {
   createCurrentHmacDigest,
   createOpaqueToken,
@@ -60,14 +61,6 @@ interface LoginDependencies {
 }
 
 type FullUser = Prisma.UserGetPayload<Record<string, never>>;
-
-function canonicalizeTimeZone(reportedTimeZone: string): string {
-  try {
-    return new Intl.DateTimeFormat('en', { timeZone: reportedTimeZone }).resolvedOptions().timeZone;
-  } catch (error) {
-    throw new GameCenterLoginError('TIME_ZONE_INVALID', error);
-  }
-}
 
 function toPrismaBytes(value: Buffer): Uint8Array<ArrayBuffer> {
   const bytes = new Uint8Array(value.byteLength);
@@ -129,7 +122,12 @@ export class GameCenterLoginService {
 
   async login(request: GameCenterAuthRequest): Promise<GameCenterAuthResponse> {
     const verifiedIdentity = await this.proofVerifier.verify(request);
-    const accountTimeZone = canonicalizeTimeZone(request.reportedDeviceTimeZone);
+    let accountTimeZone: string;
+    try {
+      accountTimeZone = canonicalizeIanaTimeZone(request.reportedDeviceTimeZone);
+    } catch (error) {
+      throw new GameCenterLoginError('TIME_ZONE_INVALID', error);
+    }
 
     try {
       return await this.commitLogin(request, verifiedIdentity, accountTimeZone);
