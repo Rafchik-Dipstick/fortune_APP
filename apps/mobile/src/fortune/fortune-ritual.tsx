@@ -26,6 +26,7 @@ import {
 import { useLocalData } from '../local-data/local-data';
 import { reconcilePendingReveal, type PendingReveal } from '../local-data/reading-store';
 import { DrawAttemptController } from './draw-attempt';
+import { useExperienceFeedback } from '../feedback/experience-feedback';
 
 export type DrawUiResult = 'FAILED' | 'IGNORED' | 'REVEAL_READY';
 
@@ -60,6 +61,7 @@ function asError(error: unknown): Error {
 export function FortuneRitualProvider({ children }: { children: ReactNode }) {
   const authentication = useAuthentication();
   const localData = useLocalData();
+  const feedback = useExperienceFeedback();
   const queryClient = useQueryClient();
   if (authentication.phase !== 'AUTHENTICATED' || authentication.session === undefined) {
     throw new Error('FortuneRitualProvider requires an authenticated session.');
@@ -178,6 +180,7 @@ export function FortuneRitualProvider({ children }: { children: ReactNode }) {
             ? result.response
             : { draw: result.details.unviewedDraw, state: result.details.state };
         await localData.readingStore.savePendingReveal(accountId, response.draw);
+        feedback.drawIssued();
         const pending = { draw: response.draw, step: 'ISSUED' as const };
         setAcknowledgementAcceptedDrawId(undefined);
         setPendingReveal(pending);
@@ -199,6 +202,7 @@ export function FortuneRitualProvider({ children }: { children: ReactNode }) {
     [
       accountId,
       drawController,
+      feedback,
       localData.readingStore,
       pendingReveal,
       queryClient,

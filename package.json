@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "check": "npm run format:check && npm run lint && npm run config:check && npm run db:schema:validate && npm run typecheck && npm run test && npm run openapi:check && npm run content:validate && npm run asset:validate && npm run brand:validate && npm run build",
+    "check": "npm run format:check && npm run lint && npm run config:check && npm run db:schema:validate && npm run typecheck && npm run test && npm run openapi:check && npm run content:validate && npm run asset:validate && npm run asset:audio:validate && npm run brand:validate && npm run build",
     "brand:validate": "node tools/brand-assets/validate.mjs",
     "config:check": "npm run config:check --workspaces --if-present",
     "db:schema:validate": "npm run db:schema:validate --workspace @fortuneness/api",
@@ -32,7 +32,9 @@
     "asset:prompts": "node tools/card-assets/build-full-deck-prompts.mjs",
     "asset:normalize": "python tools/card-assets/normalize.py",
     "asset:sync": "node tools/card-assets/sync-manifest.mjs",
-    "asset:validate": "node tools/card-assets/validate.mjs"
+    "asset:validate": "node tools/card-assets/validate.mjs",
+    "asset:audio": "node tools/audio-assets/generate.mjs",
+    "asset:audio:validate": "node tools/audio-assets/validate.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

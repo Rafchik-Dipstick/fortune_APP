@@ -1436,3 +1436,26 @@ git diff --check
 ```
 
 Deployment impact: local API structured-logging code and tests only. No request was served, log shipped, database/schema changed, fortune issued, allowance consumed, service restarted, secret changed, or deployed environment altered.
+
+### 2026-08-06 — Phase 7 optional ritual feedback
+
+- Added the Expo SDK 57-compatible `expo-audio` and `expo-haptics` modules. Audio configuration explicitly disables microphone permission, recording, and background playback/recording; the app requests no capability beyond foreground playback and system haptics.
+- Added deterministic low-amplitude mono PCM generation for a short paper draw and reveal shimmer. A committed validator enforces RIFF/WAVE structure, 44.1 kHz 16-bit mono encoding, narrow duration ranges, a conservative peak ceiling, and near-zero DC offset; the root release check now includes this gate.
+- Added an authenticated experience-feedback provider seeded from server bootstrap preferences. The Settings toggles now control sound and haptics for the active session, and Reduce More initializes from the server preference while continuing to OR with iOS Reduce Motion.
+- Added optional paper/soft-impact feedback only after a draw is safely persisted and optional shimmer/success feedback only for a fresh card transition. Resume paths do not replay feedback, disabled preferences emit none, native failures are non-blocking, and visible/VoiceOver state remains the authoritative feedback.
+
+Verification required before commit:
+
+```text
+corepack npm run asset:audio
+corepack npm run asset:audio:validate
+corepack npm run config:check --workspace @fortuneness/mobile
+corepack npm run format:check
+corepack npm run lint -- --quiet
+corepack npm run typecheck --workspace @fortuneness/mobile
+corepack npm run test --workspace @fortuneness/mobile
+corepack npm run build --workspace @fortuneness/mobile
+git diff --check
+```
+
+Deployment impact: two local foreground feedback assets, two Expo package dependencies, public Expo plugin configuration, session preference UI, and client feedback code only. A future development-client rebuild must include the new native packages; verification did not run prebuild, request microphone/background modes, play device audio/haptics, mutate server preferences, or change a deployed environment.

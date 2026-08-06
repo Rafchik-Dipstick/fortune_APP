@@ -15,6 +15,7 @@ import { shouldReduceMotion } from '@/motion/reduce-motion';
 import { getRevealMotionProfile } from '@/motion/reveal-motion';
 import { getRevealRecoveryBoundary } from '@/motion/reveal-recovery';
 import type { PendingRevealStep } from '@/local-data/reading-store';
+import { useExperienceFeedback } from '@/feedback/experience-feedback';
 import { spacing } from '@/theme/tokens';
 
 import { TarotCard, type FaceUpCardProps } from './tarot-card';
@@ -37,6 +38,7 @@ export function RevealCardSequence({
   width,
 }: RevealCardSequenceProps) {
   const systemReduceMotion = useReducedMotion();
+  const feedback = useExperienceFeedback();
   const { reduceMoreMotion } = useMotionPreference();
   const reduceMotion = shouldReduceMotion(systemReduceMotion, reduceMoreMotion);
   const motionProfile = useMemo(() => getRevealMotionProfile(reduceMotion), [reduceMotion]);
@@ -58,9 +60,12 @@ export function RevealCardSequence({
   useEffect(() => {
     if (cardAccessible && !cardNotificationSent.current) {
       cardNotificationSent.current = true;
+      if (recovery.animateCard) {
+        feedback.cardRevealed();
+      }
       onCardRevealedRef.current?.();
     }
-  }, [cardAccessible]);
+  }, [cardAccessible, feedback, recovery.animateCard]);
 
   useEffect(() => {
     if (contentAccessible && !contentNotificationSent.current) {

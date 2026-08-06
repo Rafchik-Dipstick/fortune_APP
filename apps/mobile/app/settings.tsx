@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
@@ -11,6 +10,7 @@ import { Surface } from '@/components/surface';
 import { useQaLocale } from '@/i18n/qa-locale';
 import { useMotionPreference } from '@/motion/motion-preference';
 import { colors, spacing } from '@/theme/tokens';
+import { useExperienceFeedback } from '@/feedback/experience-feedback';
 
 interface SettingRowProps {
   description: string;
@@ -44,8 +44,7 @@ export default function SettingsScreen() {
   const authentication = useAuthentication();
   const { locale, pseudoLocaleAvailable, setLocale } = useQaLocale();
   const { reduceMoreMotion, setReduceMoreMotion } = useMotionPreference();
-  const [sound, setSound] = useState(true);
-  const [haptics, setHaptics] = useState(true);
+  const feedback = useExperienceFeedback();
 
   return (
     <Screen readingWidth>
@@ -100,14 +99,14 @@ export default function SettingsScreen() {
           <SettingRow
             description="Optional soft paper and shimmer sounds."
             label="Sound"
-            onValueChange={setSound}
-            value={sound}
+            onValueChange={feedback.setSoundEnabled}
+            value={feedback.soundEnabled}
           />
           <SettingRow
             description="Selection, draw, and reveal feedback."
             label="Haptics"
-            onValueChange={setHaptics}
-            value={haptics}
+            onValueChange={feedback.setHapticsEnabled}
+            value={feedback.hapticsEnabled}
           />
           <SettingRow
             description="Follow iOS Reduce Motion and reduce additional effects for this session."

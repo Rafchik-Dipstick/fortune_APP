@@ -1,4 +1,6 @@
-import { createContext, type ReactNode, useContext, useMemo, useState } from 'react';
+import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+
+import { useAuthentication } from '../auth/authentication';
 
 interface MotionPreferenceContextValue {
   reduceMoreMotion: boolean;
@@ -15,7 +17,13 @@ interface MotionPreferenceProviderProps {
 }
 
 export function MotionPreferenceProvider({ children }: MotionPreferenceProviderProps) {
-  const [reduceMoreMotion, setReduceMoreMotion] = useState(false);
+  const authentication = useAuthentication();
+  const preferred = authentication.session?.user.preferences.reduceMotionPreferred ?? false;
+  const accountId = authentication.session?.user.id;
+  const [reduceMoreMotion, setReduceMoreMotion] = useState(preferred);
+  useEffect(() => {
+    setReduceMoreMotion(preferred);
+  }, [accountId, preferred]);
   const value = useMemo(() => ({ reduceMoreMotion, setReduceMoreMotion }), [reduceMoreMotion]);
 
   return (
