@@ -34,6 +34,7 @@ function createDatabase() {
   };
   const database = {
     execAsync: vi.fn().mockResolvedValue(undefined),
+    getAllAsync: vi.fn().mockResolvedValue([]),
     getFirstAsync: vi.fn().mockResolvedValue(null),
     runAsync: vi.fn().mockResolvedValue({ changes: 1, lastInsertRowId: 1 }),
     withExclusiveTransactionAsync: vi.fn(
@@ -53,16 +54,31 @@ describe('AccountReadingStore', () => {
     vi.setSystemTime(new Date('2026-08-06T10:05:00.000Z'));
   });
 
-  it('initializes an account-partitioned WAL schema', async () => {
+  it('initializes an account-partitioned versioned WAL schema', async () => {
     const { database, databaseMock } = createDatabase();
 
     await initializeReadingDatabase(database);
 
-    const sql = databaseMock.execAsync.mock.calls[0]?.[0] as string;
+    const sql = databaseMock.execAsync.mock.calls.map((call) => call[0] as string).join('\n');
     expect(sql).toContain('PRAGMA journal_mode = WAL');
     expect(sql).toContain('PRIMARY KEY (account_id, draw_id)');
     expect(sql).toContain('account_id TEXT PRIMARY KEY');
     expect(sql).toContain('REFERENCES readings (account_id, draw_id) ON DELETE CASCADE');
+    expect(sql).toContain('collection_summaries');
+    expect(sql).toContain('archive_sync_state');
+    expect(sql).toContain('PRAGMA user_version = 2;');
+  });
+
+  it('skips already-applied schema versions on upgrade', async () => {
+    const { database, databaseMock } = createDatabase();
+    databaseMock.getFirstAsync.mockResolvedValue({ user_version: 2 });
+
+    await initializeReadingDatabase(database);
+
+    const sql = databaseMock.execAsync.mock.calls.map((call) => call[0] as string).join('\n');
+    expect(sql).not.toContain('CREATE TABLE IF NOT EXISTS readings');
+    expect(sql).not.toContain('ALTER TABLE readings');
+    expect(sql).toContain('PRAGMA user_version = 2;');
   });
 
   it('persists a pending reveal atomically with bound account values', async () => {
@@ -106,9 +122,11 @@ describe('AccountReadingStore', () => {
 
     await expect(store.loadPendingReveal(accountId)).resolves.toBeUndefined();
 
-    expect(transaction.runAsync).toHaveBeenCalledTimes(2);
+    expect(transaction.runAsync).toHaveBeenCalledTimes(4);
     for (const [sql, parameters] of transaction.runAsync.mock.calls) {
-      expect(sql).toMatch(/^DELETE FROM (pending_reveals|readings)/);
+      expect(sql).toMatch(
+        /^DELETE FROM (pending_reveals|readings|collection_summaries|archive_sync_state)/,
+      );
       expect(sql).not.toContain(accountId);
       expect(parameters).toEqual({ $accountId: accountId });
     }

@@ -12,10 +12,12 @@ import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 
 import { useAuthentication } from '../auth/authentication';
 import { registerAccountDataClearer } from './account-cleanup';
+import { AccountArchiveStore } from './archive-store';
 import { AccountReadingStore, initializeReadingDatabase } from './reading-store';
 
 interface LocalDataContextValue {
   accountTransitionFailed: boolean;
+  archiveStore: AccountArchiveStore;
   readyUserId: string | undefined;
   readingStore: AccountReadingStore;
   retryAccountTransition(): void;
@@ -35,6 +37,7 @@ function LocalDataRuntime({ children }: { children: ReactNode }) {
   const authentication = useAuthentication();
   const database = useSQLiteContext();
   const readingStore = useMemo(() => new AccountReadingStore(database), [database]);
+  const archiveStore = useMemo(() => new AccountArchiveStore(database), [database]);
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -94,13 +97,14 @@ function LocalDataRuntime({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       accountTransitionFailed,
+      archiveStore,
       readingStore,
       readyUserId,
       retryAccountTransition: () => {
         setAccountTransitionAttempt((attempt) => attempt + 1);
       },
     }),
-    [accountTransitionFailed, readingStore, readyUserId],
+    [accountTransitionFailed, archiveStore, readingStore, readyUserId],
   );
   return (
     <QueryClientProvider client={queryClient}>
