@@ -18,6 +18,7 @@
     "brand:validate": "node tools/brand-assets/validate.mjs",
     "config:check": "npm run config:check --workspaces --if-present",
     "db:schema:validate": "npm run db:schema:validate --workspace @fortuneness/api",
+    "test:db": "npm run test:db --workspace @fortuneness/api",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "openapi:check": "npm run openapi:check --workspace @fortuneness/api-contracts",

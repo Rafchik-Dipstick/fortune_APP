@@ -925,3 +925,26 @@ git diff --check
 ```
 
 Deployment impact: local API database-runtime and transaction infrastructure only. No public route, schema, migration, seed data, credential, external database, Railway service, or deployed environment changed.
+
+### 2026-08-06 — Phase 4 isolated integrity harness and operations runbook
+
+- Added an opt-in database test harness that requires an explicit administrative URL, generates and validates its own `fortuneness_test_*` name, creates from `template0`, removes the administrative URL before spawning child commands, migrates, seeds twice, runs integration and invariant checks, terminates only connections to that generated target, drops it, and verifies removal even when the test operation fails.
+- Kept database integration tests out of the default unit-test command so ordinary checks never connect or mutate a database implicitly; `corepack npm run test:db` is the explicit owner-authorized boundary.
+- Added isolated PostgreSQL tests proving duplicate user draw idempotency keys, duplicate environment-scoped Apple transactions, duplicate credit-ledger effects, and updates to append-only ledger history are rejected by committed database integrity.
+- Added read-only post-migration/restore checks for completed migration history, the exact 78-card catalog, complete active English content matrices, ledger running-balance continuity/nonnegativity, and zero credit balance on closed financial subjects.
+- Added the local/staging/production migration and backup/restore runbook: production permits `prisma migrate deploy` only, requires a restorable recovery point and exact staging evidence, uses forward-only correction, blocks restored traffic until completed-deletion tombstones are replayed, and records RPO/RTO/invariant evidence.
+- Ran the harness against local PostgreSQL 17: the initial migration applied, both seed passes converged, all three integrity tests and five invariant groups passed, the generated database was dropped, and a server query confirmed zero `fortuneness_test_*` databases remained.
+
+Verification required before commit:
+
+```text
+TEST_DATABASE_ADMIN_URL=<injected local admin URL> corepack npm run test:db
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: local opt-in database test tooling, read-only invariant tooling, and operations documentation only. The generated local PostgreSQL database was removed; staging restore/backup verification remains an external gate and no Railway or production resource changed.

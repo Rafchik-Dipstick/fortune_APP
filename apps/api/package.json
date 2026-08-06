@@ -10,12 +10,15 @@
     "build": "prisma generate && tsc -p tsconfig.build.json",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:migrate:status": "prisma migrate status",
+    "db:invariants": "node scripts/check-database-invariants.mjs",
     "db:schema:format": "prisma format",
     "db:schema:validate": "prisma validate",
     "db:seed": "prisma generate && prisma db seed",
     "prisma:generate": "prisma generate",
     "start": "node dist/main.js",
-    "test": "vitest run",
+    "test": "vitest run --exclude \"**/*.integration.test.ts\"",
+    "test:db": "node scripts/run-database-tests.mjs",
+    "test:db:integration": "vitest run src/db/database.integration.test.ts",
     "typecheck": "prisma generate && tsc -p tsconfig.json && tsc -p prisma/tsconfig.json"
   },
   "dependencies": {
