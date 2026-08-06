@@ -1396,3 +1396,24 @@ git diff --check
 ```
 
 Deployment impact: local Expo Oracle UI, TanStack Query orchestration, and client-side SQLite/API lifecycle only. No API request was executed by verification, native prebuild or Expo project setup ran, device database was opened, allowance was consumed, service/database changed, or deployed environment changed.
+
+### 2026-08-06 — Phase 7 crash-safe accessible reveal
+
+- Replaced the static reveal fixture with the immutable server draw snapshot, including the selected development-slice illustration, server alt text, code-rendered card metadata, orientation, intention, headline, message, gentle action, affirmation, reading date, and neutral allowance-source detail.
+- Split reveal accessibility into card and content boundaries. The face-down card is hidden from accessibility only after the face is ready; headline, message, action, affirmation, details, and controls remain hidden until the content animation completes, then become VoiceOver-reachable before viewed acknowledgement begins.
+- Added deterministic restart profiles for `ISSUED`, `CARD_REVEALED`, and `CONTENT_REACHABLE`. A termination during the flip replays from issuance, a revealed card never turns face-down again, and fully reachable content restores immediately so acknowledgement can resume without rerolling.
+- Persisted the card-revealed step defensively and connected the content-reachable callback to the retrying acknowledgement mutation. Retryable network/server failures keep retrying with bounded backoff; server acceptance updates the local reading, removes pending state, and refreshes Oracle allowance.
+- Added recovery-boundary tests for every persisted presentation step. The mobile suite now passes 47 tests.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+corepack npm run lint -- --quiet
+corepack npm run typecheck --workspace @fortuneness/mobile
+corepack npm run test --workspace @fortuneness/mobile
+corepack npm run build --workspace @fortuneness/mobile
+git diff --check
+```
+
+Deployment impact: local reveal UI, Reanimated/accessibility sequencing, SQLite presentation-step updates, API acknowledgement orchestration, and tests only. Verification did not open a device database, issue or acknowledge a reading, regenerate the native project, change service/database state, or alter a deployed environment.

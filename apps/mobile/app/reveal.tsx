@@ -1,18 +1,94 @@
+import { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import type { FortuneDraw } from '@fortuneness/api-contracts';
 
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
+import { ErrorState } from '@/components/error-state';
+import { LoadingSkeleton } from '@/components/loading-skeleton';
 import { PageHeader } from '@/components/page-header';
 import { RevealCardSequence } from '@/components/reveal-card-sequence';
 import { Screen } from '@/components/screen';
 import { Surface } from '@/components/surface';
-import { sampleReading } from '@/fixtures/vertical-slice';
+import { verticalSliceCards } from '@/fixtures/vertical-slice';
+import { useFortuneRitual } from '@/fortune/fortune-ritual';
+import type { PendingReveal } from '@/local-data/reading-store';
 import { useAdaptiveLayout } from '@/theme/adaptive';
+
+const intentionLabels = {
+  GENERAL: 'General',
+  LOVE: 'Love',
+  WORK: 'Work',
+  GROWTH: 'Growth',
+} as const;
+
+const allowanceLabels = {
+  FREE_DAILY: 'Daily reading',
+  SUBSCRIPTION_DAILY: 'Oracle+ daily reading',
+  PACK_CREDIT: 'Fortune Pack reading',
+} as const;
+
+function suitSymbol(cardKey: string): string {
+  if (cardKey.startsWith('cups-')) return '◇';
+  if (cardKey.startsWith('wands-')) return '│';
+  if (cardKey.startsWith('swords-')) return '†';
+  if (cardKey.startsWith('pentacles-')) return '⬟';
+  return '✦';
+}
+
+function formatReadingDate(draw: FortuneDraw): string {
+  try {
+    return new Intl.DateTimeFormat(undefined, { dateStyle: 'long' }).format(
+      new Date(draw.issuedAt),
+    );
+  } catch {
+    return draw.issuedAt;
+  }
+}
 
 export default function RevealScreen() {
   const router = useRouter();
+  const ritual = useFortuneRitual();
   const { oracleCardWidth } = useAdaptiveLayout();
+  const [reading, setReading] = useState<PendingReveal>();
+
+  useEffect(() => {
+    if (reading === undefined && ritual.pendingReveal !== undefined) {
+      setReading(ritual.pendingReveal);
+    }
+  }, [reading, ritual.pendingReveal]);
+
+  if (reading === undefined) {
+    return (
+      <Screen readingWidth>
+        {ritual.isStateLoading ? (
+          <LoadingSkeleton />
+        ) : (
+          <ErrorState
+            message="There is no saved reading waiting to be revealed."
+            onRetry={() => {
+              router.replace('/');
+            }}
+            title="Return to the Oracle"
+          />
+        )}
+      </Screen>
+    );
+  }
+
+  const draw = reading.draw;
+  const activeCard = verticalSliceCards.find((card) => card.key === draw.cardKey);
+  const acknowledgementAccepted = ritual.acknowledgementAcceptedDrawId === draw.id;
+  const acknowledgementCopy = acknowledgementAccepted
+    ? 'Added to Collection · Presentation confirmed'
+    : ritual.isAcknowledging && ritual.acknowledgementError !== undefined
+      ? 'Added to Collection · Reconnecting to confirm presentation'
+      : ritual.isAcknowledging
+        ? 'Added to Collection · Confirming presentation'
+        : ritual.acknowledgementError === undefined
+          ? 'Added to Collection'
+          : 'Added to Collection · Confirmation will retry from Oracle';
 
   return (
     <Screen readingWidth>
@@ -22,39 +98,47 @@ export default function RevealScreen() {
             compact
             label="Close"
             onPress={() => {
-              router.back();
+              router.replace('/');
             }}
             variant="quiet"
           />
         }
         eyebrow="Your reading"
-        title="A beginning appears"
+        title={draw.cardName}
       />
 
       <RevealCardSequence
         faceUp={{
-          artAltText: sampleReading.altText,
-          cardName: sampleReading.name,
-          ...(sampleReading.illustration ? { illustration: sampleReading.illustration } : {}),
-          number: sampleReading.number,
-          orientation: sampleReading.orientation,
-          suitSymbol: sampleReading.suitSymbol,
+          artAltText: draw.artAltText,
+          cardName: draw.cardName,
+          ...(activeCard?.illustration ? { illustration: activeCard.illustration } : {}),
+          number: draw.cardDisplayNumber,
+          orientation: draw.orientation,
+          suitSymbol: activeCard?.suitSymbol ?? suitSymbol(draw.cardKey),
+        }}
+        initialStep={reading.step}
+        onCardRevealed={() => {
+          void ritual.markCardRevealed(draw.id);
+        }}
+        onContentReachable={() => {
+          ritual.acknowledgeContentReachable(draw.id);
         }}
         width={oracleCardWidth}
       >
         <AppText color="gold" variant="caption">
-          Growth · Upright
+          {intentionLabels[draw.intention]} ·{' '}
+          {draw.orientation === 'REVERSED' ? 'Reversed' : 'Upright'}
         </AppText>
         <AppText accessibilityRole="header" variant="title">
-          {sampleReading.headline}
+          {draw.headline}
         </AppText>
-        <AppText color="textMuted">{sampleReading.message}</AppText>
+        <AppText color="textMuted">{draw.message}</AppText>
 
         <Surface>
           <AppText color="gold" variant="label">
             Carry this with you
           </AppText>
-          <AppText>{sampleReading.action}</AppText>
+          <AppText>{draw.action}</AppText>
         </Surface>
 
         <Surface>
@@ -62,12 +146,27 @@ export default function RevealScreen() {
             Affirmation
           </AppText>
           <AppText style={styles.affirmation} variant="headline">
-            {sampleReading.affirmation}
+            {draw.affirmation}
           </AppText>
         </Surface>
 
-        <AppText color="textMuted" style={styles.saved} variant="caption">
-          Added to Collection · Static fixture
+        <Surface>
+          <AppText color="gold" variant="label">
+            Reading details
+          </AppText>
+          <AppText color="textMuted" variant="caption">
+            {formatReadingDate(draw)} · {intentionLabels[draw.intention]} ·{' '}
+            {allowanceLabels[draw.allowanceSource]}
+          </AppText>
+        </Surface>
+
+        <AppText
+          accessibilityLiveRegion="polite"
+          color={ritual.acknowledgementError === undefined ? 'textMuted' : 'danger'}
+          style={styles.saved}
+          variant="caption"
+        >
+          {acknowledgementCopy}
         </AppText>
         <AppButton
           label="Return to Oracle"

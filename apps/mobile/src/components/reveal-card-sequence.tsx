@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   interpolate,
@@ -13,6 +13,8 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { useMotionPreference } from '@/motion/motion-preference';
 import { shouldReduceMotion } from '@/motion/reduce-motion';
 import { getRevealMotionProfile } from '@/motion/reveal-motion';
+import { getRevealRecoveryBoundary } from '@/motion/reveal-recovery';
+import type { PendingRevealStep } from '@/local-data/reading-store';
 import { spacing } from '@/theme/tokens';
 
 import { TarotCard, type FaceUpCardProps } from './tarot-card';
@@ -20,38 +22,88 @@ import { TarotCard, type FaceUpCardProps } from './tarot-card';
 interface RevealCardSequenceProps {
   children: ReactNode;
   faceUp: FaceUpCardProps;
+  initialStep: PendingRevealStep;
+  onCardRevealed?: () => void;
+  onContentReachable?: () => void;
   width: number;
 }
 
-export function RevealCardSequence({ children, faceUp, width }: RevealCardSequenceProps) {
+export function RevealCardSequence({
+  children,
+  faceUp,
+  initialStep,
+  onCardRevealed,
+  onContentReachable,
+  width,
+}: RevealCardSequenceProps) {
   const systemReduceMotion = useReducedMotion();
   const { reduceMoreMotion } = useMotionPreference();
   const reduceMotion = shouldReduceMotion(systemReduceMotion, reduceMoreMotion);
   const motionProfile = useMemo(() => getRevealMotionProfile(reduceMotion), [reduceMotion]);
-  const cardProgress = useSharedValue(0);
-  const contentOpacity = useSharedValue(0);
-  const [revealAccessible, setRevealAccessible] = useState(reduceMotion);
+  const recovery = useMemo(() => getRevealRecoveryBoundary(initialStep), [initialStep]);
+  const cardProgress = useSharedValue(recovery.cardAccessible ? 1 : 0);
+  const contentOpacity = useSharedValue(recovery.contentAccessible ? 1 : 0);
+  const [cardAccessible, setCardAccessible] = useState(recovery.cardAccessible);
+  const [contentAccessible, setContentAccessible] = useState(recovery.contentAccessible);
+  const cardNotificationSent = useRef(false);
+  const contentNotificationSent = useRef(false);
+  const onCardRevealedRef = useRef(onCardRevealed);
+  const onContentReachableRef = useRef(onContentReachable);
 
   useEffect(() => {
-    cardProgress.value = 0;
-    contentOpacity.value = 0;
-    setRevealAccessible(reduceMotion);
+    onCardRevealedRef.current = onCardRevealed;
+    onContentReachableRef.current = onContentReachable;
+  }, [onCardRevealed, onContentReachable]);
+
+  useEffect(() => {
+    if (cardAccessible && !cardNotificationSent.current) {
+      cardNotificationSent.current = true;
+      onCardRevealedRef.current?.();
+    }
+  }, [cardAccessible]);
+
+  useEffect(() => {
+    if (contentAccessible && !contentNotificationSent.current) {
+      contentNotificationSent.current = true;
+      onContentReachableRef.current?.();
+    }
+  }, [contentAccessible]);
+
+  useEffect(() => {
+    cardProgress.value = recovery.animateCard ? 0 : 1;
+    contentOpacity.value = recovery.animateContent ? 0 : 1;
+    setCardAccessible(recovery.cardAccessible);
+    setContentAccessible(recovery.contentAccessible);
+
+    if (!recovery.animateContent) {
+      return;
+    }
+
+    const revealContent = (delayMs: number) => {
+      'worklet';
+      contentOpacity.value = withDelay(
+        delayMs,
+        withTiming(1, { duration: motionProfile.contentDurationMs }, (contentFinished) => {
+          if (contentFinished) {
+            scheduleOnRN(setContentAccessible, true);
+          }
+        }),
+      );
+    };
+
+    if (!recovery.animateCard) {
+      revealContent(0);
+      return;
+    }
 
     cardProgress.value = withTiming(1, { duration: motionProfile.cardDurationMs }, (finished) => {
       if (!finished) {
         return;
       }
-
-      if (!reduceMotion) {
-        scheduleOnRN(setRevealAccessible, true);
-      }
-
-      contentOpacity.value = withDelay(
-        motionProfile.contentDelayMs,
-        withTiming(1, { duration: motionProfile.contentDurationMs }),
-      );
+      scheduleOnRN(setCardAccessible, true);
+      revealContent(motionProfile.contentDelayMs);
     });
-  }, [cardProgress, contentOpacity, motionProfile, reduceMotion]);
+  }, [cardProgress, contentOpacity, motionProfile, recovery]);
 
   const cardBackStyle = useAnimatedStyle(() => {
     if (reduceMotion) {
@@ -87,15 +139,15 @@ export function RevealCardSequence({ children, faceUp, width }: RevealCardSequen
     <>
       <View style={[styles.cardStage, { height: width * 1.5, width }]}>
         <Animated.View
-          accessibilityElementsHidden={revealAccessible}
-          importantForAccessibility={revealAccessible ? 'no-hide-descendants' : 'auto'}
+          accessibilityElementsHidden={cardAccessible}
+          importantForAccessibility={cardAccessible ? 'no-hide-descendants' : 'auto'}
           style={[styles.cardLayer, cardBackStyle]}
         >
           <TarotCard accessibilityLabel="Revealing your card." face="down" width={width} />
         </Animated.View>
         <Animated.View
-          accessibilityElementsHidden={!revealAccessible}
-          importantForAccessibility={revealAccessible ? 'auto' : 'no-hide-descendants'}
+          accessibilityElementsHidden={!cardAccessible}
+          importantForAccessibility={cardAccessible ? 'auto' : 'no-hide-descendants'}
           style={[styles.cardLayer, cardFaceStyle]}
         >
           <TarotCard face="up" faceUp={faceUp} width={width} />
@@ -104,7 +156,8 @@ export function RevealCardSequence({ children, faceUp, width }: RevealCardSequen
 
       <Animated.View
         accessibilityLiveRegion="polite"
-        importantForAccessibility={revealAccessible ? 'auto' : 'no-hide-descendants'}
+        accessibilityElementsHidden={!contentAccessible}
+        importantForAccessibility={contentAccessible ? 'auto' : 'no-hide-descendants'}
         style={[styles.content, contentStyle]}
       >
         {children}

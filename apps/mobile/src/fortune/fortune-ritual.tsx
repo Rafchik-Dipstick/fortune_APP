@@ -30,6 +30,7 @@ import { DrawAttemptController } from './draw-attempt';
 export type DrawUiResult = 'FAILED' | 'IGNORED' | 'REVEAL_READY';
 
 interface FortuneRitualContextValue {
+  acknowledgementAcceptedDrawId: string | undefined;
   acknowledgementError: Error | undefined;
   allowance: FortuneAllowanceState | undefined;
   drawError: Error | undefined;
@@ -41,6 +42,7 @@ interface FortuneRitualContextValue {
   retainedIntention: FortuneIntention | undefined;
   stateError: Error | undefined;
   acknowledgeContentReachable: (drawId: string) => void;
+  markCardRevealed: (drawId: string) => Promise<void>;
   requestDraw: (intention: FortuneIntention) => Promise<DrawUiResult>;
   retryState: () => Promise<void>;
 }
@@ -71,6 +73,7 @@ export function FortuneRitualProvider({ children }: { children: ReactNode }) {
   const [drawError, setDrawError] = useState<Error>();
   const [isDrawing, setIsDrawing] = useState(false);
   const [retainedIntention, setRetainedIntention] = useState<FortuneIntention>();
+  const [acknowledgementAcceptedDrawId, setAcknowledgementAcceptedDrawId] = useState<string>();
   const drawInFlight = useRef(false);
   const drawController = useMemo(
     () =>
@@ -97,6 +100,7 @@ export function FortuneRitualProvider({ children }: { children: ReactNode }) {
     setPersistenceError(undefined);
     setReconciledAt(0);
     setRetainedIntention(undefined);
+    setAcknowledgementAcceptedDrawId(undefined);
 
     void localData.readingStore
       .loadPendingReveal(accountId)
@@ -175,6 +179,7 @@ export function FortuneRitualProvider({ children }: { children: ReactNode }) {
             : { draw: result.details.unviewedDraw, state: result.details.state };
         await localData.readingStore.savePendingReveal(accountId, response.draw);
         const pending = { draw: response.draw, step: 'ISSUED' as const };
+        setAcknowledgementAcceptedDrawId(undefined);
         setPendingReveal(pending);
         queryClient.setQueryData<FortuneStateResponse>(fortuneStateQueryKey(accountId), {
           state: response.state,
@@ -209,14 +214,17 @@ export function FortuneRitualProvider({ children }: { children: ReactNode }) {
         pending.draw.id,
         'CONTENT_REACHABLE',
       );
-      setPendingReveal({ ...pending, step: 'CONTENT_REACHABLE' });
+      setPendingReveal((current) =>
+        current?.draw.id === pending.draw.id ? { ...current, step: 'CONTENT_REACHABLE' } : current,
+      );
       const response = await markFortuneViewed(session.accessToken, pending.draw.id);
       await localData.readingStore.completeReveal(accountId, response.draw);
       return response;
     },
     retry: (_failureCount, error) => error instanceof MobileApiError && error.retryable,
     retryDelay: (failureCount) => Math.min(1_000 * 2 ** failureCount, 30_000),
-    onSuccess: () => {
+    onSuccess: (response) => {
+      setAcknowledgementAcceptedDrawId(response.draw.id);
       setPendingReveal(undefined);
       queryClient.setQueryData<FortuneStateResponse>(fortuneStateQueryKey(accountId), (current) =>
         current === undefined
@@ -232,6 +240,25 @@ export function FortuneRitualProvider({ children }: { children: ReactNode }) {
       void queryClient.invalidateQueries({ queryKey: fortuneStateQueryKey(accountId) });
     },
   });
+
+  const markCardRevealed = useCallback(
+    async (drawId: string) => {
+      if (pendingReveal?.draw.id !== drawId || pendingReveal.step !== 'ISSUED') {
+        return;
+      }
+      try {
+        await localData.readingStore.advancePendingReveal(accountId, drawId, 'CARD_REVEALED');
+        setPendingReveal((current) =>
+          current?.draw.id === drawId && current.step === 'ISSUED'
+            ? { ...current, step: 'CARD_REVEALED' }
+            : current,
+        );
+      } catch (error) {
+        setPersistenceError(asError(error));
+      }
+    },
+    [accountId, localData.readingStore, pendingReveal],
+  );
 
   const acknowledgeContentReachable = useCallback(
     (drawId: string) => {
@@ -255,12 +282,14 @@ export function FortuneRitualProvider({ children }: { children: ReactNode }) {
       acknowledgementError:
         acknowledgement.error === null ? undefined : asError(acknowledgement.error),
       acknowledgeContentReachable,
+      acknowledgementAcceptedDrawId,
       allowance: stateQuery.data?.state,
       drawError,
       isAcknowledging: acknowledgement.isPending,
       isDrawing,
       isRefreshing: stateQuery.isFetching && !stateQuery.isPending,
       isStateLoading: !localPendingLoaded || stateQuery.isPending || !stateIsReconciled,
+      markCardRevealed,
       pendingReveal,
       requestDraw,
       retainedIntention,
@@ -270,11 +299,13 @@ export function FortuneRitualProvider({ children }: { children: ReactNode }) {
     }),
     [
       acknowledgeContentReachable,
+      acknowledgementAcceptedDrawId,
       acknowledgement.error,
       acknowledgement.isPending,
       drawError,
       isDrawing,
       localPendingLoaded,
+      markCardRevealed,
       pendingReveal,
       persistenceError,
       requestDraw,
