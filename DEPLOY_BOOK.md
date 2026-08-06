@@ -1168,3 +1168,29 @@ git diff --check
 ```
 
 Deployment impact: local Expo/Swift module, TypeScript wrapper, and generated-entitlement configuration only. Windows cannot compile GameKit; the documented macOS/physical-device build gate remains required. No App ID, profile, IPA, Apple account, credential, Railway service, or deployed environment changed.
+
+### 2026-08-06 — Phase 5 mobile account-session lifecycle
+
+- Added a contract-validated mobile API client for Game Center login, refresh rotation, authoritative account bootstrap, and logout. Requests use bounded timeouts, normalized caller-safe errors, non-secret diagnostics, and fail-closed response validation.
+- Added an explicit React Native export for the shared contracts package and a mobile prebuild dependency so Metro consumes compiled ESM while TypeScript and Node development continue to consume source contracts without resolution drift.
+- Added fail-closed public mobile environment parsing for the API and public legal/support URLs. Preview and production URLs require HTTPS, embedded credentials and non-HTTP schemes are rejected, and unknown environment labels cannot silently weaken policy.
+- Added device-only SecureStore persistence for the installation ID, rotating refresh token, purchase token, user ID, and a domain-separated hash of the current Game Center player ID. Access tokens, native proofs, and raw player IDs remain memory-only; partial writes and incomplete credential sets are cleared.
+- Added a single authentication coordinator that observes Game Center state, verifies the current local fingerprint before refresh, rotates credentials before bootstrap, exchanges a fresh proof when stored authorization is rejected, and pauses the app behind explicit blocked, temporary-ID, deletion, purge, unsupported, and recoverable-error states.
+- Made player switching and local disconnect clear account credentials before another account can become visible. Disconnect suppresses automatic re-entry for the same player until an explicit retry, while a different authenticated player can establish a clean session.
+- Preserved a successfully rotated refresh token across a temporary bootstrap outage, kept account content gated, and clamped refresh timers defensively. Non-network authentication failures still remove local authority before fallback or terminal account-state presentation.
+- Connected the provider at the application root, exposed the live Game Center alias and a local disconnect action in Settings, and kept privacy, terms, support, and the entertainment-only disclaimer reachable from every unauthenticated state.
+- Added coordinator and configuration tests covering first proof exchange, matching-fingerprint restoration, rejected-token fallback, offline rotated-token preservation, player switching, disconnect suppression, deletion pending, HTTPS policy, and malformed configuration.
+
+Verification required before commit:
+
+```text
+corepack npm run config:check --workspace @fortuneness/mobile
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api-contracts --workspace @fortuneness/mobile
+corepack npm run test --workspace @fortuneness/api-contracts --workspace @fortuneness/mobile
+corepack npm run build --workspace @fortuneness/mobile
+git diff --check
+```
+
+Deployment impact: local Expo TypeScript, app configuration, workspace dependencies, and tests only. Physical Game Center verification and signed iOS setup remain deferred to the documented device gate; no Apple capability, credential, persistent database, API service, legal page, or deployed environment changed.

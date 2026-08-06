@@ -3,8 +3,11 @@ import 'react-native-gesture-handler';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useReducedMotion } from 'react-native-reanimated';
 
+import { AuthenticationGate } from '@/auth/authentication-gate';
+import { AuthenticationProvider } from '@/auth/authentication';
 import { QaLocaleProvider } from '@/i18n/qa-locale';
 import { MotionPreferenceProvider, useMotionPreference } from '@/motion/motion-preference';
 import { shouldReduceMotion } from '@/motion/reduce-motion';
@@ -12,11 +15,19 @@ import { colors } from '@/theme/tokens';
 
 export default function RootLayout() {
   return (
-    <QaLocaleProvider>
-      <MotionPreferenceProvider>
-        <AppNavigation />
-      </MotionPreferenceProvider>
-    </QaLocaleProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <QaLocaleProvider>
+          <AuthenticationProvider>
+            <AuthenticationGate>
+              <MotionPreferenceProvider>
+                <AppNavigation />
+              </MotionPreferenceProvider>
+            </AuthenticationGate>
+          </AuthenticationProvider>
+        </QaLocaleProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 
@@ -26,7 +37,7 @@ function AppNavigation() {
   const reduceMotion = shouldReduceMotion(systemReduceMotion, reduceMoreMotion);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <>
       <Stack
         screenOptions={{
           animation: reduceMotion ? 'none' : 'fade_from_bottom',
@@ -35,6 +46,6 @@ function AppNavigation() {
         }}
       />
       <StatusBar style="light" />
-    </GestureHandlerRootView>
+    </>
   );
 }

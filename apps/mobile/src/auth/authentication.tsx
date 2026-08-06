@@ -1,0 +1,97 @@
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
+import * as Crypto from 'expo-crypto';
+import { getCalendars, getLocales } from 'expo-localization';
+
+import {
+  addGameCenterAuthenticationListener,
+  fetchGameCenterIdentityVerificationItemsAsync,
+  startGameCenterAuthenticationAsync,
+} from '../../modules/game-center';
+import {
+  authenticateGameCenter,
+  getAccountBootstrap,
+  logoutSession,
+  refreshSession,
+} from './api-client';
+import { AuthenticationCoordinator, type AuthenticationState } from './authentication-coordinator';
+import {
+  clearStoredCredentials,
+  getOrCreateDeviceId,
+  loadStoredCredentials,
+  saveStoredCredentials,
+} from './session-storage';
+
+interface AuthenticationContextValue extends AuthenticationState {
+  disconnect(): Promise<void>;
+  retry(): Promise<void>;
+}
+
+const AuthenticationContext = createContext<AuthenticationContextValue | undefined>(undefined);
+
+function createCoordinator(): AuthenticationCoordinator {
+  return new AuthenticationCoordinator({
+    api: {
+      authenticate: authenticateGameCenter,
+      bootstrap: getAccountBootstrap,
+      logout: logoutSession,
+      refresh: refreshSession,
+    },
+    clearAccountData: clearStoredCredentials,
+    createUuid: Crypto.randomUUID,
+    deviceContext: () => ({
+      locale: getLocales()[0].languageTag,
+      timeZone: getCalendars()[0].timeZone ?? 'UTC',
+    }),
+    fingerprint: (teamPlayerId) =>
+      Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        `game-center-team:${teamPlayerId}`,
+      ),
+    native: {
+      fetchProof: fetchGameCenterIdentityVerificationItemsAsync,
+      start: startGameCenterAuthenticationAsync,
+      subscribe: addGameCenterAuthenticationListener,
+    },
+    storage: {
+      getDeviceId: getOrCreateDeviceId,
+      load: loadStoredCredentials,
+      save: saveStoredCredentials,
+    },
+  });
+}
+
+export function AuthenticationProvider({ children }: { children: ReactNode }) {
+  const coordinator = useMemo(createCoordinator, []);
+  const [state, setState] = useState<AuthenticationState>(coordinator.state);
+
+  useEffect(() => {
+    const unsubscribe = coordinator.subscribe(setState);
+    void coordinator.start();
+    return () => {
+      unsubscribe();
+      coordinator.stop();
+    };
+  }, [coordinator]);
+
+  const retry = useCallback(() => coordinator.retry(), [coordinator]);
+  const disconnect = useCallback(() => coordinator.disconnect(), [coordinator]);
+  const value = useMemo(() => ({ ...state, retry, disconnect }), [disconnect, retry, state]);
+
+  return <AuthenticationContext.Provider value={value}>{children}</AuthenticationContext.Provider>;
+}
+
+export function useAuthentication(): AuthenticationContextValue {
+  const value = useContext(AuthenticationContext);
+  if (value === undefined) {
+    throw new Error('useAuthentication must be used inside AuthenticationProvider.');
+  }
+  return value;
+}

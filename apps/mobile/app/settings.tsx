@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
+import { useAuthentication } from '@/auth/authentication';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
 import { PageHeader } from '@/components/page-header';
@@ -40,6 +41,7 @@ function SettingRow({ description, label, onValueChange, value }: SettingRowProp
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const authentication = useAuthentication();
   const { locale, pseudoLocaleAvailable, setLocale } = useQaLocale();
   const { reduceMoreMotion, setReduceMoreMotion } = useMotionPreference();
   const [sound, setSound] = useState(true);
@@ -67,8 +69,20 @@ export default function SettingsScreen() {
           <AppText color="gold" variant="caption">
             Game Center
           </AppText>
-          <AppText variant="headline">Player alias loads after authentication</AppText>
-          <AppText color="textMuted">Synced Fortuneness account · Static Phase 2 fixture</AppText>
+          <AppText variant="headline">
+            {authentication.session?.alias ?? 'Game Center player'}
+          </AppText>
+          <AppText color="textMuted">Synced Fortuneness account</AppText>
+          <AppButton
+            label="Disconnect on this device"
+            onPress={() => {
+              void authentication.disconnect();
+            }}
+            variant="secondary"
+          />
+          <AppText color="textMuted" variant="caption">
+            This clears Fortuneness tokens. Switch the Game Center player in Apple Settings.
+          </AppText>
         </Surface>
 
         <Surface>
