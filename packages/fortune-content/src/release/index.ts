@@ -7,6 +7,7 @@ import {
 } from './authoring.js';
 import { majorArcanaCards } from './major-arcana.js';
 import { cupsCards } from './cups.js';
+import { swordsCards } from './swords.js';
 import { wandsCards } from './wands.js';
 
 /**
@@ -18,6 +19,7 @@ export const authoredReleaseCards: readonly AuthoredCard[] = [
   ...majorArcanaCards,
   ...wandsCards,
   ...cupsCards,
+  ...swordsCards,
 ];
 
 export { releaseContentVersion } from './authoring.js';
