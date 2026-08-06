@@ -10,6 +10,27 @@ const canonicalDeck = createCanonicalDeck(fullDeckCards);
 const manifest = createReleaseContentManifest(canonicalDeck.cards);
 
 describe('release catalog', () => {
+  it('covers the whole canonical deck with every English combination', () => {
+    expect(authoredReleaseCards).toHaveLength(78);
+    expect(manifest.templates).toHaveLength(624);
+    expect(manifest.cards.filter((card) => card.active)).toHaveLength(78);
+
+    const covered = new Set(
+      manifest.templates.map(
+        (template) =>
+          `${template.cardKey}:${template.locale}:${template.orientation}:${template.intention}`,
+      ),
+    );
+    expect(covered.size).toBe(624);
+    for (const card of canonicalDeck.cards) {
+      for (const orientation of ['UPRIGHT', 'REVERSED']) {
+        for (const intention of ['GENERAL', 'LOVE', 'WORK', 'GROWTH']) {
+          expect(covered.has(`${card.key}:en:${orientation}:${intention}`)).toBe(true);
+        }
+      }
+    }
+  });
+
   it('gives every authored card its full eight-combination matrix', () => {
     expect(manifest.templates).toHaveLength(authoredReleaseCards.length * 8);
 
