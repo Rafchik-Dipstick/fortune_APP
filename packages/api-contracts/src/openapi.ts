@@ -23,6 +23,12 @@ import {
   collectionCardDetailResponseSchema,
   collectionCardReadingsQuerySchema,
   collectionResponseSchema,
+  iapCatalogResponseSchema,
+  iapReconcileRequestSchema,
+  iapReconcileResponseSchema,
+  iapStatusResponseSchema,
+  iapTransactionRequestSchema,
+  iapTransactionResponseSchema,
 } from './index.js';
 
 export const generateOpenApiDocument = () => {
@@ -464,6 +470,191 @@ export const generateOpenApiDocument = () => {
     },
   });
 
+  registry.registerPath({
+    method: 'get',
+    path: apiPaths.iapCatalog,
+    description:
+      'Returns the allowlisted product IDs, server-owned benefit copy, grace-period policy, and the current server-issued purchase token. Prices remain StoreKit-owned.',
+    summary: 'Get the commerce catalog',
+    tags: ['Commerce'],
+    security: [{ bearerAuth: [] }],
+    responses: {
+      200: {
+        description: 'The allowlisted catalog and the caller purchase token.',
+        content: { 'application/json': { schema: iapCatalogResponseSchema } },
+      },
+      401: {
+        description: 'The access token or authoritative session is no longer active.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      410: {
+        description: 'The account has already been purged.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      423: {
+        description: 'The account is pending deletion.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      503: {
+        description: 'Stable database state is temporarily unavailable.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+    },
+  });
+
+  registry.registerPath({
+    method: 'post',
+    path: apiPaths.iapTransactions,
+    description:
+      'Verifies one StoreKit signed transaction and applies its benefit exactly once through the atomic application service. Duplicate accepted delivery is normal success with appliedNow false.',
+    summary: 'Deliver a signed transaction',
+    tags: ['Commerce'],
+    security: [{ bearerAuth: [] }],
+    request: {
+      body: {
+        content: { 'application/json': { schema: iapTransactionRequestSchema } },
+      },
+    },
+    responses: {
+      200: {
+        description:
+          'The transaction was verified and durably applied, already applied, delivered to its recorded other owner, or terminally closed without benefit.',
+        content: { 'application/json': { schema: iapTransactionResponseSchema } },
+      },
+      400: {
+        description: 'The JWS is unverified or the product is not allowlisted.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      401: {
+        description: 'The access token or authoritative session is no longer active.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      409: {
+        description: 'No owner is identifiable; the transaction is quarantined unfinished.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      410: {
+        description: 'The account has already been purged.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      423: {
+        description: 'The account is pending deletion.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      503: {
+        description: 'A retryable lock or database failure occurred; retry without finishing.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+    },
+  });
+
+  registry.registerPath({
+    method: 'post',
+    path: apiPaths.iapReconcile,
+    description:
+      'Independently verifies and idempotently applies up to 100 signed current or unfinished transactions enumerated by the client.',
+    summary: 'Reconcile signed transactions',
+    tags: ['Commerce'],
+    security: [{ bearerAuth: [] }],
+    request: {
+      body: {
+        content: { 'application/json': { schema: iapReconcileRequestSchema } },
+      },
+    },
+    responses: {
+      200: {
+        description: 'One independent disposition per submitted transaction.',
+        content: { 'application/json': { schema: iapReconcileResponseSchema } },
+      },
+      400: {
+        description: 'The batch shape or an item exceeds the documented bounds.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      401: {
+        description: 'The access token or authoritative session is no longer active.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      410: {
+        description: 'The account has already been purged.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      423: {
+        description: 'The account is pending deletion.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      503: {
+        description: 'Stable database state is temporarily unavailable.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+    },
+  });
+
+  registry.registerPath({
+    method: 'get',
+    path: apiPaths.iapStatus,
+    description:
+      'Returns the caller-owned normalized subscription entitlement, nonnegative spendable pack balance, and commerce-review lock state.',
+    summary: 'Get commerce status',
+    tags: ['Commerce'],
+    security: [{ bearerAuth: [] }],
+    responses: {
+      200: {
+        description: 'The caller-owned entitlement and pack balance.',
+        content: { 'application/json': { schema: iapStatusResponseSchema } },
+      },
+      401: {
+        description: 'The access token or authoritative session is no longer active.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      410: {
+        description: 'The account has already been purged.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      423: {
+        description: 'The account is pending deletion.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      503: {
+        description: 'Stable database state is temporarily unavailable.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+    },
+  });
+
+  registry.registerPath({
+    method: 'post',
+    path: apiPaths.appStoreWebhook,
+    description:
+      'Receives App Store Server Notifications V2. The outer and nested JWS are verified and the envelope is stored durably before acknowledgement; processing happens asynchronously.',
+    summary: 'Receive App Store notifications',
+    tags: ['Commerce'],
+    request: {
+      body: {
+        content: {
+          'application/json': {
+            schema: z
+              .object({ signedPayload: z.string().min(20).max(2_000_000) })
+              .strict()
+              .meta({ id: 'AppStoreNotificationEnvelope' }),
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        description: 'The verified envelope was durably persisted.',
+      },
+      400: {
+        description: 'The envelope is malformed or fails verification.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      503: {
+        description: 'Durable persistence is temporarily unavailable; Apple should retry.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+    },
+  });
+
   return new OpenApiGeneratorV31(registry.definitions).generateDocument({
     openapi: '3.1.0',
     info: {
@@ -479,6 +670,7 @@ export const generateOpenApiDocument = () => {
       { name: 'Account' },
       { name: 'Fortunes' },
       { name: 'Collection' },
+      { name: 'Commerce' },
     ],
     'x-stable-error-codes': [...stableApiErrorCodes],
   });

@@ -17,7 +17,12 @@ export const apiPaths = {
   collection: '/v1/collection',
   collectionCard: '/v1/collection/cards/:key',
   health: '/health',
+  iapCatalog: '/v1/iap/catalog',
+  iapReconcile: '/v1/iap/reconcile',
+  iapStatus: '/v1/iap/status',
+  iapTransactions: '/v1/iap/transactions',
   me: '/v1/me',
+  appStoreWebhook: '/v1/webhooks/app-store',
 } as const;
 
 export const fortuneViewedPath = (drawId: string): string =>
@@ -191,6 +196,37 @@ export {
   collectionResponseSchema,
   unviewedReadingPendingDetailsSchema,
 } from './fortune.js';
+export {
+  appleTransactionIdSchema,
+  iapBenefitSchema,
+  iapCallerStateSchema,
+  iapCatalogProductSchema,
+  iapCatalogResponseSchema,
+  iapProductIdSchema,
+  iapProductTypeSchema,
+  iapReconcileDispositionSchema,
+  iapReconcileRequestSchema,
+  iapReconcileResponseSchema,
+  iapStatusResponseSchema,
+  iapTransactionRequestSchema,
+  iapTransactionResponseSchema,
+  signedTransactionJwsSchema,
+} from './iap.js';
+export type {
+  AppleTransactionId,
+  IapBenefit,
+  IapCallerState,
+  IapCatalogProduct,
+  IapCatalogResponse,
+  IapProductType,
+  IapReconcileDisposition,
+  IapReconcileRequest,
+  IapReconcileResponse,
+  IapStatusResponse,
+  IapTransactionRequest,
+  IapTransactionResponse,
+} from './iap.js';
+
 export type {
   AllowanceSource,
   FortuneAllowanceState,

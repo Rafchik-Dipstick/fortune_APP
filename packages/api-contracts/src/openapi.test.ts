@@ -21,6 +21,11 @@ describe('generated OpenAPI document', () => {
       apiPaths.me,
       apiPaths.fortuneState,
       apiPaths.fortuneDraw,
+      apiPaths.iapCatalog,
+      apiPaths.iapTransactions,
+      apiPaths.iapReconcile,
+      apiPaths.iapStatus,
+      apiPaths.appStoreWebhook,
     ]);
     expect(healthOperation?.responses).toHaveProperty('200');
     expect(healthOperation?.responses).toHaveProperty('503');
