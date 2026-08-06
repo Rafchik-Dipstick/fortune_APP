@@ -168,6 +168,7 @@ export class GameCenterLoginService {
       const family = await transaction.sessionFamily.create({
         data: {
           userId: user.id,
+          sessionVersion: user.sessionVersion,
           gameCenterAuthenticatedAt: verifiedIdentity.authenticatedAt,
           issuedAt: now,
           expiresAt: refreshTokenExpiresAt,

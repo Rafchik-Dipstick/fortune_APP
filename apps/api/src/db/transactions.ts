@@ -24,6 +24,25 @@ export interface LockedFinancialSubject {
   id: string;
 }
 
+export interface LockedSessionFamily {
+  expiresAt: Date;
+  gameCenterAuthenticatedAt: Date;
+  id: string;
+  revokedAt: Date | null;
+  sessionVersion: number;
+  userId: string;
+}
+
+export interface LockedRefreshToken {
+  consumedAt: Date | null;
+  expiresAt: Date;
+  familyId: string;
+  id: string;
+  idempotencyKey: string | null;
+  requestHash: string | null;
+  tokenHash: string;
+}
+
 const defaultSleep = async (milliseconds: number): Promise<void> => {
   await new Promise<void>((resolve) => {
     setTimeout(resolve, milliseconds);
@@ -122,4 +141,68 @@ export async function lockUserThenFinancialSubject(
       ? undefined
       : await lockFinancialSubjectForUpdate(transaction, user.activeFinancialSubjectId);
   return { user, financialSubject };
+}
+
+export async function lockSessionFamilyForUpdate(
+  transaction: Prisma.TransactionClient,
+  sessionFamilyId: string,
+): Promise<LockedSessionFamily> {
+  const rows = await transaction.$queryRaw<LockedSessionFamily[]>`
+    SELECT
+      "id",
+      "userId",
+      "sessionVersion",
+      "gameCenterAuthenticatedAt",
+      "expiresAt",
+      "revokedAt"
+    FROM "SessionFamily"
+    WHERE "id" = ${sessionFamilyId}::uuid
+    FOR UPDATE
+  `;
+  const family = rows[0];
+  if (family === undefined) {
+    throw new DatabaseError('NOT_FOUND', new Error('Session-family lock target does not exist.'));
+  }
+  return family;
+}
+
+export async function lockRefreshTokenForUpdate(
+  transaction: Prisma.TransactionClient,
+  refreshTokenId: string,
+): Promise<LockedRefreshToken> {
+  const rows = await transaction.$queryRaw<LockedRefreshToken[]>`
+    SELECT
+      "id",
+      "familyId",
+      "tokenHash",
+      "consumedAt",
+      "expiresAt",
+      "requestHash",
+      "idempotencyKey"
+    FROM "RefreshToken"
+    WHERE "id" = ${refreshTokenId}::uuid
+    FOR UPDATE
+  `;
+  const refreshToken = rows[0];
+  if (refreshToken === undefined) {
+    throw new DatabaseError('NOT_FOUND', new Error('Refresh-token lock target does not exist.'));
+  }
+  return refreshToken;
+}
+
+export async function lockUserThenSessionFamilyThenRefreshToken(
+  transaction: Prisma.TransactionClient,
+  targets: { familyId: string; refreshTokenId: string; userId: string },
+): Promise<{
+  family: LockedSessionFamily;
+  refreshToken: LockedRefreshToken;
+  user: LockedUser;
+}> {
+  const user = await lockUserForUpdate(transaction, targets.userId);
+  const family = await lockSessionFamilyForUpdate(transaction, targets.familyId);
+  const refreshToken = await lockRefreshTokenForUpdate(transaction, targets.refreshTokenId);
+  if (family.userId !== user.id || refreshToken.familyId !== family.id) {
+    throw new DatabaseError('NOT_FOUND', new Error('Session lock targets do not share ownership.'));
+  }
+  return { user, family, refreshToken };
 }

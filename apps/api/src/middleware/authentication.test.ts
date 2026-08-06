@@ -24,6 +24,7 @@ async function createFixture(overrides: Record<string, unknown> = {}) {
   const findUnique = vi.fn().mockResolvedValue({
     id: sessionFamilyId,
     userId,
+    sessionVersion: 3,
     revokedAt: null,
     expiresAt: new Date('2026-09-05T10:00:00.000Z'),
     gameCenterAuthenticatedAt: new Date('2026-08-06T09:59:30.999Z'),
@@ -63,6 +64,7 @@ describe('authoritative access authentication', () => {
   it.each([
     [{ revokedAt: new Date('2026-08-06T09:59:59.000Z') }, 401, 'AUTH_REQUIRED'],
     [{ expiresAt: new Date('2026-08-06T09:59:59.000Z') }, 401, 'AUTH_REQUIRED'],
+    [{ sessionVersion: 2 }, 401, 'AUTH_REQUIRED'],
     [{ user: { id: userId, status: 'ACTIVE', sessionVersion: 4 } }, 401, 'AUTH_REQUIRED'],
     [
       { user: { id: userId, status: 'DELETION_PENDING', sessionVersion: 3 } },

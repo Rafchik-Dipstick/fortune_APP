@@ -57,6 +57,7 @@ export const createAuthoritativeAuthentication =
         family?.userId !== claims.userId ||
         family.revokedAt !== null ||
         family.expiresAt <= now() ||
+        family.sessionVersion !== claims.sessionVersion ||
         family.user.sessionVersion !== claims.sessionVersion ||
         Math.floor(family.gameCenterAuthenticatedAt.getTime() / 1_000) !== claims.authTimeSeconds
       ) {

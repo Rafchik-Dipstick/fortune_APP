@@ -224,6 +224,7 @@ model IdentityProofReplay {
 model SessionFamily {
   id                        String         @id @default(uuid()) @db.Uuid
   userId                    String         @db.Uuid
+  sessionVersion            Int
   gameCenterAuthenticatedAt DateTime       @db.Timestamptz(3)
   issuedAt                  DateTime       @default(now()) @db.Timestamptz(3)
   expiresAt                 DateTime       @db.Timestamptz(3)

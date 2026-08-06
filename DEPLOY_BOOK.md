@@ -1067,3 +1067,25 @@ git diff --check
 ```
 
 Deployment impact: local API authentication service/route/runtime wiring and tests only. The database proof used a generated local database that the harness dropped and verified; no physical Game Center proof, real token/key, Railway service, persistent database, credential, or deployed environment changed.
+
+### 2026-08-06 — Phase 5 session-version persistence and lock order
+
+- Added the issuing user `sessionVersion` to every session-family row with a positive-value database constraint. New Game Center families persist it explicitly, and authoritative access checks now require the JWT, family, and current user versions to agree.
+- Added typed `FOR UPDATE` helpers for `SessionFamily` and `RefreshToken`, plus the canonical combined `User → SessionFamily → RefreshToken` acquisition helper. The helper verifies the locked rows share the expected ownership before a session mutation may continue.
+- Added unit coverage for the three-row lock sequence and for immediate access-token rejection when the family version is stale even if the current user row still matches the JWT.
+- Added a forward migration that backfills the only valid initial version for pre-refresh session rows and then removes the database default so future writers must supply the authoritative value.
+
+Verification required before commit:
+
+```text
+TEST_DATABASE_ADMIN_URL=<injected local admin URL> corepack npm run test:db
+corepack npm run db:schema:validate
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: one additive/backfilled session-family column and local API lock/authentication code. The migration still requires the normal staging backup/restore and `migrate deploy` gate before production; no persistent database or deployed environment changed.
