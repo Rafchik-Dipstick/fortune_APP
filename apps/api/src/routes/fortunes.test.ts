@@ -12,6 +12,7 @@ import { createTestApiEnvironment } from '../config/environment.fixture.js';
 import { FortuneDrawError } from '../fortune/draw.js';
 import { FortuneStateError } from '../fortune/state.js';
 import { ApiReadiness } from '../health/readiness.js';
+import type { FortuneDrawTelemetry } from '../observability/fortune-draw-telemetry.js';
 import {
   type FortuneDrawHandler,
   type FortuneStateHandler,
@@ -83,6 +84,7 @@ function createFixture(
   get: FortuneStateHandler['get'] = vi.fn(),
   draw: FortuneDrawHandler['draw'] = vi.fn(),
   markViewed: FortuneViewedHandler['markViewed'] = vi.fn(),
+  telemetry?: FortuneDrawTelemetry,
 ) {
   return createApiApp({
     environment: createTestApiEnvironment({ logLevel: 'silent' }),
@@ -92,6 +94,7 @@ function createFixture(
         authenticate,
         draw: { draw },
         state: { get },
+        ...(telemetry === undefined ? {} : { telemetry }),
         viewed: { markViewed },
       });
     },
@@ -156,14 +159,46 @@ describe('fortune draw route', () => {
     expect(draw).not.toHaveBeenCalled();
   });
 
+  it('records only allowlisted issued metadata without fortune or account content', async () => {
+    const recordIssued = vi.fn();
+    const recordRejected = vi.fn();
+    const telemetry = { recordIssued, recordRejected };
+    const draw = vi
+      .fn<FortuneDrawHandler['draw']>()
+      .mockResolvedValue({ created: true, response: drawResponse });
+
+    await request(createFixture(undefined, draw, undefined, telemetry))
+      .post(apiPaths.fortuneDraw)
+      .set('Idempotency-Key', idempotencyKey)
+      .send({ intention: 'GROWTH' })
+      .expect(201);
+
+    expect(recordIssued).toHaveBeenCalledWith({
+      allowanceSource: 'FREE_DAILY',
+      intention: 'GROWTH',
+    });
+    expect(recordRejected).not.toHaveBeenCalled();
+    const serializedEvent = JSON.stringify(recordIssued.mock.calls);
+    expect(serializedEvent).not.toContain(drawResponse.draw.id);
+    expect(serializedEvent).not.toContain(drawResponse.draw.cardName);
+    expect(serializedEvent).not.toContain(drawResponse.draw.headline);
+    expect(serializedEvent).not.toContain(authentication.userId);
+  });
+
   it('returns stored terminal state in code-specific details', async () => {
+    const recordRejected = vi.fn();
     const draw = vi.fn<FortuneDrawHandler['draw']>().mockRejectedValue(
       new FortuneDrawError('UNVIEWED_READING_PENDING', {
         state: drawResponse.state,
         unviewedDraw: drawResponse.draw,
       }),
     );
-    const response = await request(createFixture(undefined, draw))
+    const response = await request(
+      createFixture(undefined, draw, undefined, {
+        recordIssued: vi.fn(),
+        recordRejected,
+      }),
+    )
       .post(apiPaths.fortuneDraw)
       .set('Idempotency-Key', idempotencyKey)
       .send({ intention: 'GROWTH' })
@@ -174,6 +209,7 @@ describe('fortune draw route', () => {
       sameKeyRetrySafe: true,
       details: { state: drawResponse.state, unviewedDraw: drawResponse.draw },
     });
+    expect(recordRejected).toHaveBeenCalledWith('UNVIEWED_READING_PENDING');
   });
 });
 

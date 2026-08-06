@@ -18,6 +18,7 @@ import { FortuneViewedError } from '../fortune/viewed.js';
 import { FortuneDrawError, type FortuneDrawResult } from '../fortune/draw.js';
 import { type AuthenticationContext } from '../middleware/authentication.js';
 import { ApiHttpError } from '../middleware/errors.js';
+import type { FortuneDrawTelemetry } from '../observability/fortune-draw-telemetry.js';
 
 export interface FortuneStateHandler {
   get(authentication: AuthenticationContext): Promise<FortuneStateResponse>;
@@ -129,12 +130,16 @@ function mapFortuneDrawError(error: FortuneDrawError): ApiHttpError {
   }
 }
 
-export function createFortuneDrawRoute(draw: FortuneDrawHandler): RequestHandler {
+export function createFortuneDrawRoute(
+  draw: FortuneDrawHandler,
+  telemetry?: FortuneDrawTelemetry,
+): RequestHandler {
   return async (request, response, next) => {
     response.setHeader('Cache-Control', 'no-store');
     const parsedRequest = fortuneDrawRequestSchema.safeParse(request.body);
     const parsedIdempotencyKey = idempotencyKeySchema.safeParse(request.header('idempotency-key'));
     if (!parsedRequest.success || !parsedIdempotencyKey.success) {
+      telemetry?.recordRejected('VALIDATION_FAILED');
       next(
         new ApiHttpError({
           code: 'VALIDATION_FAILED',
@@ -150,11 +155,18 @@ export function createFortuneDrawRoute(draw: FortuneDrawHandler): RequestHandler
         parsedRequest.data,
         parsedIdempotencyKey.data,
       );
+      telemetry?.recordIssued({
+        allowanceSource: result.response.draw.allowanceSource,
+        intention: parsedRequest.data.intention,
+      });
       response.setHeader('Idempotency-Key', parsedIdempotencyKey.data);
       response
         .status(result.created ? 201 : 200)
         .json(fortuneDrawResponseSchema.parse(result.response) satisfies FortuneDrawResponse);
     } catch (error) {
+      if (error instanceof FortuneDrawError) {
+        telemetry?.recordRejected(error.code);
+      }
       next(error instanceof FortuneDrawError ? mapFortuneDrawError(error) : error);
     }
   };
@@ -224,11 +236,16 @@ export function registerFortuneRoutes(
     authenticate: RequestHandler;
     draw: FortuneDrawHandler;
     state: FortuneStateHandler;
+    telemetry?: FortuneDrawTelemetry;
     viewed: FortuneViewedHandler;
   },
 ): void {
   app.get(apiPaths.fortuneState, handlers.authenticate, createFortuneStateRoute(handlers.state));
-  app.post(apiPaths.fortuneDraw, handlers.authenticate, createFortuneDrawRoute(handlers.draw));
+  app.post(
+    apiPaths.fortuneDraw,
+    handlers.authenticate,
+    createFortuneDrawRoute(handlers.draw, handlers.telemetry),
+  );
   app.patch(
     apiPaths.fortuneViewed,
     handlers.authenticate,

@@ -1417,3 +1417,22 @@ git diff --check
 ```
 
 Deployment impact: local reveal UI, Reanimated/accessibility sequencing, SQLite presentation-step updates, API acknowledgement orchestration, and tests only. Verification did not open a device database, issue or acknowledge a reading, regenerate the native project, change service/database state, or alter a deployed environment.
+
+### 2026-08-06 — Phase 7 privacy-bounded draw telemetry
+
+- Added an injected draw telemetry boundary to the API route and connected its production adapter to the structured service logger.
+- Successful issuance records only the event name, requested intention, and authoritative allowance source. Rejected requests record only the stable error code; user/session identifiers, draw IDs, card identity, alternative text, fortune text, request bodies, and idempotency keys are never passed to the telemetry adapter.
+- Added route tests proving issued metadata is allowlisted and serialized telemetry contains neither account identity nor private draw content, while terminal pending-reading outcomes record only their stable category. The API suite now passes 121 tests.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+corepack npm run lint -- --quiet
+corepack npm run typecheck --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: local API structured-logging code and tests only. No request was served, log shipped, database/schema changed, fortune issued, allowance consumed, service restarted, secret changed, or deployed environment altered.

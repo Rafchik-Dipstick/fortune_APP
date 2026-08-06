@@ -16,6 +16,7 @@ import { FortuneDrawService } from './fortune/draw.js';
 import { FortuneViewedService } from './fortune/viewed.js';
 import { type ApiLogger, createApiLogger } from './logging/logger.js';
 import { createAuthoritativeAuthentication } from './middleware/authentication.js';
+import { LoggerFortuneDrawTelemetry } from './observability/fortune-draw-telemetry.js';
 import { registerAuthenticationRoutes } from './routes/authentication.js';
 import { registerFortuneRoutes } from './routes/fortunes.js';
 
@@ -54,6 +55,7 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
   const fortuneState = new FortuneStateService(database.client);
   const fortuneDraw = new FortuneDrawService({ client: database.client });
   const fortuneViewed = new FortuneViewedService(database.client);
+  const fortuneDrawTelemetry = new LoggerFortuneDrawTelemetry(logger);
   const authenticate = createAuthoritativeAuthentication(database.client, accessTokens);
   const app = createApiApp({
     environment,
@@ -71,6 +73,7 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
         authenticate,
         draw: fortuneDraw,
         state: fortuneState,
+        telemetry: fortuneDrawTelemetry,
         viewed: fortuneViewed,
       });
     },
