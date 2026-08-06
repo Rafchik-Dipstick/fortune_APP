@@ -1336,3 +1336,24 @@ git diff --check
 ```
 
 Deployment impact: local shared contract/OpenAPI and API viewed service/route/runtime tests only. No schema migration, persistent reading, acknowledgement, allowance, credential, Railway service, or deployed environment changed.
+
+### 2026-08-06 — Phase 7 account-partitioned mobile data boundary
+
+- Added strict mobile client methods for authoritative fortune state, idempotent draw issuance, and viewed acknowledgement. Structured API error details now survive the client boundary for terminal pending-reading and exhausted-allowance recovery.
+- Added a parameter-bound SQLite reading store in WAL mode. Readings and the sole pending reveal are keyed by account, pending steps are constrained, multi-table writes and purges use exclusive transactions, and corrupt cached payloads fail closed by purging only their owning partition.
+- Installed one root SQLite provider and one stable TanStack Query client. Protected navigation now waits until any prior user's database partition and in-memory query cache have been removed before exposing the authenticated account.
+- Extended credential invalidation into a best-effort full local-account cleanup boundary. Secure credentials and registered runtime data are both attempted even if either storage layer fails, while the original failure remains visible to the caller.
+- Added mobile tests for schema partitioning, bound account parameters, atomic pending persistence, corrupt-payload isolation, and cleanup behavior when secure storage cannot be read. The mobile suite now passes 36 tests.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+corepack npm run lint -- --quiet
+corepack npm run typecheck --workspace @fortuneness/mobile
+corepack npm run test --workspace @fortuneness/mobile
+corepack npm run build --workspace @fortuneness/mobile
+git diff --check
+```
+
+Deployment impact: local Expo client code, SQLite schema initialization, cache lifecycle, and tests only. No native prebuild, Expo project setup, persistent device database, API/database service, credential, allowance, content, or deployed environment changed.

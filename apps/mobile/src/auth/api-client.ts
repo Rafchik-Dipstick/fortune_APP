@@ -1,6 +1,10 @@
 import {
   apiErrorEnvelopeSchema,
   apiPaths,
+  fortuneDrawResponseSchema,
+  fortuneStateResponseSchema,
+  fortuneViewedPath,
+  fortuneViewedResponseSchema,
   gameCenterAuthResponseSchema,
   meResponseSchema,
   refreshSessionResponseSchema,
@@ -8,6 +12,10 @@ import {
   type AuthDevice,
   type GameCenterAuthRequest,
   type GameCenterAuthResponse,
+  type FortuneDrawRequest,
+  type FortuneDrawResponse,
+  type FortuneStateResponse,
+  type FortuneViewedResponse,
   type MeResponse,
   type RefreshSessionResponse,
 } from '@fortuneness/api-contracts';
@@ -18,12 +26,14 @@ const requestTimeoutMs = 10_000;
 
 export class MobileApiError extends Error {
   readonly code: ApiErrorCode | 'NETWORK_UNAVAILABLE' | 'RESPONSE_INVALID';
+  readonly details: unknown;
   readonly retryable: boolean;
   readonly statusCode: number | undefined;
 
   constructor(options: {
     cause?: unknown;
     code: MobileApiError['code'];
+    details?: unknown;
     message: string;
     retryable: boolean;
     statusCode?: number;
@@ -31,6 +41,7 @@ export class MobileApiError extends Error {
     super(options.message, { cause: options.cause });
     this.name = 'MobileApiError';
     this.code = options.code;
+    this.details = options.details;
     this.retryable = options.retryable;
     this.statusCode = options.statusCode;
   }
@@ -80,8 +91,11 @@ async function requireSuccessJson(response: Response): Promise<unknown> {
   if (!response.ok) {
     const parsedError = apiErrorEnvelopeSchema.safeParse(payload);
     if (parsedError.success) {
+      const details =
+        'details' in parsedError.data.error ? parsedError.data.error.details : undefined;
       throw new MobileApiError({
         code: parsedError.data.error.code,
+        ...(details === undefined ? {} : { details }),
         message: parsedError.data.error.message,
         retryable: parsedError.data.error.retryable,
         statusCode: response.status,
@@ -171,4 +185,67 @@ export async function logoutSession(accessToken: string): Promise<void> {
     retryable: true,
     statusCode: response.status,
   });
+}
+
+export async function getFortuneState(accessToken: string): Promise<FortuneStateResponse> {
+  const response = await request(apiPaths.fortuneState, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const parsed = fortuneStateResponseSchema.safeParse(await requireSuccessJson(response));
+  if (!parsed.success) {
+    throw new MobileApiError({
+      code: 'RESPONSE_INVALID',
+      message: 'The fortune state did not match the application contract.',
+      retryable: true,
+      statusCode: response.status,
+    });
+  }
+  return parsed.data;
+}
+
+export async function drawFortune(
+  accessToken: string,
+  drawRequest: FortuneDrawRequest,
+  idempotencyKey: string,
+): Promise<FortuneDrawResponse> {
+  const response = await request(apiPaths.fortuneDraw, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      'Idempotency-Key': idempotencyKey,
+    },
+    body: JSON.stringify(drawRequest),
+  });
+  const parsed = fortuneDrawResponseSchema.safeParse(await requireSuccessJson(response));
+  if (!parsed.success) {
+    throw new MobileApiError({
+      code: 'RESPONSE_INVALID',
+      message: 'The fortune draw did not match the application contract.',
+      retryable: true,
+      statusCode: response.status,
+    });
+  }
+  return parsed.data;
+}
+
+export async function markFortuneViewed(
+  accessToken: string,
+  drawId: string,
+): Promise<FortuneViewedResponse> {
+  const response = await request(fortuneViewedPath(drawId), {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const parsed = fortuneViewedResponseSchema.safeParse(await requireSuccessJson(response));
+  if (!parsed.success) {
+    throw new MobileApiError({
+      code: 'RESPONSE_INVALID',
+      message: 'The viewed acknowledgement did not match the application contract.',
+      retryable: true,
+      statusCode: response.status,
+    });
+  }
+  return parsed.data;
 }

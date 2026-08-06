@@ -23,11 +23,11 @@ import {
 } from './api-client';
 import { AuthenticationCoordinator, type AuthenticationState } from './authentication-coordinator';
 import {
-  clearStoredCredentials,
   getOrCreateDeviceId,
   loadStoredCredentials,
   saveStoredCredentials,
 } from './session-storage';
+import { clearAllLocalAccountData } from '../local-data/account-cleanup';
 
 interface AuthenticationContextValue extends AuthenticationState {
   disconnect(): Promise<void>;
@@ -44,7 +44,7 @@ function createCoordinator(): AuthenticationCoordinator {
       logout: logoutSession,
       refresh: refreshSession,
     },
-    clearAccountData: clearStoredCredentials,
+    clearAccountData: clearAllLocalAccountData,
     createUuid: Crypto.randomUUID,
     deviceContext: () => ({
       locale: getLocales()[0].languageTag,

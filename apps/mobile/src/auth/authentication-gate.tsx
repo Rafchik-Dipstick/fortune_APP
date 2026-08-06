@@ -8,6 +8,7 @@ import { Screen } from '@/components/screen';
 import { Surface } from '@/components/surface';
 import { publicEnvironment } from '@/config/public-environment';
 import { spacing } from '@/theme/tokens';
+import { useLocalData } from '@/local-data/local-data';
 
 import { useAuthentication } from './authentication';
 
@@ -48,8 +49,44 @@ function PublicAccessLinks() {
 
 export function AuthenticationGate({ children }: { children: ReactNode }) {
   const authentication = useAuthentication();
-  if (authentication.phase === 'AUTHENTICATED') {
+  const localData = useLocalData();
+  if (
+    authentication.phase === 'AUTHENTICATED' &&
+    authentication.session?.user.id === localData.readyUserId
+  ) {
     return children;
+  }
+
+  if (authentication.phase === 'AUTHENTICATED') {
+    return (
+      <Screen readingWidth>
+        <View style={styles.container}>
+          <AppText color="gold" variant="caption">
+            Fortuneness
+          </AppText>
+          <AppText accessibilityRole="header" variant="title">
+            {localData.accountTransitionFailed
+              ? 'Your private circle is still locked'
+              : 'Preparing your private circle'}
+          </AppText>
+          <AppText color="textMuted">
+            {localData.accountTransitionFailed
+              ? 'Local account data could not be prepared safely. Try again before opening your readings.'
+              : 'Clearing any prior account cache before opening your readings.'}
+          </AppText>
+          {localData.accountTransitionFailed ? (
+            <AppButton
+              label="Try local preparation again"
+              onPress={() => {
+                localData.retryAccountTransition();
+              }}
+            />
+          ) : (
+            <LoadingSkeleton />
+          )}
+        </View>
+      </Screen>
+    );
   }
 
   const copy = (() => {
