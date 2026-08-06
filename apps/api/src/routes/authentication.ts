@@ -3,16 +3,32 @@ import {
   apiPaths,
   gameCenterAuthRequestSchema,
   gameCenterAuthResponseSchema,
+  idempotencyKeySchema,
+  refreshSessionRequestSchema,
+  refreshSessionResponseSchema,
   type GameCenterAuthRequest,
   type GameCenterAuthResponse,
+  type RefreshSessionRequest,
+  type RefreshSessionResponse,
 } from '@fortuneness/api-contracts';
 
 import { GameCenterLoginError } from '../auth/game-center-login.js';
 import { GameCenterVerificationError } from '../auth/game-center-errors.js';
+import { LogoutSessionError } from '../auth/logout-session.js';
+import { RefreshSessionError } from '../auth/refresh-session.js';
+import { type AuthenticationContext } from '../middleware/authentication.js';
 import { ApiHttpError } from '../middleware/errors.js';
 
 export interface GameCenterLoginHandler {
   login(request: GameCenterAuthRequest): Promise<GameCenterAuthResponse>;
+}
+
+export interface RefreshSessionHandler {
+  refresh(request: RefreshSessionRequest, idempotencyKey: string): Promise<RefreshSessionResponse>;
+}
+
+export interface LogoutSessionHandler {
+  logout(authentication: AuthenticationContext): Promise<void>;
 }
 
 function mapVerificationError(error: GameCenterVerificationError): ApiHttpError {
@@ -117,6 +133,108 @@ export function createGameCenterLoginRoute(login: GameCenterLoginHandler): Reque
   };
 }
 
-export function registerAuthenticationRoutes(app: Express, login: GameCenterLoginHandler): void {
-  app.post(apiPaths.authGameCenter, createGameCenterLoginRoute(login));
+function mapRefreshError(error: RefreshSessionError): ApiHttpError {
+  switch (error.code) {
+    case 'IDEMPOTENCY_KEY_REUSED':
+      return new ApiHttpError({
+        code: 'IDEMPOTENCY_KEY_REUSED',
+        message: 'The idempotency key was already used for different refresh input.',
+        statusCode: 409,
+      });
+    case 'ACCOUNT_DELETION_PENDING':
+      return new ApiHttpError({
+        code: 'ACCOUNT_DELETION_PENDING',
+        message: 'The account is pending deletion.',
+        statusCode: 423,
+      });
+    case 'ACCOUNT_PURGED':
+      return new ApiHttpError({
+        code: 'ACCOUNT_PURGED',
+        message: 'The account has been purged.',
+        statusCode: 410,
+      });
+    case 'AUTH_REQUIRED':
+      return new ApiHttpError({
+        code: 'AUTH_REQUIRED',
+        message: 'A new Game Center session is required.',
+        statusCode: 401,
+      });
+  }
+}
+
+export function createRefreshSessionRoute(refresh: RefreshSessionHandler): RequestHandler {
+  return async (request, response, next) => {
+    response.setHeader('Cache-Control', 'no-store');
+    const parsedRequest = refreshSessionRequestSchema.safeParse(request.body);
+    const parsedIdempotencyKey = idempotencyKeySchema.safeParse(request.header('idempotency-key'));
+    if (!parsedRequest.success || !parsedIdempotencyKey.success) {
+      next(
+        new ApiHttpError({
+          code: 'VALIDATION_FAILED',
+          message: 'The refresh request or idempotency key is invalid.',
+          statusCode: 400,
+        }),
+      );
+      return;
+    }
+
+    try {
+      const result = refreshSessionResponseSchema.parse(
+        await refresh.refresh(parsedRequest.data, parsedIdempotencyKey.data),
+      );
+      response.setHeader('Idempotency-Key', parsedIdempotencyKey.data);
+      response.status(200).json(result);
+    } catch (error) {
+      next(error instanceof RefreshSessionError ? mapRefreshError(error) : error);
+    }
+  };
+}
+
+function mapLogoutError(error: LogoutSessionError): ApiHttpError {
+  switch (error.code) {
+    case 'ACCOUNT_DELETION_PENDING':
+      return new ApiHttpError({
+        code: 'ACCOUNT_DELETION_PENDING',
+        message: 'The account is pending deletion.',
+        statusCode: 423,
+      });
+    case 'ACCOUNT_PURGED':
+      return new ApiHttpError({
+        code: 'ACCOUNT_PURGED',
+        message: 'The account has been purged.',
+        statusCode: 410,
+      });
+    case 'AUTH_REQUIRED':
+      return new ApiHttpError({
+        code: 'AUTH_REQUIRED',
+        message: 'The session is no longer active.',
+        statusCode: 401,
+      });
+  }
+}
+
+export function createLogoutRoute(logout: LogoutSessionHandler): RequestHandler {
+  return async (request, response, next) => {
+    response.setHeader('Cache-Control', 'no-store');
+    try {
+      await logout.logout(request.authentication);
+      response.status(204).send();
+    } catch (error) {
+      next(error instanceof LogoutSessionError ? mapLogoutError(error) : error);
+    }
+  };
+}
+
+export function registerAuthenticationRoutes(
+  app: Express,
+  handlers: {
+    authenticate: RequestHandler;
+    login: GameCenterLoginHandler;
+    logout: LogoutSessionHandler;
+    refresh: RefreshSessionHandler;
+  },
+): void {
+  app.post(apiPaths.authGameCenter, createGameCenterLoginRoute(handlers.login));
+  app.post(apiPaths.authRefresh, createRefreshSessionRoute(handlers.refresh));
+  app.post(apiPaths.authLogout, handlers.authenticate, createLogoutRoute(handlers.logout));
 }

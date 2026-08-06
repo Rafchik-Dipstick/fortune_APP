@@ -1089,3 +1089,31 @@ git diff --check
 ```
 
 Deployment impact: one additive/backfilled session-family column and local API lock/authentication code. The migration still requires the normal staging backup/restore and `migrate deploy` gate before production; no persistent database or deployed environment changed.
+
+### 2026-08-06 — Phase 5 refresh rotation and logout
+
+- Mounted strict, non-cacheable refresh and logout routes. Refresh requires and echoes a UUID `Idempotency-Key`; CORS now exposes that response header, and shared OpenAPI documents all implemented invalid-session, idempotency, deletion-pending, and purge outcomes.
+- Added dual-read refresh-token lookup across retained HMAC keys, followed by the mandatory `User → SessionFamily → RefreshToken` row locks and authoritative user/family/version/expiry rechecks before any rotation.
+- Made first-use rotation atomic: the presented token is consumed, one current-key hash-only replacement references it, the original immutable Game Center `auth_time` is copied into the new access token, and the family retains its fixed 30-day boundary.
+- Added a dedicated AES-GCM replay receipt containing the replacement response for at most 120 seconds. Its authenticated context binds the presented token row, idempotency key, and canonical request hash; the raw replacement token appears nowhere else in persistence.
+- Exact concurrent or lost-response retries return the same receipt. A different key, different canonical request, expired receipt, missing encryption key, or corrupt ciphertext commits whole-family revocation before returning an authorization/idempotency error.
+- Corrected refresh idempotency scope by removing the overly broad family/key unique index: the same client UUID may be validly reused against a later presented-token digest, while each consumed token and replay receipt still carry their own key/request binding.
+- Added logout as an authoritative protected transaction that reacquires `User → SessionFamily`, rechecks version, ownership, expiry, status, and immutable `auth_time`, then revokes only the current family. A repeated logout fails normal authorization.
+- The disposable PostgreSQL suite proved successor-token key reuse, concurrent same-key receipt replay, malicious different-key family revocation, normal logout, repeated-logout rejection, four forward migrations, deterministic double seed, and all database invariants; its generated database was removed.
+
+Verification required before commit:
+
+```text
+TEST_DATABASE_ADMIN_URL=<injected local admin URL> corepack npm run test:db
+corepack npm run openapi:generate
+corepack npm run openapi:check
+corepack npm run db:schema:validate
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api-contracts --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: one index-removal migration plus local API session services/routes, generated OpenAPI, and tests. The migration restores the specified token-scoped idempotency semantics and still requires normal staging evidence; no persistent database, key, credential, Railway service, or deployed environment changed.

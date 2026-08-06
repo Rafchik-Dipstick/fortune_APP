@@ -11,6 +11,8 @@ import {
   type GameCenterIdentityVerifier,
 } from '../auth/game-center-login.js';
 import { type VerifiedGameCenterIdentity } from '../auth/game-center-proof.js';
+import { LogoutSessionError, LogoutSessionService } from '../auth/logout-session.js';
+import { RefreshSessionError, RefreshSessionService } from '../auth/refresh-session.js';
 import { createTestApiEnvironment } from '../config/environment.fixture.js';
 import { PrismaClient } from '../generated/prisma/client.js';
 import { mapDatabaseError } from './errors.js';
@@ -170,8 +172,9 @@ describe('PostgreSQL integrity', { concurrent: false }, () => {
         return Promise.resolve(verified);
       },
     };
+    const accessTokens = new AccessTokenService(environment);
     const login = new GameCenterLoginService({
-      accessTokens: new AccessTokenService(environment),
+      accessTokens,
       client: prisma,
       environment,
       proofVerifier,
@@ -220,6 +223,53 @@ describe('PostgreSQL integrity', { concurrent: false }, () => {
         where: { userId: first.user.id, provider: 'GAME_CENTER' },
       }),
     ).resolves.toMatchObject({ keyVersion: 'v1', subjectDigest: identityDigest });
+
+    const refresh = new RefreshSessionService({ accessTokens, client: prisma, environment });
+    const firstRefreshKey = randomUUID();
+    const firstReplacement = await refresh.refresh(
+      { refreshToken: first.session.refreshToken, device: firstRequest.device },
+      firstRefreshKey,
+    );
+    await expect(
+      refresh.refresh(
+        { refreshToken: firstReplacement.session.refreshToken, device: firstRequest.device },
+        firstRefreshKey,
+      ),
+    ).resolves.toMatchObject({ session: { authTime: first.session.authTime } });
+
+    const concurrentRefreshKey = randomUUID();
+    const secondRefreshRequest = {
+      refreshToken: second.session.refreshToken,
+      device: secondRequest.device,
+    };
+    const [concurrentFirst, concurrentRetry] = await Promise.all([
+      refresh.refresh(secondRefreshRequest, concurrentRefreshKey),
+      refresh.refresh(secondRefreshRequest, concurrentRefreshKey),
+    ]);
+    expect(concurrentRetry).toEqual(concurrentFirst);
+    const secondFamily = await accessTokens.verify(second.session.accessToken);
+    await expect(refresh.refresh(secondRefreshRequest, randomUUID())).rejects.toSatisfy(
+      (error: unknown) => error instanceof RefreshSessionError && error.code === 'AUTH_REQUIRED',
+    );
+    await expect(
+      prisma.sessionFamily.findUniqueOrThrow({ where: { id: secondFamily.sessionFamilyId } }),
+    ).resolves.toMatchObject({ revocationReason: 'REFRESH_REUSE' });
+
+    const rotatedAuthentication = await accessTokens.verify(rotated.session.accessToken);
+    const logout = new LogoutSessionService(prisma);
+    const logoutContext = {
+      ...rotatedAuthentication,
+      authTime: new Date(rotatedAuthentication.authTimeSeconds * 1_000),
+    };
+    await logout.logout(logoutContext);
+    await expect(logout.logout(logoutContext)).rejects.toSatisfy(
+      (error: unknown) => error instanceof LogoutSessionError && error.code === 'AUTH_REQUIRED',
+    );
+    await expect(
+      prisma.sessionFamily.findUniqueOrThrow({
+        where: { id: rotatedAuthentication.sessionFamilyId },
+      }),
+    ).resolves.toMatchObject({ revocationReason: 'LOGOUT' });
   });
 
   it('rejects a duplicate user draw idempotency record', async () => {

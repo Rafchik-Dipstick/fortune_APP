@@ -54,7 +54,13 @@ export const createApiApp = (options: CreateApiAppOptions): Express => {
     cors({
       allowedHeaders: ['Authorization', 'Content-Type', 'Idempotency-Key', 'X-Request-ID'],
       credentials: false,
-      exposedHeaders: ['X-Request-ID', 'RateLimit', 'RateLimit-Policy', 'Retry-After'],
+      exposedHeaders: [
+        'X-Request-ID',
+        'Idempotency-Key',
+        'RateLimit',
+        'RateLimit-Policy',
+        'Retry-After',
+      ],
       maxAge: 600,
       methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
       origin: (origin, callback) => {

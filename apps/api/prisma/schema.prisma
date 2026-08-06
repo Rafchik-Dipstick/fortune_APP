@@ -254,7 +254,6 @@ model RefreshToken {
   replacement       RefreshToken?         @relation("RefreshRotation")
   replayReceipt     RefreshReplayReceipt?
 
-  @@unique([familyId, idempotencyKey])
   @@index([familyId, expiresAt])
 }
 

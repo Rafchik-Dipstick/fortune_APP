@@ -86,6 +86,10 @@ export const generateOpenApiDocument = () => {
         description: 'The player identifiers are not persistent.',
         content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
       },
+      410: {
+        description: 'A stale retained identity points at an already purged account.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
       423: {
         description: 'The account is pending deletion and no normal session was issued.',
         content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
@@ -130,6 +134,14 @@ export const generateOpenApiDocument = () => {
         description: 'The idempotency key was reused for different input.',
         content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
       },
+      410: {
+        description: 'The account has already been purged.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      423: {
+        description: 'The account entered deletion pending before refresh could commit.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
       503: {
         description: 'Stable database state is temporarily unavailable.',
         content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
@@ -148,6 +160,14 @@ export const generateOpenApiDocument = () => {
       204: { description: 'The current session family was revoked.' },
       401: {
         description: 'The access token or authoritative session is no longer active.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      410: {
+        description: 'The account was purged before logout could commit.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      423: {
+        description: 'The account entered deletion pending before logout could commit.',
         content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
       },
       503: {

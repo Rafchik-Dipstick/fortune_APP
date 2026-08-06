@@ -5,10 +5,13 @@ import { AccessTokenService } from './auth/access-token.js';
 import { GameCenterLoginService } from './auth/game-center-login.js';
 import { GameCenterProofVerifier } from './auth/game-center-proof.js';
 import { CachedGameCenterPublicKeyProvider } from './auth/game-center-public-key.js';
+import { LogoutSessionService } from './auth/logout-session.js';
+import { RefreshSessionService } from './auth/refresh-session.js';
 import { type ApiEnvironment, parseApiEnvironment } from './config/environment.js';
 import { type DatabaseRuntime, createDatabaseRuntime } from './db/database.js';
 import { ApiReadiness } from './health/readiness.js';
 import { type ApiLogger, createApiLogger } from './logging/logger.js';
+import { createAuthoritativeAuthentication } from './middleware/authentication.js';
 import { registerAuthenticationRoutes } from './routes/authentication.js';
 
 export interface ApiRuntime {
@@ -36,12 +39,24 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
     environment: environment.authentication,
     proofVerifier: gameCenterProofs,
   });
+  const refreshSessions = new RefreshSessionService({
+    accessTokens,
+    client: database.client,
+    environment: environment.authentication,
+  });
+  const logoutSessions = new LogoutSessionService(database.client);
+  const authenticate = createAuthoritativeAuthentication(database.client, accessTokens);
   const app = createApiApp({
     environment,
     logger,
     readiness,
     configureRoutes: (configuredApp) => {
-      registerAuthenticationRoutes(configuredApp, gameCenterLogin);
+      registerAuthenticationRoutes(configuredApp, {
+        authenticate,
+        login: gameCenterLogin,
+        logout: logoutSessions,
+        refresh: refreshSessions,
+      });
     },
   });
 
