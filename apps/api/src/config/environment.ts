@@ -158,6 +158,8 @@ const rawApiEnvironmentSchema = z
     APP_ACCOUNT_TOKEN_HMAC_CURRENT_KEY_VERSION: keyVersionSchema,
     APP_ACCOUNT_TOKEN_ENCRYPTION_KEYS_JSON: keyRingSchema,
     APP_ACCOUNT_TOKEN_ENCRYPTION_CURRENT_KEY_VERSION: keyVersionSchema,
+    HISTORY_CURSOR_HMAC_KEYS_JSON: keyRingSchema,
+    HISTORY_CURSOR_CURRENT_KEY_VERSION: keyVersionSchema,
     ACCOUNT_DELETION_REAUTH_MAX_AGE_SECONDS: environmentInteger(300, 60, 900),
   })
   .superRefine((environment, context) => {
@@ -190,6 +192,7 @@ const rawApiEnvironmentSchema = z
         'APP_ACCOUNT_TOKEN_ENCRYPTION_KEYS_JSON',
         'APP_ACCOUNT_TOKEN_ENCRYPTION_CURRENT_KEY_VERSION',
       ],
+      ['HISTORY_CURSOR_HMAC_KEYS_JSON', 'HISTORY_CURSOR_CURRENT_KEY_VERSION'],
     ] as const) {
       if (environment[keysField][environment[versionField]] === undefined) {
         context.addIssue({
@@ -225,7 +228,12 @@ export interface AuthenticationEnvironment {
   refreshTokenTtlDays: number;
 }
 
+export interface ArchiveEnvironment {
+  historyCursorHmacKeys: VersionedKeyRing;
+}
+
 export interface ApiEnvironment {
+  archive: ArchiveEnvironment;
   authentication: AuthenticationEnvironment;
   corsOrigins: string[];
   databaseUrl: string;
@@ -257,6 +265,12 @@ export const parseApiEnvironment = (source: NodeJS.ProcessEnv): ApiEnvironment =
   }
 
   return {
+    archive: {
+      historyCursorHmacKeys: {
+        currentVersion: result.data.HISTORY_CURSOR_CURRENT_KEY_VERSION,
+        keys: result.data.HISTORY_CURSOR_HMAC_KEYS_JSON,
+      },
+    },
     authentication: {
       accountDeletionReauthMaxAgeSeconds: result.data.ACCOUNT_DELETION_REAUTH_MAX_AGE_SECONDS,
       appAccountTokenEncryptionKeys: {

@@ -21,6 +21,8 @@ const baseEnvironment = parseApiEnvironment({
   APP_ACCOUNT_TOKEN_HMAC_CURRENT_KEY_VERSION: 'v1',
   APP_ACCOUNT_TOKEN_ENCRYPTION_KEYS_JSON: keyRing,
   APP_ACCOUNT_TOKEN_ENCRYPTION_CURRENT_KEY_VERSION: 'v1',
+  HISTORY_CURSOR_HMAC_KEYS_JSON: keyRing,
+  HISTORY_CURSOR_CURRENT_KEY_VERSION: 'v1',
 });
 
 export function createTestApiEnvironment(overrides: Partial<ApiEnvironment> = {}): ApiEnvironment {

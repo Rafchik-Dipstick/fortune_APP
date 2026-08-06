@@ -21,6 +21,8 @@ const validAuthenticationEnvironment = {
   APP_ACCOUNT_TOKEN_HMAC_CURRENT_KEY_VERSION: 'v1',
   APP_ACCOUNT_TOKEN_ENCRYPTION_KEYS_JSON: keyRing,
   APP_ACCOUNT_TOKEN_ENCRYPTION_CURRENT_KEY_VERSION: 'v1',
+  HISTORY_CURSOR_HMAC_KEYS_JSON: keyRing,
+  HISTORY_CURSOR_CURRENT_KEY_VERSION: 'v1',
 } as const;
 
 describe('parseApiEnvironment', () => {
@@ -52,6 +54,8 @@ describe('parseApiEnvironment', () => {
     expect(environment.authentication.gameCenterIdentityKeys.keys['v1']).toEqual(
       Buffer.alloc(32, 7),
     );
+    expect(environment.archive.historyCursorHmacKeys.currentVersion).toBe('v1');
+    expect(environment.archive.historyCursorHmacKeys.keys['v1']).toEqual(Buffer.alloc(32, 7));
   });
 
   it('parses bounded integer settings', () => {
@@ -117,6 +121,13 @@ describe('parseApiEnvironment', () => {
         JWT_ACCESS_CURRENT_KEY_VERSION: 'missing',
       }),
     ).toThrow(/JWT_ACCESS_CURRENT_KEY_VERSION/);
+    expect(() =>
+      parseApiEnvironment({
+        ...validAuthenticationEnvironment,
+        DATABASE_URL: databaseUrl,
+        HISTORY_CURSOR_CURRENT_KEY_VERSION: 'missing',
+      }),
+    ).toThrow(/HISTORY_CURSOR_CURRENT_KEY_VERSION/);
 
     try {
       parseApiEnvironment({
