@@ -96,13 +96,25 @@ export const createApiApp = (options: CreateApiAppOptions): Express => {
       windowMs: rateLimitOptions.windowMs,
     }),
   );
-  app.use(
-    express.json({
-      limit: '32kb',
-      strict: true,
-      type: ['application/json', 'application/*+json'],
-    }),
-  );
+  const defaultJsonParser = express.json({
+    limit: '32kb',
+    strict: true,
+    type: ['application/json', 'application/*+json'],
+  });
+  // Signed-transaction batches and Apple notification envelopes carry
+  // certificate chains, so these two routes get larger explicit bounds.
+  const commerceJsonParser = express.json({
+    limit: '3mb',
+    strict: true,
+    type: ['application/json', 'application/*+json'],
+  });
+  app.use((request, response, next) => {
+    if (request.path === apiPaths.iapReconcile || request.path === apiPaths.appStoreWebhook) {
+      commerceJsonParser(request, response, next);
+      return;
+    }
+    defaultJsonParser(request, response, next);
+  });
 
   registerHealthRoute(app, options.readiness);
   options.configureRoutes?.(app);

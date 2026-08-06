@@ -19,9 +19,14 @@ import { FortuneViewedService } from './fortune/viewed.js';
 import { type ApiLogger, createApiLogger } from './logging/logger.js';
 import { createAuthoritativeAuthentication } from './middleware/authentication.js';
 import { LoggerFortuneDrawTelemetry } from './observability/fortune-draw-telemetry.js';
+import { IapApplicationService } from './iap/application.js';
+import { CommerceService } from './iap/commerce.js';
+import { findBindingByToken } from './iap/purchase-token.js';
+import { AppleSignedDataVerifier } from './iap/verification.js';
 import { registerAuthenticationRoutes } from './routes/authentication.js';
 import { registerCollectionRoutes } from './routes/collection.js';
 import { registerFortuneRoutes } from './routes/fortunes.js';
+import { registerIapRoutes } from './routes/iap.js';
 
 export interface ApiRuntime {
   app: Express;
@@ -68,6 +73,33 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
   );
   const fortuneDrawTelemetry = new LoggerFortuneDrawTelemetry(logger);
   const authenticate = createAuthoritativeAuthentication(database.client, accessTokens);
+  const purchaseTokenKeys = {
+    encryptionKeys: environment.authentication.appAccountTokenEncryptionKeys,
+    hmacKeys: environment.authentication.appAccountTokenHmacKeys,
+  };
+  const signedDataVerifier = new AppleSignedDataVerifier({
+    appAppleId: environment.commerce.appAppleId,
+    bundleId: environment.authentication.bundleId,
+    commerce: {
+      environment: environment.commerce.environment,
+      expectedSubscriptionBillingPlanType:
+        environment.commerce.expectedSubscriptionBillingPlanType,
+      fortunePack10ProductId: environment.commerce.fortunePack10ProductId,
+      oraclePlusMonthlyProductId: environment.commerce.oraclePlusMonthlyProductId,
+    },
+  });
+  const iapApplication = new IapApplicationService({
+    client: database.client,
+    resolveTokenOwner: (transaction, rawToken) =>
+      findBindingByToken(transaction, rawToken, purchaseTokenKeys.hmacKeys),
+  });
+  const commerce = new CommerceService({
+    application: iapApplication,
+    client: database.client,
+    commerce: environment.commerce,
+    tokenKeys: purchaseTokenKeys,
+    verifier: signedDataVerifier,
+  });
   const app = createApiApp({
     environment,
     logger,
@@ -89,6 +121,7 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
         viewed: fortuneViewed,
       });
       registerCollectionRoutes(configuredApp, { authenticate, collection });
+      registerIapRoutes(configuredApp, { authenticate, commerce });
     },
   });
 
