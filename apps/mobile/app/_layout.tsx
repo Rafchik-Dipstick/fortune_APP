@@ -10,6 +10,7 @@ import { AuthenticationGate } from '@/auth/authentication-gate';
 import { AuthenticationProvider } from '@/auth/authentication';
 import { QaLocaleProvider } from '@/i18n/qa-locale';
 import { LocalDataProvider } from '@/local-data/local-data';
+import { FortuneRitualProvider } from '@/fortune/fortune-ritual';
 import { MotionPreferenceProvider, useMotionPreference } from '@/motion/motion-preference';
 import { shouldReduceMotion } from '@/motion/reduce-motion';
 import { colors } from '@/theme/tokens';
@@ -22,9 +23,11 @@ export default function RootLayout() {
           <AuthenticationProvider>
             <LocalDataProvider>
               <AuthenticationGate>
-                <MotionPreferenceProvider>
-                  <AppNavigation />
-                </MotionPreferenceProvider>
+                <FortuneRitualProvider>
+                  <MotionPreferenceProvider>
+                    <AppNavigation />
+                  </MotionPreferenceProvider>
+                </FortuneRitualProvider>
               </AuthenticationGate>
             </LocalDataProvider>
           </AuthenticationProvider>

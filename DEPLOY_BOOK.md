@@ -1376,3 +1376,23 @@ git diff --check
 ```
 
 Deployment impact: local mobile draw orchestration, SQLite reconciliation helpers, and tests only. No request was sent, draw issued, allowance consumed, device database mutated, native project regenerated, API/database service changed, or deployed environment changed.
+
+### 2026-08-06 — Phase 7 authoritative Oracle connection
+
+- Added an authenticated fortune-ritual provider backed by an account-keyed TanStack Query. It loads server allowance truth, loads the account SQLite partition, and completes server/local pending reconciliation before a new draw becomes actionable.
+- Connected Oracle to real loading, refresh, offline, server-error, available, exhausted, and sole-unviewed-reading states. The UI shows the authoritative allowance components, account-zone reset, a non-aggressive Shop path only after exhaustion, and an offline resume shell when a saved pending reading exists.
+- Routed card and button activation through the single-flight controller. A returned draw or terminal owned pending draw is written to SQLite before reveal navigation; an ambiguous failure exposes an exact retry for the retained intention, and exhausted details update query state without claiming consumption.
+- Added the root ritual lifecycle plus a retrying viewed-acknowledgement mutation. It advances the local presentation boundary before the request, repeats only retryable failures with bounded backoff, completes SQLite after the server accepts, and invalidates authoritative state.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+corepack npm run lint -- --quiet
+corepack npm run typecheck --workspace @fortuneness/mobile
+corepack npm run test --workspace @fortuneness/mobile
+corepack npm run build --workspace @fortuneness/mobile
+git diff --check
+```
+
+Deployment impact: local Expo Oracle UI, TanStack Query orchestration, and client-side SQLite/API lifecycle only. No API request was executed by verification, native prebuild or Expo project setup ran, device database was opened, allowance was consumed, service/database changed, or deployed environment changed.

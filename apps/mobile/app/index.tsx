@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import type { FortuneAllowanceState, FortuneIntention } from '@fortuneness/api-contracts';
 
-import type { FortuneIntention } from '@fortuneness/shared-types';
-
+import { MobileApiError } from '@/auth/api-client';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
 import { ErrorState } from '@/components/error-state';
@@ -14,16 +14,60 @@ import { Screen } from '@/components/screen';
 import { StatusBanner } from '@/components/status-banner';
 import { Surface } from '@/components/surface';
 import { TarotCard } from '@/components/tarot-card';
+import { useFortuneRitual } from '@/fortune/fortune-ritual';
 import { useAdaptiveLayout } from '@/theme/adaptive';
 import { spacing } from '@/theme/tokens';
 
-type OracleFixtureState = 'ERROR' | 'LOADING' | 'READY';
+const intentionLabels: Record<FortuneIntention, string> = {
+  GENERAL: 'General',
+  LOVE: 'Love',
+  WORK: 'Work',
+  GROWTH: 'Growth',
+};
+
+function formatNextReset(state: FortuneAllowanceState): string {
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      month: 'short',
+      timeZone: state.accountTimeZone,
+      timeZoneName: 'short',
+    }).format(new Date(state.nextResetAt));
+  } catch {
+    return state.nextResetAt;
+  }
+}
+
+function drawFailureMessage(error: Error, retainedIntention: FortuneIntention | undefined): string {
+  if (error instanceof MobileApiError && error.code === 'NETWORK_UNAVAILABLE') {
+    return retainedIntention === undefined
+      ? 'A connection is required to draw. Nothing was consumed.'
+      : `The ${intentionLabels[retainedIntention]} request is saved for an exact safe retry. Nothing will be doubled.`;
+  }
+  return 'The draw could not be completed. Nothing new will be requested until you try again.';
+}
 
 export default function OracleScreen() {
   const router = useRouter();
+  const ritual = useFortuneRitual();
   const { isRegular, oracleCardWidth } = useAdaptiveLayout();
   const [intention, setIntention] = useState<FortuneIntention>('GENERAL');
-  const [fixtureState, setFixtureState] = useState<OracleFixtureState>('READY');
+
+  const openReveal = () => {
+    router.push('/reveal');
+  };
+  const requestDraw = async () => {
+    const result = await ritual.requestDraw(intention);
+    if (result === 'REVEAL_READY') {
+      openReveal();
+    }
+  };
+  const pending = ritual.pendingReveal;
+  const allowance = ritual.allowance;
+  const availableDraws = allowance?.availableDraws ?? 0;
+  const exhausted = allowance !== undefined && availableDraws === 0;
 
   return (
     <Screen>
@@ -60,88 +104,129 @@ export default function OracleScreen() {
         title="Oracle"
       />
 
-      <StatusBanner
-        message="Static Phase 2 fixture — server state connects in Phase 7."
-        title="One free reflection is ready"
-      />
-
-      {__DEV__ ? (
-        <View accessibilityLabel="Development state preview" style={styles.previewControls}>
-          <AppButton
-            compact
-            label="Ready"
-            onPress={() => {
-              setFixtureState('READY');
-            }}
-            variant="quiet"
+      {pending !== undefined ? (
+        <>
+          <StatusBanner
+            message={
+              ritual.stateError === undefined
+                ? 'It is already saved. Continue without drawing or consuming anything again.'
+                : 'Your saved reading is available on this device while the Oracle reconnects.'
+            }
+            title="Continue your reading"
           />
-          <AppButton
-            compact
-            label="Loading"
-            onPress={() => {
-              setFixtureState('LOADING');
-            }}
-            variant="quiet"
-          />
-          <AppButton
-            compact
-            label="Error"
-            onPress={() => {
-              setFixtureState('ERROR');
-            }}
-            variant="quiet"
-          />
-        </View>
-      ) : null}
-
-      {fixtureState === 'LOADING' ? <LoadingSkeleton /> : null}
-      {fixtureState === 'ERROR' ? (
+          <View style={styles.resumePanel}>
+            <TarotCard
+              accessibilityLabel="Continue your saved tarot reading."
+              face="down"
+              onPress={openReveal}
+              width={oracleCardWidth}
+            />
+            <AppButton label="Continue your reading" onPress={openReveal} />
+          </View>
+        </>
+      ) : ritual.isStateLoading ? (
+        <LoadingSkeleton />
+      ) : ritual.stateError !== undefined ? (
         <ErrorState
-          message="The fixture could not load its Oracle state. No allowance was consumed."
+          message={
+            ritual.stateError instanceof MobileApiError &&
+            ritual.stateError.code === 'NETWORK_UNAVAILABLE'
+              ? 'A connection is required for a new draw. No allowance was consumed.'
+              : 'The authoritative Oracle state could not be loaded. No allowance was consumed.'
+          }
           onRetry={() => {
-            setFixtureState('READY');
+            void ritual.retryState();
           }}
           title="Oracle is temporarily unavailable"
         />
-      ) : null}
+      ) : allowance !== undefined ? (
+        <>
+          <StatusBanner
+            message={
+              exhausted
+                ? `Your next daily reflection is available ${formatNextReset(allowance)}.`
+                : `Next daily reset ${formatNextReset(allowance)}.`
+            }
+            title={
+              exhausted
+                ? 'Your daily ritual is complete'
+                : `${String(availableDraws)} ${availableDraws === 1 ? 'reflection is' : 'reflections are'} ready`
+            }
+          />
 
-      {fixtureState === 'READY' ? (
-        <View style={[styles.oracle, isRegular ? styles.oracleRegular : undefined]}>
-          <View style={styles.cardColumn}>
-            <TarotCard
-              face="down"
-              onPress={() => {
-                router.push('/reveal');
-              }}
-              width={oracleCardWidth}
-            />
-            <AppButton
-              label="Draw your card"
-              onPress={() => {
-                router.push('/reveal');
-              }}
-            />
-          </View>
-
-          <Surface style={styles.ritualPanel}>
-            <AppText color="gold" variant="caption">
-              Set an intention
-            </AppText>
-            <AppText accessibilityRole="header" variant="headline">
-              What would you like to notice today?
-            </AppText>
-            <AppText color="textMuted">
-              Choose a focus or keep General. Your reading offers reflection, not certainty.
-            </AppText>
-            <IntentionSelector onChange={setIntention} value={intention} />
-            <View style={styles.allowance}>
-              <AppText variant="label">1 draw available</AppText>
-              <AppText color="textMuted" variant="caption">
-                Next daily card at 12:00 AM Europe/Kyiv
-              </AppText>
+          <View style={[styles.oracle, isRegular ? styles.oracleRegular : undefined]}>
+            <View style={styles.cardColumn}>
+              <TarotCard
+                accessibilityLabel={
+                  exhausted ? 'No tarot draws are currently available.' : 'Draw a tarot card.'
+                }
+                face="down"
+                {...(exhausted || ritual.isDrawing
+                  ? {}
+                  : {
+                      onPress: () => {
+                        void requestDraw();
+                      },
+                    })}
+                width={oracleCardWidth}
+              />
+              <AppButton
+                disabled={exhausted || ritual.isDrawing}
+                label={
+                  ritual.isDrawing
+                    ? 'Waiting for your card…'
+                    : ritual.retainedIntention === undefined
+                      ? 'Draw your card'
+                      : `Retry ${intentionLabels[ritual.retainedIntention]} draw`
+                }
+                onPress={() => {
+                  void requestDraw();
+                }}
+              />
+              {exhausted ? (
+                <AppButton
+                  label="See optional ways to draw more"
+                  onPress={() => {
+                    router.push('/shop');
+                  }}
+                  variant="quiet"
+                />
+              ) : null}
             </View>
-          </Surface>
-        </View>
+
+            <Surface style={styles.ritualPanel}>
+              <AppText color="gold" variant="caption">
+                Set an intention
+              </AppText>
+              <AppText accessibilityRole="header" variant="headline">
+                What would you like to notice today?
+              </AppText>
+              <AppText color="textMuted">
+                Choose a focus or keep General. Your reading offers reflection, not certainty.
+              </AppText>
+              <IntentionSelector onChange={setIntention} value={intention} />
+              <View style={styles.allowance}>
+                <AppText variant="label">
+                  {String(allowance.freeRemaining)} free · {String(allowance.subscriptionRemaining)}{' '}
+                  Oracle+ · {String(allowance.spendablePackCredits)} pack
+                </AppText>
+                <AppText color="textMuted" variant="caption">
+                  Account day: {allowance.accountTimeZone}
+                </AppText>
+              </View>
+              {ritual.drawError !== undefined ? (
+                <AppText accessibilityLiveRegion="assertive" color="danger" variant="caption">
+                  {drawFailureMessage(ritual.drawError, ritual.retainedIntention)}
+                </AppText>
+              ) : null}
+              {ritual.isRefreshing ? (
+                <AppText color="textMuted" variant="caption">
+                  Refreshing authoritative allowance…
+                </AppText>
+              ) : null}
+            </Surface>
+          </View>
+        </>
       ) : null}
     </Screen>
   );
@@ -153,12 +238,6 @@ const styles = StyleSheet.create({
     gap: spacing.xl,
     paddingTop: spacing.xl,
   },
-  previewControls: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-    paddingTop: spacing.sm,
-  },
   oracleRegular: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -167,6 +246,11 @@ const styles = StyleSheet.create({
   cardColumn: {
     alignItems: 'center',
     gap: spacing.lg,
+  },
+  resumePanel: {
+    alignItems: 'center',
+    gap: spacing.lg,
+    paddingTop: spacing.xl,
   },
   ritualPanel: {
     width: '100%',
