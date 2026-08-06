@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import type { FortuneDraw } from '@fortuneness/api-contracts';
 
-import { AccountReadingStore, initializeReadingDatabase } from './reading-store';
+import {
+  AccountReadingStore,
+  initializeReadingDatabase,
+  reconcilePendingReveal,
+} from './reading-store';
 
 const accountId = '26087e7e-0613-49fd-bd8f-e52dc58652a9';
 const draw: FortuneDraw = {
@@ -108,5 +112,38 @@ describe('AccountReadingStore', () => {
       expect(sql).not.toContain(accountId);
       expect(parameters).toEqual({ $accountId: accountId });
     }
+  });
+});
+
+describe('reconcilePendingReveal', () => {
+  it('keeps a later local presentation step for the same server draw', async () => {
+    const local = { draw, step: 'CONTENT_REACHABLE' as const };
+    const discardPendingReveal = vi.fn();
+    const savePendingReveal = vi.fn();
+    const store = {
+      loadPendingReveal: vi.fn().mockResolvedValue(local),
+      discardPendingReveal,
+      savePendingReveal,
+    } as unknown as AccountReadingStore;
+
+    await expect(reconcilePendingReveal(store, accountId, draw)).resolves.toEqual(local);
+
+    expect(savePendingReveal).not.toHaveBeenCalled();
+    expect(discardPendingReveal).not.toHaveBeenCalled();
+  });
+
+  it('discards stale local pending state when the server has no unviewed draw', async () => {
+    const discardPendingReveal = vi.fn().mockResolvedValue(undefined);
+    const savePendingReveal = vi.fn();
+    const store = {
+      loadPendingReveal: vi.fn().mockResolvedValue({ draw, step: 'ISSUED' }),
+      discardPendingReveal,
+      savePendingReveal,
+    } as unknown as AccountReadingStore;
+
+    await expect(reconcilePendingReveal(store, accountId, null)).resolves.toBeUndefined();
+
+    expect(discardPendingReveal).toHaveBeenCalledWith(accountId, draw.id);
+    expect(savePendingReveal).not.toHaveBeenCalled();
   });
 });

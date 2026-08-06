@@ -152,6 +152,13 @@ export class AccountReadingStore {
     });
   }
 
+  async discardPendingReveal(accountId: string, drawId: string): Promise<void> {
+    await this.database.runAsync(
+      'DELETE FROM pending_reveals WHERE account_id = $accountId AND draw_id = $drawId',
+      { $accountId: accountId, $drawId: drawId },
+    );
+  }
+
   async purgeAccount(accountId: string): Promise<void> {
     await this.database.withExclusiveTransactionAsync(async (transaction) => {
       await transaction.runAsync('DELETE FROM pending_reveals WHERE account_id = $accountId', {
@@ -162,4 +169,23 @@ export class AccountReadingStore {
       });
     });
   }
+}
+
+export async function reconcilePendingReveal(
+  store: AccountReadingStore,
+  accountId: string,
+  serverDraw: FortuneDraw | null,
+): Promise<PendingReveal | undefined> {
+  const localPending = await store.loadPendingReveal(accountId);
+  if (serverDraw === null) {
+    if (localPending !== undefined) {
+      await store.discardPendingReveal(accountId, localPending.draw.id);
+    }
+    return undefined;
+  }
+  if (localPending?.draw.id === serverDraw.id) {
+    return localPending;
+  }
+  await store.savePendingReveal(accountId, serverDraw);
+  return { draw: fortuneDrawSchema.parse(serverDraw), step: 'ISSUED' };
 }

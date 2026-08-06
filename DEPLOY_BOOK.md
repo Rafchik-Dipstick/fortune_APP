@@ -1357,3 +1357,22 @@ git diff --check
 ```
 
 Deployment impact: local Expo client code, SQLite schema initialization, cache lifecycle, and tests only. No native prebuild, Expo project setup, persistent device database, API/database service, credential, allowance, content, or deployed environment changed.
+
+### 2026-08-06 — Phase 7 deterministic draw and resume primitives
+
+- Preserved the server's `sameKeyRetrySafe` response signal in mobile errors and added a single-flight draw-attempt controller. Extra taps are ignored while a request is active; ambiguous safe failures retain the exact UUID and original intention, successful or terminal outcomes release them, and an account change always discards them.
+- Parsed terminal `UNVIEWED_READING_PENDING` and `NO_DRAWS_AVAILABLE` details back through their strict shared schemas so the client can resume the owned immutable draw or render the authoritative exhausted allowance without guessing.
+- Added server/local pending-reveal reconciliation. Relaunch keeps an already-advanced local presentation step for the same unviewed draw, persists a different server-owned draw at the safe issued boundary, and removes stale pending presentation state when the server confirms no unviewed draw.
+- Added tests for simultaneous taps, exact-key ambiguous retry, deliberate subsequent keys, account-switch isolation, terminal pending/exhausted recovery, safe-step preservation, and stale pending removal. The mobile suite now passes 44 tests.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+corepack npm run lint -- --quiet
+corepack npm run typecheck --workspace @fortuneness/mobile
+corepack npm run test --workspace @fortuneness/mobile
+git diff --check
+```
+
+Deployment impact: local mobile draw orchestration, SQLite reconciliation helpers, and tests only. No request was sent, draw issued, allowance consumed, device database mutated, native project regenerated, API/database service changed, or deployed environment changed.

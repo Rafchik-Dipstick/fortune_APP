@@ -28,6 +28,7 @@ export class MobileApiError extends Error {
   readonly code: ApiErrorCode | 'NETWORK_UNAVAILABLE' | 'RESPONSE_INVALID';
   readonly details: unknown;
   readonly retryable: boolean;
+  readonly sameKeyRetrySafe: boolean;
   readonly statusCode: number | undefined;
 
   constructor(options: {
@@ -36,6 +37,7 @@ export class MobileApiError extends Error {
     details?: unknown;
     message: string;
     retryable: boolean;
+    sameKeyRetrySafe?: boolean;
     statusCode?: number;
   }) {
     super(options.message, { cause: options.cause });
@@ -43,6 +45,7 @@ export class MobileApiError extends Error {
     this.code = options.code;
     this.details = options.details;
     this.retryable = options.retryable;
+    this.sameKeyRetrySafe = options.sameKeyRetrySafe ?? options.retryable;
     this.statusCode = options.statusCode;
   }
 }
@@ -98,6 +101,7 @@ async function requireSuccessJson(response: Response): Promise<unknown> {
         ...(details === undefined ? {} : { details }),
         message: parsedError.data.error.message,
         retryable: parsedError.data.error.retryable,
+        sameKeyRetrySafe: parsedError.data.error.sameKeyRetrySafe,
         statusCode: response.status,
       });
     }
