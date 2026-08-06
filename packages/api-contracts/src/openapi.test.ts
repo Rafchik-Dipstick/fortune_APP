@@ -11,6 +11,10 @@ describe('generated OpenAPI document', () => {
     expect(Object.keys(document.paths ?? {})).toEqual([
       apiPaths.health,
       apiPaths.authGameCenter,
+      apiPaths.fortunes,
+      apiPaths.fortuneDetail.replace(':id', '{id}'),
+      apiPaths.collection,
+      apiPaths.collectionCard.replace(':key', '{key}'),
       apiPaths.fortuneViewed.replace(':id', '{id}'),
       apiPaths.authRefresh,
       apiPaths.authLogout,
@@ -49,6 +53,29 @@ describe('generated OpenAPI document', () => {
     expect(document.components?.schemas).toHaveProperty('FortuneDraw');
     expect(document.components?.schemas).toHaveProperty('FortuneDrawRequest');
     expect(document.components?.schemas).toHaveProperty('FortuneViewedResponse');
+  });
+
+  it('publishes authenticated collection and history contracts', () => {
+    const document = generateOpenApiDocument();
+    const historyOperation = document.paths?.[apiPaths.fortunes]?.get;
+    const cardOperation = document.paths?.[apiPaths.collectionCard.replace(':key', '{key}')]?.get;
+
+    expect(historyOperation?.security).toEqual([{ bearerAuth: [] }]);
+    expect(historyOperation?.parameters).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'cursor', in: 'query' }),
+        expect.objectContaining({ name: 'limit', in: 'query' }),
+        expect.objectContaining({ name: 'intention', in: 'query' }),
+      ]),
+    );
+    expect(document.paths?.[apiPaths.collection]?.get?.security).toEqual([{ bearerAuth: [] }]);
+    expect(cardOperation?.parameters).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: 'key', in: 'path' })]),
+    );
+    expect(document.components?.schemas).toHaveProperty('FortuneHistoryResponse');
+    expect(document.components?.schemas).toHaveProperty('FortuneDetailResponse');
+    expect(document.components?.schemas).toHaveProperty('CollectionResponse');
+    expect(document.components?.schemas).toHaveProperty('CollectionCardDetailResponse');
   });
 
   it('publishes every canonical server error code exactly once', () => {

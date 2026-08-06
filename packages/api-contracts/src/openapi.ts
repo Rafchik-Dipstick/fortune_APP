@@ -8,6 +8,9 @@ import {
   gameCenterAuthResponseSchema,
   fortuneDrawRequestSchema,
   fortuneDrawResponseSchema,
+  fortuneDetailResponseSchema,
+  fortuneHistoryQuerySchema,
+  fortuneHistoryResponseSchema,
   fortuneStateResponseSchema,
   fortuneViewedResponseSchema,
   healthResponseSchema,
@@ -17,6 +20,9 @@ import {
   refreshSessionResponseSchema,
   stableApiErrorCodes,
   uuidSchema,
+  collectionCardDetailResponseSchema,
+  collectionCardReadingsQuerySchema,
+  collectionResponseSchema,
 } from './index.js';
 
 export const generateOpenApiDocument = () => {
@@ -102,6 +108,128 @@ export const generateOpenApiDocument = () => {
       503: {
         description:
           'Apple proof verification or stable database state is temporarily unavailable.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+    },
+  });
+
+  registry.registerPath({
+    method: 'get',
+    path: apiPaths.fortunes,
+    description:
+      'Returns owned immutable readings in stable issuedAt/id descending order using a filter-bound opaque cursor.',
+    summary: 'List saved fortunes',
+    tags: ['Fortunes'],
+    security: [{ bearerAuth: [] }],
+    request: { query: fortuneHistoryQuerySchema },
+    responses: {
+      200: {
+        description: 'One bounded page of owned readings.',
+        content: { 'application/json': { schema: fortuneHistoryResponseSchema } },
+      },
+      400: {
+        description: 'The filters, range, limit, or opaque cursor are invalid or mismatched.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      401: {
+        description: 'The access token or authoritative session is no longer active.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      410: {
+        description: 'The account has already been purged.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      423: {
+        description: 'The account is pending deletion.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+    },
+  });
+
+  registry.registerPath({
+    method: 'get',
+    path: apiPaths.fortuneDetail.replace(':id', '{id}'),
+    description:
+      'Returns one owned immutable reading; another account is indistinguishable from absent.',
+    summary: 'Get one saved fortune',
+    tags: ['Fortunes'],
+    security: [{ bearerAuth: [] }],
+    request: { params: z.object({ id: uuidSchema }) },
+    responses: {
+      200: {
+        description: 'The complete owned reading snapshot.',
+        content: { 'application/json': { schema: fortuneDetailResponseSchema } },
+      },
+      400: {
+        description: 'The reading identifier is malformed.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      401: {
+        description: 'The access token or authoritative session is no longer active.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      404: {
+        description: 'The reading is absent or belongs to another account.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+    },
+  });
+
+  registry.registerPath({
+    method: 'get',
+    path: apiPaths.collection,
+    description:
+      'Returns the canonical 78-card deck with owned discovery timestamps and orientation progress.',
+    summary: 'Get collection progress',
+    tags: ['Collection'],
+    security: [{ bearerAuth: [] }],
+    responses: {
+      200: {
+        description: 'All 78 canonical cards and caller-owned discovery state.',
+        content: { 'application/json': { schema: collectionResponseSchema } },
+      },
+      401: {
+        description: 'The access token or authoritative session is no longer active.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      410: {
+        description: 'The account has already been purged.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      423: {
+        description: 'The account is pending deletion.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+    },
+  });
+
+  registry.registerPath({
+    method: 'get',
+    path: apiPaths.collectionCard.replace(':key', '{key}'),
+    description:
+      'Returns one canonical card plus a stable opaque-cursor page of caller-owned readings for it.',
+    summary: 'Get collection card history',
+    tags: ['Collection'],
+    security: [{ bearerAuth: [] }],
+    request: {
+      params: z.object({ key: z.string().trim().min(1).max(48) }),
+      query: collectionCardReadingsQuerySchema,
+    },
+    responses: {
+      200: {
+        description: 'The canonical card discovery state and one owned reading page.',
+        content: { 'application/json': { schema: collectionCardDetailResponseSchema } },
+      },
+      400: {
+        description: 'The card key, limit, or opaque cursor is invalid or mismatched.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      401: {
+        description: 'The access token or authoritative session is no longer active.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      404: {
+        description: 'The canonical card does not exist.',
         content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
       },
     },
@@ -350,6 +478,7 @@ export const generateOpenApiDocument = () => {
       { name: 'Authentication' },
       { name: 'Account' },
       { name: 'Fortunes' },
+      { name: 'Collection' },
     ],
     'x-stable-error-codes': [...stableApiErrorCodes],
   });

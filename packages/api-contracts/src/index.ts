@@ -10,14 +10,24 @@ export const apiPaths = {
   authLogout: '/v1/auth/logout',
   authRefresh: '/v1/auth/refresh',
   fortuneDraw: '/v1/fortunes/draw',
+  fortunes: '/v1/fortunes',
+  fortuneDetail: '/v1/fortunes/:id',
   fortuneState: '/v1/fortune/state',
   fortuneViewed: '/v1/fortunes/:id/viewed',
+  collection: '/v1/collection',
+  collectionCard: '/v1/collection/cards/:key',
   health: '/health',
   me: '/v1/me',
 } as const;
 
 export const fortuneViewedPath = (drawId: string): string =>
   apiPaths.fortuneViewed.replace(':id', drawId);
+
+export const fortuneDetailPath = (drawId: string): string =>
+  apiPaths.fortuneDetail.replace(':id', drawId);
+
+export const collectionCardPath = (cardKey: string): string =>
+  apiPaths.collectionCard.replace(':key', cardKey);
 
 export const stableApiErrorCodes = [
   'VALIDATION_FAILED',
@@ -162,12 +172,23 @@ export {
   fortuneDrawRequestSchema,
   fortuneDrawResponseSchema,
   fortuneDrawSchema,
+  fortuneDetailResponseSchema,
+  fortuneHistoryQuerySchema,
+  fortuneHistoryResponseSchema,
   fortuneIntentionSchema,
   fortuneOrientationSchema,
   fortuneStateResponseSchema,
   fortuneViewedResponseSchema,
   noDrawsAvailableDetailsSchema,
+  opaqueCursorSchema,
   subscriptionAllowanceSchema,
+  tarotArcanaSchema,
+  tarotRankSchema,
+  tarotSuitSchema,
+  collectionCardSchema,
+  collectionCardDetailResponseSchema,
+  collectionCardReadingsQuerySchema,
+  collectionResponseSchema,
   unviewedReadingPendingDetailsSchema,
 } from './fortune.js';
 export type {
@@ -176,11 +197,21 @@ export type {
   FortuneDraw,
   FortuneDrawRequest,
   FortuneDrawResponse,
+  FortuneDetailResponse,
+  FortuneHistoryQuery,
+  FortuneHistoryResponse,
   FortuneIntention,
   FortuneOrientation,
   FortuneStateResponse,
   FortuneViewedResponse,
   NoDrawsAvailableDetails,
   SubscriptionAllowance,
+  TarotArcana,
+  TarotRank,
+  TarotSuit,
+  CollectionCard,
+  CollectionCardDetailResponse,
+  CollectionCardReadingsQuery,
+  CollectionResponse,
   UnviewedReadingPendingDetails,
 } from './fortune.js';

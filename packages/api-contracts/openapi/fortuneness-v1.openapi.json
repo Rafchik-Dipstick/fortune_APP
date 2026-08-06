@@ -10,7 +10,8 @@
     { "name": "Operations" },
     { "name": "Authentication" },
     { "name": "Account" },
-    { "name": "Fortunes" }
+    { "name": "Fortunes" },
+    { "name": "Collection" }
   ],
   "x-stable-error-codes": [
     "VALIDATION_FAILED",
@@ -438,6 +439,122 @@
         "required": ["id"],
         "additionalProperties": false
       },
+      "FortuneHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FortuneDraw" },
+            "maxItems": 100
+          },
+          "nextCursor": {
+            "type": ["string", "null"],
+            "minLength": 16,
+            "maxLength": 1024,
+            "pattern": "^v1\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/u"
+          },
+          "syncedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["items", "nextCursor", "syncedAt"],
+        "additionalProperties": false
+      },
+      "TarotArcana": { "type": "string", "enum": ["MAJOR", "MINOR"] },
+      "TarotSuit": { "type": "string", "enum": ["WANDS", "CUPS", "SWORDS", "PENTACLES"] },
+      "FortuneDetailResponse": {
+        "type": "object",
+        "properties": { "draw": { "$ref": "#/components/schemas/FortuneDraw" } },
+        "required": ["draw"],
+        "additionalProperties": false
+      },
+      "CollectionResponse": {
+        "type": "object",
+        "properties": {
+          "cards": { "type": "array", "items": { "$ref": "#/components/schemas/CollectionCard" } },
+          "unlockedCount": { "type": "integer", "minimum": 0, "maximum": 78 },
+          "totalCount": { "type": "number", "enum": [78] },
+          "syncedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["cards", "unlockedCount", "totalCount", "syncedAt"],
+        "additionalProperties": false
+      },
+      "CollectionCard": {
+        "type": "object",
+        "properties": {
+          "key": { "type": "string", "minLength": 1, "maxLength": 48 },
+          "displayNumber": { "type": "string", "minLength": 1, "maxLength": 16 },
+          "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "arcana": { "$ref": "#/components/schemas/TarotArcana" },
+          "suit": {
+            "allOf": [{ "$ref": "#/components/schemas/TarotSuit" }, { "type": ["string", "null"] }]
+          },
+          "rank": { "$ref": "#/components/schemas/TarotRank" },
+          "artAltText": { "type": "string", "minLength": 1, "maxLength": 500 },
+          "sortOrder": { "type": "integer", "minimum": 0, "maximum": 77 },
+          "unlocked": { "type": "boolean" },
+          "readingCount": { "type": "integer", "minimum": 0 },
+          "firstDiscoveredAt": { "type": ["string", "null"], "format": "date-time" },
+          "latestReadingAt": { "type": ["string", "null"], "format": "date-time" },
+          "uprightDiscoveredAt": { "type": ["string", "null"], "format": "date-time" },
+          "reversedDiscoveredAt": { "type": ["string", "null"], "format": "date-time" }
+        },
+        "required": [
+          "key",
+          "displayNumber",
+          "name",
+          "arcana",
+          "suit",
+          "rank",
+          "artAltText",
+          "sortOrder",
+          "unlocked",
+          "readingCount",
+          "firstDiscoveredAt",
+          "latestReadingAt",
+          "uprightDiscoveredAt",
+          "reversedDiscoveredAt"
+        ],
+        "additionalProperties": false
+      },
+      "TarotRank": {
+        "type": ["string", "null"],
+        "enum": [
+          "ACE",
+          "TWO",
+          "THREE",
+          "FOUR",
+          "FIVE",
+          "SIX",
+          "SEVEN",
+          "EIGHT",
+          "NINE",
+          "TEN",
+          "PAGE",
+          "KNIGHT",
+          "QUEEN",
+          "KING",
+          null
+        ]
+      },
+      "CollectionCardDetailResponse": {
+        "type": "object",
+        "properties": {
+          "card": { "$ref": "#/components/schemas/CollectionCard" },
+          "readings": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FortuneDraw" },
+            "maxItems": 100
+          },
+          "nextCursor": {
+            "type": ["string", "null"],
+            "minLength": 16,
+            "maxLength": 1024,
+            "pattern": "^v1\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/u"
+          },
+          "syncedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["card", "readings", "nextCursor", "syncedAt"],
+        "additionalProperties": false
+      },
       "FortuneViewedResponse": {
         "type": "object",
         "properties": { "draw": { "$ref": "#/components/schemas/FortuneDraw" } },
@@ -581,6 +698,255 @@
           },
           "503": {
             "description": "Apple proof verification or stable database state is temporarily unavailable.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          }
+        }
+      }
+    },
+    "/v1/fortunes": {
+      "get": {
+        "description": "Returns owned immutable readings in stable issuedAt/id descending order using a filter-bound opaque cursor.",
+        "summary": "List saved fortunes",
+        "tags": ["Fortunes"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 1024,
+              "pattern": "^v1\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/u"
+            },
+            "required": false,
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 30 },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 48,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$/u"
+            },
+            "required": false,
+            "name": "cardKey",
+            "in": "query"
+          },
+          {
+            "schema": { "$ref": "#/components/schemas/TarotArcana" },
+            "required": false,
+            "name": "arcana",
+            "in": "query"
+          },
+          {
+            "schema": { "$ref": "#/components/schemas/TarotSuit" },
+            "required": false,
+            "name": "suit",
+            "in": "query"
+          },
+          {
+            "schema": { "$ref": "#/components/schemas/FortuneOrientation" },
+            "required": false,
+            "name": "orientation",
+            "in": "query"
+          },
+          {
+            "schema": { "$ref": "#/components/schemas/FortuneIntention" },
+            "required": false,
+            "name": "intention",
+            "in": "query"
+          },
+          {
+            "schema": { "type": "string", "format": "date-time" },
+            "required": false,
+            "name": "issuedFrom",
+            "in": "query"
+          },
+          {
+            "schema": { "type": "string", "format": "date-time" },
+            "required": false,
+            "name": "issuedTo",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One bounded page of owned readings.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FortuneHistoryResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "The filters, range, limit, or opaque cursor are invalid or mismatched.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "401": {
+            "description": "The access token or authoritative session is no longer active.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "410": {
+            "description": "The account has already been purged.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "423": {
+            "description": "The account is pending deletion.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          }
+        }
+      }
+    },
+    "/v1/fortunes/{id}": {
+      "get": {
+        "description": "Returns one owned immutable reading; another account is indistinguishable from absent.",
+        "summary": "Get one saved fortune",
+        "tags": ["Fortunes"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "schema": { "type": "string", "format": "uuid" },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The complete owned reading snapshot.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/FortuneDetailResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "The reading identifier is malformed.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "401": {
+            "description": "The access token or authoritative session is no longer active.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "404": {
+            "description": "The reading is absent or belongs to another account.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          }
+        }
+      }
+    },
+    "/v1/collection": {
+      "get": {
+        "description": "Returns the canonical 78-card deck with owned discovery timestamps and orientation progress.",
+        "summary": "Get collection progress",
+        "tags": ["Collection"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "All 78 canonical cards and caller-owned discovery state.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CollectionResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "The access token or authoritative session is no longer active.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "410": {
+            "description": "The account has already been purged.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "423": {
+            "description": "The account is pending deletion.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          }
+        }
+      }
+    },
+    "/v1/collection/cards/{key}": {
+      "get": {
+        "description": "Returns one canonical card plus a stable opaque-cursor page of caller-owned readings for it.",
+        "summary": "Get collection card history",
+        "tags": ["Collection"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "schema": { "type": "string", "minLength": 1, "maxLength": 48 },
+            "required": true,
+            "name": "key",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 1024,
+              "pattern": "^v1\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/u"
+            },
+            "required": false,
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 30 },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The canonical card discovery state and one owned reading page.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CollectionCardDetailResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "The card key, limit, or opaque cursor is invalid or mismatched.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "401": {
+            "description": "The access token or authoritative session is no longer active.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "404": {
+            "description": "The canonical card does not exist.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
             }
