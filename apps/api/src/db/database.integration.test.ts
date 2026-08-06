@@ -1,8 +1,17 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 
 import { PrismaPg } from '@prisma/adapter-pg';
+import { type GameCenterAuthRequest } from '@fortuneness/api-contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { AccessTokenService } from '../auth/access-token.js';
+import {
+  GameCenterLoginError,
+  GameCenterLoginService,
+  type GameCenterIdentityVerifier,
+} from '../auth/game-center-login.js';
+import { type VerifiedGameCenterIdentity } from '../auth/game-center-proof.js';
+import { createTestApiEnvironment } from '../config/environment.fixture.js';
 import { PrismaClient } from '../generated/prisma/client.js';
 import { mapDatabaseError } from './errors.js';
 
@@ -83,6 +92,51 @@ async function createPurchaseFixture(transactionId = `tx-${randomUUID()}`) {
   return { financialSubject, purchase };
 }
 
+function createLoginRequest(marker: string): GameCenterAuthRequest {
+  return {
+    proof: {
+      teamPlayerId: 'raw-team-player-never-persisted',
+      gamePlayerId: 'raw-game-player-never-persisted',
+      bundleId: 'app.fortuneness.test',
+      publicKeyUrl: 'https://static.gc.apple.com/public-key.cer',
+      signatureBase64: Buffer.from(`signature-${marker}`).toString('base64'),
+      saltBase64: Buffer.from(`salt-${marker}`).toString('base64'),
+      timestamp: String(Date.now()),
+    },
+    scopedIdsPersistent: true,
+    alias: 'Test Player',
+    restrictions: {
+      isUnderage: false,
+      isMultiplayerGamingRestricted: false,
+      isPersonalizedCommunicationRestricted: false,
+    },
+    reportedDeviceLocale: 'en-US',
+    reportedDeviceTimeZone: 'Europe/Kyiv',
+    device: { id: randomUUID(), description: 'Integration test device' },
+  };
+}
+
+function createVerifiedIdentity(
+  marker: string,
+  currentDigest: string,
+  candidates: VerifiedGameCenterIdentity['identityCandidates'] = [
+    { keyVersion: 'v1', digest: currentDigest },
+  ],
+): VerifiedGameCenterIdentity {
+  const authenticatedAt = new Date();
+  return {
+    authenticatedAt,
+    currentIdentity: { keyVersion: 'v1', digest: currentDigest },
+    identityCandidates: candidates,
+    proofExpiresAt: new Date(authenticatedAt.getTime() + 900_000),
+    proofFingerprint: createHash('sha256').update(`proof-${marker}`).digest('hex'),
+    secondaryMigrationIdentity: {
+      keyVersion: 'v1',
+      digest: createHash('sha256').update(`secondary-${marker}`).digest('hex'),
+    },
+  };
+}
+
 describe('PostgreSQL integrity', { concurrent: false }, () => {
   it('rejects a replayed verified Game Center proof fingerprint', async () => {
     const fingerprint = 'c'.repeat(64);
@@ -95,6 +149,77 @@ describe('PostgreSQL integrity', { concurrent: false }, () => {
         data: { fingerprint, expiresAt: new Date(Date.now() + 900_000) },
       }),
     ).rejects.toSatisfy((error: unknown) => mapDatabaseError(error)?.kind === 'UNIQUE_CONSTRAINT');
+  });
+
+  it('converges concurrent first logins and rotates an old identity digest', async () => {
+    const environment = createTestApiEnvironment().authentication;
+    const identityDigest = createHash('sha256').update(randomUUID()).digest('hex');
+    const verifiedByMarker = new Map([
+      ['first', createVerifiedIdentity('first', identityDigest)],
+      ['second', createVerifiedIdentity('second', identityDigest)],
+    ]);
+    const proofVerifier: GameCenterIdentityVerifier = {
+      verify: (request) => {
+        const marker = Buffer.from(request.proof.signatureBase64, 'base64')
+          .toString('utf8')
+          .replace('signature-', '');
+        const verified = verifiedByMarker.get(marker);
+        if (verified === undefined) {
+          throw new Error('Unexpected integration proof marker.');
+        }
+        return Promise.resolve(verified);
+      },
+    };
+    const login = new GameCenterLoginService({
+      accessTokens: new AccessTokenService(environment),
+      client: prisma,
+      environment,
+      proofVerifier,
+    });
+    const firstRequest = createLoginRequest('first');
+    const secondRequest = createLoginRequest('second');
+    const [first, second] = await Promise.all([
+      login.login(firstRequest),
+      login.login(secondRequest),
+    ]);
+
+    expect(second.user.id).toBe(first.user.id);
+    expect(second.bootstrap.appAccountToken).toBe(first.bootstrap.appAccountToken);
+    expect(second.session.refreshToken).not.toBe(first.session.refreshToken);
+    await expect(login.login(firstRequest)).rejects.toSatisfy(
+      (error: unknown) => error instanceof GameCenterLoginError && error.code === 'PROOF_REPLAY',
+    );
+    await expect(
+      prisma.externalIdentity.count({
+        where: { provider: 'GAME_CENTER', keyVersion: 'v1', subjectDigest: identityDigest },
+      }),
+    ).resolves.toBe(1);
+    await expect(prisma.sessionFamily.count({ where: { userId: first.user.id } })).resolves.toBe(2);
+    await expect(
+      prisma.appAccountTokenBinding.count({
+        where: { financialSubject: { activeUser: { id: first.user.id } }, validTo: null },
+      }),
+    ).resolves.toBe(1);
+
+    const previousDigest = createHash('sha256').update(randomUUID()).digest('hex');
+    const rotationMarker = `rotation-${randomUUID()}`;
+    verifiedByMarker.set(rotationMarker, {
+      ...createVerifiedIdentity(rotationMarker, identityDigest, [
+        { keyVersion: 'v1', digest: identityDigest },
+        { keyVersion: 'v0', digest: previousDigest },
+      ]),
+    });
+    await prisma.externalIdentity.updateMany({
+      where: { userId: first.user.id, provider: 'GAME_CENTER' },
+      data: { keyVersion: 'v0', subjectDigest: previousDigest },
+    });
+    const rotated = await login.login(createLoginRequest(rotationMarker));
+    expect(rotated.user.id).toBe(first.user.id);
+    await expect(
+      prisma.externalIdentity.findFirstOrThrow({
+        where: { userId: first.user.id, provider: 'GAME_CENTER' },
+      }),
+    ).resolves.toMatchObject({ keyVersion: 'v1', subjectDigest: identityDigest });
   });
 
   it('rejects a duplicate user draw idempotency record', async () => {

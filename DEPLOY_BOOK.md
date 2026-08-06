@@ -1042,3 +1042,28 @@ git diff --check
 ```
 
 Deployment impact: local API token and middleware code plus the pinned `jose` runtime dependency only. No route was mounted, no real signing secret or session was created, and no Apple, Railway, database, credential, or deployed environment changed.
+
+### 2026-08-06 — Phase 5 atomic Game Center login and bootstrap
+
+- Mounted `POST /v1/auth/game-center` with strict shared-schema validation, stable safe error mapping, response-schema verification, and `Cache-Control: no-store`; malformed requests cannot reach proof verification or domain writes.
+- Added one login transaction that reserves the verified proof fingerprint, resolves or creates the provider-neutral identity, creates the initial user and separate financial subject, creates or recovers the current purchase-token binding, creates a 30-day refresh family, hashes the refresh token and device ID, and signs the access token before commit.
+- Kept raw Game Center identifiers and proof material outside persistence. The transaction writes only the verified versioned primary/secondary digests and bounded proof fingerprint, and never uses the advisory alias, restrictions, locale, time zone, or `gamePlayerID` as independent identity evidence.
+- Added dual-read identity lookup and current-key backfill under a user row lock. Multiple supported digest rows must resolve to one user, while a cross-user match fails closed rather than merging accounts.
+- Made concurrent first login converge on the unique current identity: the losing transaction rolls back all provisional user, financial, token, and replay rows, then resolves the committed winner. Reuse of the exact same proof remains rejected.
+- Issued a separate random UUID purchase token, stored only its domain-separated versioned HMAC plus AES-GCM encrypted value bound to the binding ID, and returned the raw value only in the authenticated non-cacheable bootstrap.
+- Enforced active-account-only normal session creation and canonical IANA time-zone validation. Blocked, deletion-pending, and purged records do not receive normal tokens.
+- Added route coverage for validation and every public Game Center failure class. The disposable PostgreSQL suite proved two simultaneous first logins share one user/purchase binding but receive distinct session families, exact proof replay fails, and a previous-key identity migrates to the current digest.
+
+Verification required before commit:
+
+```text
+TEST_DATABASE_ADMIN_URL=<injected local admin URL> corepack npm run test:db
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: local API authentication service/route/runtime wiring and tests only. The database proof used a generated local database that the harness dropped and verified; no physical Game Center proof, real token/key, Railway service, persistent database, credential, or deployed environment changed.
