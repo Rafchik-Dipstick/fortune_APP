@@ -83,7 +83,7 @@ export async function resolveCurrentPurchaseToken(
       financialSubjectId,
       keyVersion: digest.keyVersion,
       tokenDigest: digest.digest,
-      encryptedToken: encrypted.encrypted,
+      encryptedToken: new Uint8Array(encrypted.encrypted),
       encryptionKeyVersion: encrypted.keyVersion,
       validFrom: now,
       reason: current === null ? 'INITIAL' : 'ROTATION',

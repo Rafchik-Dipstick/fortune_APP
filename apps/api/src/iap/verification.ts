@@ -187,11 +187,20 @@ export function normalizeVerifiedTransaction(
       ? transactionId
       : payload.originalTransactionId;
 
+  const isSubscription = productType === 'AUTO_RENEWABLE_SUBSCRIPTION';
+  const revocationAt = optionalDate(payload.revocationDate);
+
   return {
     appAccountToken,
-    billingPlanType: payload.billingPlanType === undefined ? null : String(payload.billingPlanType),
+    // The database requires the pair shape: subscriptions always record a
+    // billing plan and consumables never carry subscription-only fields.
+    billingPlanType: isSubscription
+      ? payload.billingPlanType === undefined
+        ? (policy.expectedSubscriptionBillingPlanType ?? 'MONTHLY')
+        : String(payload.billingPlanType)
+      : null,
     environment: policy.environment,
-    expiresAt: optionalDate(payload.expiresDate),
+    expiresAt: isSubscription ? optionalDate(payload.expiresDate) : null,
     jwsHash: createHash('sha256').update(rawSignedTransaction, 'utf8').digest('hex'),
     normalizedPayload: {
       appTransactionId: payload.appTransactionId ?? null,
@@ -208,10 +217,14 @@ export function normalizeVerifiedTransaction(
     productId,
     productType,
     purchaseAt: new Date(purchaseDate),
-    revocationAt: optionalDate(payload.revocationDate),
-    revocationPercentage: revocationPercentage ?? null,
+    revocationAt,
+    revocationPercentage: revocationAt === null ? null : (revocationPercentage ?? null),
     revocationReason:
-      payload.revocationReason === undefined ? null : String(payload.revocationReason),
+      revocationAt === null
+        ? null
+        : payload.revocationReason === undefined
+          ? '0'
+          : String(payload.revocationReason),
     signedAt: new Date(signedDate),
     transactionId,
   };
