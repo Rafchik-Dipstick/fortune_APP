@@ -3,17 +3,12 @@ import request from 'supertest';
 import { describe, expect, it, vi } from 'vitest';
 
 import { createApiApp } from '../app.js';
-import { type ApiEnvironment } from '../config/environment.js';
+import { createTestApiEnvironment } from '../config/environment.fixture.js';
 import { ApiReadiness } from './readiness.js';
 
-const testEnvironment: ApiEnvironment = {
-  corsOrigins: [],
-  databaseUrl: 'postgresql://postgres:postgres@localhost:5432/fortuneness',
+const testEnvironment = createTestApiEnvironment({
   logLevel: 'silent',
-  nodeEnvironment: 'test',
-  port: 3000,
-  trustProxyHops: 0,
-};
+});
 
 const silentLogger = pino({ enabled: false });
 

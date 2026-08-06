@@ -20,3 +20,5 @@ Planned source boundaries follow the canonical specification:
 - `src/utils` — narrowly scoped infrastructure utilities.
 
 Do not add secrets to `.env.example` or commit a populated `.env` file.
+
+Authentication keyring variables are JSON objects whose values are canonical base64 encodings of exactly 32 random bytes. The configured current version must exist in its ring; retain the supported previous version until its identity/session/ciphertext migration audit is complete. The placeholders in `.env.example` intentionally fail validation and are not usable keys.

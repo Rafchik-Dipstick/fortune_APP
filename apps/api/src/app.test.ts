@@ -5,18 +5,14 @@ import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 
 import { createApiApp } from './app.js';
-import { type ApiEnvironment } from './config/environment.js';
+import { createTestApiEnvironment } from './config/environment.fixture.js';
 import { DatabaseError } from './db/errors.js';
 import { ApiReadiness } from './health/readiness.js';
 
-const testEnvironment: ApiEnvironment = {
+const testEnvironment = createTestApiEnvironment({
   corsOrigins: ['https://preview.fortuneness.app'],
-  databaseUrl: 'postgresql://postgres:postgres@localhost:5432/fortuneness',
   logLevel: 'silent',
-  nodeEnvironment: 'test',
-  port: 3000,
-  trustProxyHops: 0,
-};
+});
 
 const silentLogger = pino({ enabled: false });
 const readyReadiness = new ApiReadiness(async () => Promise.resolve());

@@ -972,3 +972,24 @@ git diff --check
 ```
 
 Deployment impact: shared schemas and generated API documentation only. The routes are not yet mounted, no Apple proof was fetched, no account/session row was created, and no Apple, Railway, database, credential, or deployed environment changed.
+
+### 2026-08-06 — Phase 5 authentication keyrings and cryptographic primitives
+
+- Activated the existing environment contract for separate Game Center identity HMAC, access-token, refresh-token HMAC, refresh-replay encryption, purchase-token HMAC, and purchase-token encryption keyrings.
+- Required every ring to contain canonical base64 encodings of exactly 32 random bytes and required its configured current version to exist; invalid JSON, wrong key length, noncanonical encoding, and missing current versions fail startup without echoing secret values.
+- Added explicit bundle ID, Game Center public-key host, certificate-issuer host, proof freshness/skew, JWT issuer/audience/TTL, refresh TTL, and deletion reauthentication bounds. Production still requires owner-injected values; example placeholders intentionally remain invalid secrets.
+- Added current-write/dual-read HMAC helpers for pepper rotation, a 256-bit URL-safe opaque-token generator, fixed-length timing-safe comparison, and AES-256-GCM envelopes that bind encrypted values to record-specific authenticated context.
+- Proved old-key ciphertext remains decryptable while its version is retained, altered record context fails authentication, current/previous HMAC candidates differ, malformed/mismatched keyrings fail safely, and deterministic test fixtures do not enter the production build.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: API startup validation and local cryptographic utilities only. No real secret was generated or stored, no route/session/account was created, and no Apple, Railway, database, credential, or deployed environment changed.
