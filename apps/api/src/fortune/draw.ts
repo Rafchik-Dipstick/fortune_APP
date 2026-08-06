@@ -10,6 +10,7 @@ import {
   type FortuneDrawResponse,
 } from '@fortuneness/api-contracts';
 
+import { DatabaseError } from '../db/errors.js';
 import {
   lockFinancialSubjectForUpdate,
   lockSessionFamilyForUpdate,
@@ -258,8 +259,46 @@ export class FortuneDrawService {
       if (error instanceof FortuneContentUnavailableError) {
         throw new FortuneDrawError('CONTENT_UNAVAILABLE', undefined, error);
       }
+      if (error instanceof DatabaseError && error.kind === 'UNIQUE_CONSTRAINT') {
+        const committed = await this.replayAfterUniqueConstraint(
+          authentication,
+          idempotencyKey,
+          requestHash,
+        );
+        if (committed !== undefined) {
+          return resolveCommittedOutcome(committed, false);
+        }
+      }
       throw error;
     }
+  }
+
+  private async replayAfterUniqueConstraint(
+    authentication: AuthenticationContext,
+    idempotencyKey: string,
+    requestHash: string,
+  ): Promise<StoredDrawOutcome | undefined> {
+    return runReadCommittedTransaction(this.client, async (transaction) => {
+      const user = await lockUserForUpdate(transaction, authentication.userId);
+      const family = await lockSessionFamilyForUpdate(transaction, authentication.sessionFamilyId);
+      this.assertAuthorized(user, family, authentication, this.now());
+      const record = await transaction.idempotencyRecord.findFirst({
+        where: {
+          actorType: 'USER',
+          actorId: user.id,
+          method: idempotencyMethod,
+          normalizedRoute: apiPaths.fortuneDraw,
+          key: idempotencyKey,
+        },
+      });
+      if (record === null) {
+        return undefined;
+      }
+      if (record.requestHash !== requestHash) {
+        throw new FortuneDrawError('IDEMPOTENCY_KEY_REUSED');
+      }
+      return storedDrawOutcomeSchema.parse(record.responseSnapshot);
+    });
   }
 
   private assertAuthorized(

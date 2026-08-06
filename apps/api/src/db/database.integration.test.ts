@@ -517,6 +517,33 @@ describe('PostgreSQL integrity', { concurrent: false }, () => {
     ).resolves.toBe(1);
   });
 
+  it('converges simultaneous same-key requests on one identical draw', async () => {
+    const now = new Date('2026-08-06T10:00:00.000Z');
+    const fixture = await createFortuneStateFixture({ now });
+    const draws = new FortuneDrawService({
+      client: prisma,
+      now: () => now,
+      random: firstCandidateRandom,
+    });
+    const idempotencyKey = randomUUID();
+
+    const results = await Promise.all(
+      Array.from({ length: 20 }, () =>
+        draws.draw(fixture.authentication, { intention: 'LOVE' }, idempotencyKey),
+      ),
+    );
+
+    expect(results.filter(({ created }) => created)).toHaveLength(1);
+    expect(new Set(results.map(({ response }) => response.draw.id)).size).toBe(1);
+    for (const result of results) {
+      expect(result.response).toEqual(results[0]?.response);
+    }
+    await expect(prisma.fortuneDraw.count({ where: { userId: fixture.user.id } })).resolves.toBe(1);
+    await expect(
+      prisma.idempotencyRecord.count({ where: { actorId: fixture.user.id } }),
+    ).resolves.toBe(1);
+  });
+
   it('rejects changed input and stores stable unviewed and exhausted terminal outcomes', async () => {
     const now = new Date('2026-08-06T10:00:00.000Z');
     const fixture = await createFortuneStateFixture({ now });
