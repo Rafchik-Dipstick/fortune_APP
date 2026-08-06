@@ -25,3 +25,9 @@ export {
   validateReleaseManifest,
 } from './release-gate.js';
 export type { AssetCrossCheck, AssetManifestShape, ReleaseReadiness } from './release-gate.js';
+export {
+  authoredReleaseCards,
+  createReleaseContentManifest,
+  releaseContentVersion,
+} from './release/index.js';
+export type { AuthoredCard, CardReadings, Reading } from './release/index.js';

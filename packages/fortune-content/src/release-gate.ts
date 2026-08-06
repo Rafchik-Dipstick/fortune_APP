@@ -28,6 +28,8 @@ export interface ReleaseReadiness {
   activeTemplates: number;
   approvedCards: number;
   approvedTemplates: number;
+  /** Combinations with authored active copy, approved or not. */
+  authoredCombinations: number;
   /** Card keys whose illustration description and alt text are not approved. */
   cardsAwaitingReview: string[];
   /** `cardKey:locale:orientation:intention` keys with no approved template. */
@@ -119,11 +121,18 @@ export function summarizeReleaseReadiness(manifest: ContentManifest): ReleaseRea
     );
   }
 
+  const authoredCombinations = new Set(
+    activeTemplates.map((template) =>
+      combinationKey(template.cardKey, template.locale, template.orientation, template.intention),
+    ),
+  ).size;
+
   return {
     activeCards: activeCards.length,
     activeTemplates: activeTemplates.length,
     approvedCards: activeCards.length - cardsAwaitingReview.length,
     approvedTemplates,
+    authoredCombinations,
     blockers,
     cardsAwaitingReview,
     missingCombinations,

@@ -4,6 +4,7 @@ import assetManifest from '../../../tools/card-assets/manifest.json' with { type
 import {
   computeContentChecksum,
   createCanonicalDeck,
+  createReleaseContentManifest,
   crossCheckAssets,
   developmentContentManifest,
   developmentSliceExpectations,
@@ -17,7 +18,10 @@ const releaseMode = process.argv.includes('--release');
 const manifest = validateDevelopmentSlice(developmentContentManifest);
 const canonicalDeck = createCanonicalDeck(fullDeckCards);
 const assets = crossCheckAssets(canonicalDeck.cards, assetManifest);
-const readiness = summarizeReleaseReadiness(manifest);
+// The release catalog is the full-deck workstream; the development slice is
+// the three-card vertical slice that shipped in Phase 2. Both are validated.
+const releaseManifest = createReleaseContentManifest(canonicalDeck.cards);
+const readiness = summarizeReleaseReadiness(releaseManifest);
 
 const referentialFailures = [
   assets.missingAssets.length === 0 ? '' : `missing card art: ${assets.missingAssets.join(', ')}`,
@@ -41,20 +45,21 @@ const lines = [
   'Fortune content development slice is structurally valid.',
   `${String(manifest.cards.length)}/${String(developmentSliceExpectations.cards)} cards and illustration descriptions present.`,
   `${String(manifest.templates.length)}/${String(developmentSliceExpectations.templates)} English templates present.`,
-  `${String(readiness.readyForReviewTemplates)} templates are ready for human editorial review; ${String(readiness.approvedTemplates)} are approved.`,
 ];
 
 const releaseLines = [
-  'Release gate progress:',
-  `  cards active/approved: ${String(readiness.activeCards)}/${String(readiness.approvedCards)} of ${String(releaseGateExpectations.cards)}`,
+  `Release catalog (${releaseManifest.contentVersion}) is structurally valid.`,
+  `  cards authored/approved: ${String(readiness.activeCards)}/${String(readiness.approvedCards)} of ${String(releaseGateExpectations.cards)}`,
+  `  authored English combinations: ${String(readiness.authoredCombinations)} of ${String(readiness.requiredCombinations)}`,
   `  approved English combinations: ${String(readiness.satisfiedCombinations)} of ${String(readiness.requiredCombinations)}`,
+  `  templates awaiting editorial review: ${String(readiness.readyForReviewTemplates)}`,
   `  approved templates: ${String(readiness.approvedTemplates)} of ${String(releaseGateExpectations.minimumApprovedTemplates)} minimum (${String(releaseGateExpectations.targetTemplates)} target)`,
   `  card art checksummed/reviewed: ${String(canonicalDeck.cards.length - assets.uncheckedAssets.length)}/${String(canonicalDeck.cards.length - assets.unreviewedAssets.length)} of ${String(canonicalDeck.cards.length)}`,
-  `  content checksum: ${computeContentChecksum(manifest)}`,
+  `  content checksum: ${computeContentChecksum(releaseManifest)}`,
 ];
 
 if (releaseMode) {
-  validateReleaseManifest(manifest);
+  validateReleaseManifest(releaseManifest);
   if (assets.unreviewedAssets.length > 0) {
     throw new Error(
       `The release gate requires reviewed card art; ${String(assets.unreviewedAssets.length)} illustrations are unreviewed.`,
