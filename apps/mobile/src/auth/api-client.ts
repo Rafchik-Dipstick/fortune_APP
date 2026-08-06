@@ -12,6 +12,10 @@ import {
   fortuneViewedPath,
   fortuneViewedResponseSchema,
   gameCenterAuthResponseSchema,
+  iapCatalogResponseSchema,
+  iapReconcileResponseSchema,
+  iapStatusResponseSchema,
+  iapTransactionResponseSchema,
   meResponseSchema,
   refreshSessionResponseSchema,
   type ApiErrorCode,
@@ -27,6 +31,10 @@ import {
   type FortuneHistoryResponse,
   type FortuneStateResponse,
   type FortuneViewedResponse,
+  type IapCatalogResponse,
+  type IapReconcileResponse,
+  type IapStatusResponse,
+  type IapTransactionResponse,
   type MeResponse,
   type RefreshSessionResponse,
 } from '@fortuneness/api-contracts';
@@ -347,6 +355,88 @@ export async function markFortuneViewed(
     throw new MobileApiError({
       code: 'RESPONSE_INVALID',
       message: 'The viewed acknowledgement did not match the application contract.',
+      retryable: true,
+      statusCode: response.status,
+    });
+  }
+  return parsed.data;
+}
+
+export async function getIapCatalog(accessToken: string): Promise<IapCatalogResponse> {
+  const response = await request(apiPaths.iapCatalog, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const parsed = iapCatalogResponseSchema.safeParse(await requireSuccessJson(response));
+  if (!parsed.success) {
+    throw new MobileApiError({
+      code: 'RESPONSE_INVALID',
+      message: 'The commerce catalog did not match the application contract.',
+      retryable: true,
+      statusCode: response.status,
+    });
+  }
+  return parsed.data;
+}
+
+export async function getIapStatus(accessToken: string): Promise<IapStatusResponse> {
+  const response = await request(apiPaths.iapStatus, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const parsed = iapStatusResponseSchema.safeParse(await requireSuccessJson(response));
+  if (!parsed.success) {
+    throw new MobileApiError({
+      code: 'RESPONSE_INVALID',
+      message: 'The commerce status did not match the application contract.',
+      retryable: true,
+      statusCode: response.status,
+    });
+  }
+  return parsed.data;
+}
+
+export async function deliverIapTransaction(
+  accessToken: string,
+  signedTransaction: string,
+): Promise<IapTransactionResponse> {
+  const response = await request(apiPaths.iapTransactions, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ signedTransaction }),
+  });
+  const parsed = iapTransactionResponseSchema.safeParse(await requireSuccessJson(response));
+  if (!parsed.success) {
+    throw new MobileApiError({
+      code: 'RESPONSE_INVALID',
+      message: 'The transaction delivery did not match the application contract.',
+      retryable: true,
+      statusCode: response.status,
+    });
+  }
+  return parsed.data;
+}
+
+export async function reconcileIapTransactions(
+  accessToken: string,
+  signedTransactions: readonly string[],
+): Promise<IapReconcileResponse> {
+  const response = await request(apiPaths.iapReconcile, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ transactions: signedTransactions }),
+  });
+  const parsed = iapReconcileResponseSchema.safeParse(await requireSuccessJson(response));
+  if (!parsed.success) {
+    throw new MobileApiError({
+      code: 'RESPONSE_INVALID',
+      message: 'The transaction reconciliation did not match the application contract.',
       retryable: true,
       statusCode: response.status,
     });
