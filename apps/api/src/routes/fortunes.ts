@@ -1,18 +1,25 @@
 import { type Express, type RequestHandler } from 'express';
 import {
   apiPaths,
+  fortuneDetailResponseSchema,
   fortuneDrawRequestSchema,
   fortuneDrawResponseSchema,
+  fortuneHistoryQuerySchema,
+  fortuneHistoryResponseSchema,
   fortuneStateResponseSchema,
   fortuneViewedResponseSchema,
   idempotencyKeySchema,
   uuidSchema,
+  type FortuneDetailResponse,
   type FortuneDrawRequest,
   type FortuneDrawResponse,
+  type FortuneHistoryQuery,
+  type FortuneHistoryResponse,
   type FortuneStateResponse,
   type FortuneViewedResponse,
 } from '@fortuneness/api-contracts';
 
+import { FortuneArchiveError } from '../fortune/archive.js';
 import { FortuneStateError } from '../fortune/state.js';
 import { FortuneViewedError } from '../fortune/viewed.js';
 import { FortuneDrawError, type FortuneDrawResult } from '../fortune/draw.js';
@@ -22,6 +29,14 @@ import type { FortuneDrawTelemetry } from '../observability/fortune-draw-telemet
 
 export interface FortuneStateHandler {
   get(authentication: AuthenticationContext): Promise<FortuneStateResponse>;
+}
+
+export interface FortuneArchiveHandler {
+  get(authentication: AuthenticationContext, drawId: string): Promise<FortuneDetailResponse>;
+  list(
+    authentication: AuthenticationContext,
+    query: FortuneHistoryQuery,
+  ): Promise<FortuneHistoryResponse>;
 }
 
 export interface FortuneDrawHandler {
@@ -69,6 +84,105 @@ export function createFortuneStateRoute(state: FortuneStateHandler): RequestHand
         .json(fortuneStateResponseSchema.parse(await state.get(request.authentication)));
     } catch (error) {
       next(error instanceof FortuneStateError ? mapFortuneStateError(error) : error);
+    }
+  };
+}
+
+export function mapFortuneArchiveError(error: {
+  code:
+    | 'ACCOUNT_DELETION_PENDING'
+    | 'ACCOUNT_PURGED'
+    | 'AUTH_REQUIRED'
+    | 'CURSOR_INVALID'
+    | 'NOT_FOUND';
+}): ApiHttpError {
+  switch (error.code) {
+    case 'ACCOUNT_DELETION_PENDING':
+      return new ApiHttpError({
+        code: 'ACCOUNT_DELETION_PENDING',
+        message: 'The account is pending deletion.',
+        statusCode: 423,
+      });
+    case 'ACCOUNT_PURGED':
+      return new ApiHttpError({
+        code: 'ACCOUNT_PURGED',
+        message: 'The account has been purged.',
+        statusCode: 410,
+      });
+    case 'AUTH_REQUIRED':
+      return new ApiHttpError({
+        code: 'AUTH_REQUIRED',
+        message: 'An active session is required to read the archive.',
+        retryable: true,
+        statusCode: 401,
+      });
+    case 'CURSOR_INVALID':
+      return new ApiHttpError({
+        code: 'VALIDATION_FAILED',
+        message: 'The pagination cursor is invalid or does not match this request.',
+        statusCode: 400,
+      });
+    case 'NOT_FOUND':
+      return new ApiHttpError({
+        code: 'NOT_FOUND',
+        message: 'The requested reading does not exist.',
+        statusCode: 404,
+      });
+  }
+}
+
+export function createFortuneHistoryRoute(archive: FortuneArchiveHandler): RequestHandler {
+  return async (request, response, next) => {
+    response.setHeader('Cache-Control', 'no-store');
+    const parsedQuery = fortuneHistoryQuerySchema.safeParse(request.query);
+    if (!parsedQuery.success) {
+      next(
+        new ApiHttpError({
+          code: 'VALIDATION_FAILED',
+          message: 'The reading history filters, range, limit, or cursor are invalid.',
+          statusCode: 400,
+        }),
+      );
+      return;
+    }
+    try {
+      response
+        .status(200)
+        .json(
+          fortuneHistoryResponseSchema.parse(
+            await archive.list(request.authentication, parsedQuery.data),
+          ),
+        );
+    } catch (error) {
+      next(error instanceof FortuneArchiveError ? mapFortuneArchiveError(error) : error);
+    }
+  };
+}
+
+export function createFortuneDetailRoute(archive: FortuneArchiveHandler): RequestHandler {
+  return async (request, response, next) => {
+    response.setHeader('Cache-Control', 'no-store');
+    const parsedDrawId = uuidSchema.safeParse(request.params['id']);
+    if (!parsedDrawId.success) {
+      next(
+        new ApiHttpError({
+          code: 'VALIDATION_FAILED',
+          message: 'The reading identifier is invalid.',
+          statusCode: 400,
+        }),
+      );
+      return;
+    }
+    try {
+      response
+        .status(200)
+        .json(
+          fortuneDetailResponseSchema.parse(
+            await archive.get(request.authentication, parsedDrawId.data),
+          ),
+        );
+    } catch (error) {
+      next(error instanceof FortuneArchiveError ? mapFortuneArchiveError(error) : error);
     }
   };
 }
@@ -233,6 +347,7 @@ export function createFortuneViewedRoute(viewed: FortuneViewedHandler): RequestH
 export function registerFortuneRoutes(
   app: Express,
   handlers: {
+    archive: FortuneArchiveHandler;
     authenticate: RequestHandler;
     draw: FortuneDrawHandler;
     state: FortuneStateHandler;
@@ -241,6 +356,12 @@ export function registerFortuneRoutes(
   },
 ): void {
   app.get(apiPaths.fortuneState, handlers.authenticate, createFortuneStateRoute(handlers.state));
+  app.get(apiPaths.fortunes, handlers.authenticate, createFortuneHistoryRoute(handlers.archive));
+  app.get(
+    apiPaths.fortuneDetail,
+    handlers.authenticate,
+    createFortuneDetailRoute(handlers.archive),
+  );
   app.post(
     apiPaths.fortuneDraw,
     handlers.authenticate,

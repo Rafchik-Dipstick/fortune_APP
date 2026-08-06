@@ -9,11 +9,13 @@ import {
 
 import { createApiApp } from '../app.js';
 import { createTestApiEnvironment } from '../config/environment.fixture.js';
+import { FortuneArchiveError } from '../fortune/archive.js';
 import { FortuneDrawError } from '../fortune/draw.js';
 import { FortuneStateError } from '../fortune/state.js';
 import { ApiReadiness } from '../health/readiness.js';
 import type { FortuneDrawTelemetry } from '../observability/fortune-draw-telemetry.js';
 import {
+  type FortuneArchiveHandler,
   type FortuneDrawHandler,
   type FortuneStateHandler,
   type FortuneViewedHandler,
@@ -81,21 +83,26 @@ const authenticate: RequestHandler = (request, _response, next) => {
 };
 
 function createFixture(
-  get: FortuneStateHandler['get'] = vi.fn(),
-  draw: FortuneDrawHandler['draw'] = vi.fn(),
-  markViewed: FortuneViewedHandler['markViewed'] = vi.fn(),
-  telemetry?: FortuneDrawTelemetry,
+  handlers: {
+    draw?: FortuneDrawHandler['draw'];
+    get?: FortuneStateHandler['get'];
+    getDetail?: FortuneArchiveHandler['get'];
+    list?: FortuneArchiveHandler['list'];
+    markViewed?: FortuneViewedHandler['markViewed'];
+    telemetry?: FortuneDrawTelemetry;
+  } = {},
 ) {
   return createApiApp({
     environment: createTestApiEnvironment({ logLevel: 'silent' }),
     readiness: new ApiReadiness(vi.fn().mockResolvedValue(undefined)),
     configureRoutes: (app) => {
       registerFortuneRoutes(app, {
+        archive: { get: handlers.getDetail ?? vi.fn(), list: handlers.list ?? vi.fn() },
         authenticate,
-        draw: { draw },
-        state: { get },
-        ...(telemetry === undefined ? {} : { telemetry }),
-        viewed: { markViewed },
+        draw: { draw: handlers.draw ?? vi.fn() },
+        state: { get: handlers.get ?? vi.fn() },
+        ...(handlers.telemetry === undefined ? {} : { telemetry: handlers.telemetry }),
+        viewed: { markViewed: handlers.markViewed ?? vi.fn() },
       });
     },
   });
@@ -104,7 +111,7 @@ function createFixture(
 describe('fortune state route', () => {
   it('returns validated non-cacheable authoritative state', async () => {
     const get = vi.fn<FortuneStateHandler['get']>().mockResolvedValue(stateResponse);
-    const response = await request(createFixture(get)).get(apiPaths.fortuneState).expect(200);
+    const response = await request(createFixture({ get })).get(apiPaths.fortuneState).expect(200);
 
     expect(response.body).toEqual(stateResponse);
     expect(response.headers['cache-control']).toBe('no-store');
@@ -119,7 +126,9 @@ describe('fortune state route', () => {
     const get = vi
       .fn<FortuneStateHandler['get']>()
       .mockRejectedValue(new FortuneStateError(serviceCode));
-    const response = await request(createFixture(get)).get(apiPaths.fortuneState).expect(status);
+    const response = await request(createFixture({ get }))
+      .get(apiPaths.fortuneState)
+      .expect(status);
 
     expect(response.body.error.code).toBe(apiCode);
     expect(response.body).not.toHaveProperty('state');
@@ -136,7 +145,7 @@ describe('fortune draw route', () => {
     const draw = vi
       .fn<FortuneDrawHandler['draw']>()
       .mockResolvedValue({ created, response: drawResponse });
-    const response = await request(createFixture(undefined, draw))
+    const response = await request(createFixture({ draw }))
       .post(apiPaths.fortuneDraw)
       .set('Idempotency-Key', idempotencyKey)
       .send({ intention: 'GROWTH' })
@@ -149,7 +158,7 @@ describe('fortune draw route', () => {
 
   it('rejects client-owned selection input before delegation', async () => {
     const draw = vi.fn<FortuneDrawHandler['draw']>();
-    const response = await request(createFixture(undefined, draw))
+    const response = await request(createFixture({ draw }))
       .post(apiPaths.fortuneDraw)
       .set('Idempotency-Key', idempotencyKey)
       .send({ intention: 'GROWTH', cardKey: 'major-00-fool' })
@@ -167,7 +176,7 @@ describe('fortune draw route', () => {
       .fn<FortuneDrawHandler['draw']>()
       .mockResolvedValue({ created: true, response: drawResponse });
 
-    await request(createFixture(undefined, draw, undefined, telemetry))
+    await request(createFixture({ draw, telemetry }))
       .post(apiPaths.fortuneDraw)
       .set('Idempotency-Key', idempotencyKey)
       .send({ intention: 'GROWTH' })
@@ -194,10 +203,7 @@ describe('fortune draw route', () => {
       }),
     );
     const response = await request(
-      createFixture(undefined, draw, undefined, {
-        recordIssued: vi.fn(),
-        recordRejected,
-      }),
+      createFixture({ draw, telemetry: { recordIssued: vi.fn(), recordRejected } }),
     )
       .post(apiPaths.fortuneDraw)
       .set('Idempotency-Key', idempotencyKey)
@@ -213,12 +219,102 @@ describe('fortune draw route', () => {
   });
 });
 
+describe('fortune history route', () => {
+  const validCursor = `v1.${Buffer.from('{"v":"v1"}').toString('base64url')}.${Buffer.alloc(
+    32,
+    3,
+  ).toString('base64url')}`;
+  const historyResponse = {
+    items: [drawResponse.draw],
+    nextCursor: null,
+    syncedAt: '2026-08-06T10:00:00.000Z',
+  };
+
+  it('returns one validated non-cacheable page with normalized filters', async () => {
+    const list = vi.fn<FortuneArchiveHandler['list']>().mockResolvedValue(historyResponse);
+    const response = await request(createFixture({ list }))
+      .get(`${apiPaths.fortunes}?limit=50&intention=GROWTH&cursor=${validCursor}`)
+      .expect(200);
+
+    expect(response.body).toEqual(historyResponse);
+    expect(response.headers['cache-control']).toBe('no-store');
+    expect(list).toHaveBeenCalledWith(authentication, {
+      cursor: validCursor,
+      intention: 'GROWTH',
+      limit: 50,
+    });
+  });
+
+  it('rejects unknown filters, malformed cursors, and reversed ranges before delegation', async () => {
+    const list = vi.fn<FortuneArchiveHandler['list']>();
+    const fixture = createFixture({ list });
+
+    for (const query of [
+      'offset=10',
+      'cursor=not-a-cursor',
+      'limit=101',
+      'issuedFrom=2026-08-07T00:00:00.000Z&issuedTo=2026-08-06T00:00:00.000Z',
+    ]) {
+      const response = await request(fixture).get(`${apiPaths.fortunes}?${query}`).expect(400);
+      expect(response.body.error.code).toBe('VALIDATION_FAILED');
+    }
+    expect(list).not.toHaveBeenCalled();
+  });
+
+  it('maps a mismatched signed cursor to a validation failure', async () => {
+    const list = vi
+      .fn<FortuneArchiveHandler['list']>()
+      .mockRejectedValue(new FortuneArchiveError('CURSOR_INVALID'));
+    const response = await request(createFixture({ list }))
+      .get(`${apiPaths.fortunes}?cursor=${validCursor}`)
+      .expect(400);
+
+    expect(response.body.error.code).toBe('VALIDATION_FAILED');
+  });
+});
+
+describe('fortune detail route', () => {
+  it('returns one owned reading through the handler', async () => {
+    const getDetail = vi
+      .fn<FortuneArchiveHandler['get']>()
+      .mockResolvedValue({ draw: drawResponse.draw });
+    const response = await request(createFixture({ getDetail }))
+      .get(`/v1/fortunes/${drawResponse.draw.id}`)
+      .expect(200);
+
+    expect(response.body).toEqual({ draw: drawResponse.draw });
+    expect(getDetail).toHaveBeenCalledWith(authentication, drawResponse.draw.id);
+  });
+
+  it('rejects malformed identifiers before delegation', async () => {
+    const getDetail = vi.fn<FortuneArchiveHandler['get']>();
+    const response = await request(createFixture({ getDetail }))
+      .get('/v1/fortunes/not-a-uuid')
+      .expect(400);
+
+    expect(response.body.error.code).toBe('VALIDATION_FAILED');
+    expect(getDetail).not.toHaveBeenCalled();
+  });
+
+  it('keeps another account’s reading indistinguishable from absent', async () => {
+    const getDetail = vi
+      .fn<FortuneArchiveHandler['get']>()
+      .mockRejectedValue(new FortuneArchiveError('NOT_FOUND'));
+    const response = await request(createFixture({ getDetail }))
+      .get(`/v1/fortunes/${drawResponse.draw.id}`)
+      .expect(404);
+
+    expect(response.body.error.code).toBe('NOT_FOUND');
+    expect(response.body).not.toHaveProperty('draw');
+  });
+});
+
 describe('fortune viewed route', () => {
   it('acknowledges one owned reading idempotently through the handler', async () => {
     const markViewed = vi.fn<FortuneViewedHandler['markViewed']>().mockResolvedValue({
       draw: { ...drawResponse.draw, viewedAt: '2026-08-06T10:01:00.000Z' },
     });
-    const response = await request(createFixture(undefined, undefined, markViewed))
+    const response = await request(createFixture({ markViewed }))
       .patch(`/v1/fortunes/${drawResponse.draw.id}/viewed`)
       .expect(200);
 
@@ -228,7 +324,7 @@ describe('fortune viewed route', () => {
 
   it('rejects malformed identifiers before delegation', async () => {
     const markViewed = vi.fn<FortuneViewedHandler['markViewed']>();
-    const response = await request(createFixture(undefined, undefined, markViewed))
+    const response = await request(createFixture({ markViewed }))
       .patch('/v1/fortunes/not-a-uuid/viewed')
       .expect(400);
 
