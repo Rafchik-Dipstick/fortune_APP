@@ -12,7 +12,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-00-fool.png",
-      "bundledPath": "tools/card-assets/normalized/major-00-fool.png",
+      "bundledPath": "tools/card-assets/shipping/major-00-fool.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -53,6 +53,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-00-fool.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 427053,
+        "sha256": "c3c0317dde54bf78057f43e00a51c886eaad3db99d793d0877915e8a62a4837f",
+        "masterSha256": "961d7653f3b02f2c65148b3ef09dd0ee974c9849b23fafdc6b6e1f2aeb8ec9f8"
       }
     },
     {
@@ -62,7 +75,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-01-magician.png",
-      "bundledPath": "tools/card-assets/normalized/major-01-magician.png",
+      "bundledPath": "tools/card-assets/shipping/major-01-magician.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -103,6 +116,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-01-magician.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 438210,
+        "sha256": "8d1d02a168e23457c52e3e1dd1f35a493ff8af8d9753120a01785b2cee59f99c",
+        "masterSha256": "6642b112502150d1f536ef047f5c8ba3a63f7481de95841f33be6ca5babe8fd8"
       }
     },
     {
@@ -112,7 +138,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-02-high-priestess.png",
-      "bundledPath": "tools/card-assets/normalized/major-02-high-priestess.png",
+      "bundledPath": "tools/card-assets/shipping/major-02-high-priestess.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -153,6 +179,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-02-high-priestess.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 482661,
+        "sha256": "4a7bf392ba8f42cd069bcd17ffb8381f87a1d89d91b5fc1b7927ef97f4810837",
+        "masterSha256": "a13dc4f68d8b995dc2cc6897b1a3d446cb0d6d3cc833be6c471d8dd515ce207e"
       }
     },
     {
@@ -162,7 +201,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-03-empress.png",
-      "bundledPath": "tools/card-assets/normalized/major-03-empress.png",
+      "bundledPath": "tools/card-assets/shipping/major-03-empress.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -203,6 +242,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-03-empress.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 469816,
+        "sha256": "c2503e98468541d09eaa0fbced196d8075becde26373e33f6ff94a0677cc013b",
+        "masterSha256": "ce32e346dd7cab5f78f1db9ba9d4d8dc57559c896cb775b81f9413552be1c53d"
       }
     },
     {
@@ -212,7 +264,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-04-emperor.png",
-      "bundledPath": "tools/card-assets/normalized/major-04-emperor.png",
+      "bundledPath": "tools/card-assets/shipping/major-04-emperor.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -253,6 +305,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-04-emperor.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 405270,
+        "sha256": "d4b0a9afc0889555278232d9b4f8792ce50356d76d4715494dd0e0fcf2715d97",
+        "masterSha256": "57e9263c7b2d0b60304ec2e8e408a33518fac2d9a408d35131018a52dbfcd42a"
       }
     },
     {
@@ -262,7 +327,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-05-hierophant.png",
-      "bundledPath": "tools/card-assets/normalized/major-05-hierophant.png",
+      "bundledPath": "tools/card-assets/shipping/major-05-hierophant.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -303,6 +368,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-05-hierophant.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 418903,
+        "sha256": "0183902e1b0798b4861ade7201a143758bb2d7948b04bdaa06ecc409883fb3d2",
+        "masterSha256": "e8ebc9f9bfcb04424d68dfdb53b452f6f39701a2251d1d807700d71c65baa4af"
       }
     },
     {
@@ -312,7 +390,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-06-lovers.png",
-      "bundledPath": "tools/card-assets/normalized/major-06-lovers.png",
+      "bundledPath": "tools/card-assets/shipping/major-06-lovers.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -353,6 +431,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-06-lovers.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 431107,
+        "sha256": "b83380c5f508a6bcdd572f2554ba9e653f27af0fd73749da8361891c4ab4f6a9",
+        "masterSha256": "e439f956fed2a8f59133ca9d3138d349d46fec6d1d344251141bdd7dc705ce0b"
       }
     },
     {
@@ -362,7 +453,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-07-chariot.png",
-      "bundledPath": "tools/card-assets/normalized/major-07-chariot.png",
+      "bundledPath": "tools/card-assets/shipping/major-07-chariot.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -403,6 +494,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-07-chariot.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 459629,
+        "sha256": "fa1babef4f2eea14a920ceb5b0f1ad87a5a2dac8a2c95f9f011aa908f3f0b8c0",
+        "masterSha256": "512aa9be7bef7214fec3d654a59ec7389521db0f601bbf0541644fff1035ab12"
       }
     },
     {
@@ -412,7 +516,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-08-strength.png",
-      "bundledPath": "tools/card-assets/normalized/major-08-strength.png",
+      "bundledPath": "tools/card-assets/shipping/major-08-strength.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -453,6 +557,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-08-strength.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 455546,
+        "sha256": "61dd991224c32abb200abef9715d6f343df8f119eaed3a941bb9ed226808918e",
+        "masterSha256": "60bec8d9c73e44cadbd75dc5179c1ca299c6cd937a91780553b1bc755670a564"
       }
     },
     {
@@ -462,7 +579,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-09-hermit.png",
-      "bundledPath": "tools/card-assets/normalized/major-09-hermit.png",
+      "bundledPath": "tools/card-assets/shipping/major-09-hermit.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -503,6 +620,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-09-hermit.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 354190,
+        "sha256": "626617d291018ffeea4908b349a9bff21e705e536a2835a737ffa0de84d34d0b",
+        "masterSha256": "4778df82e0118d97ae2298bf3f31470812df71560b0d3111215379e8fbbc95bd"
       }
     },
     {
@@ -512,7 +642,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-10-wheel-of-fortune.png",
-      "bundledPath": "tools/card-assets/normalized/major-10-wheel-of-fortune.png",
+      "bundledPath": "tools/card-assets/shipping/major-10-wheel-of-fortune.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -553,6 +683,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-10-wheel-of-fortune.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 385364,
+        "sha256": "8afb886ca1088ae29515b7e72df57570192169b00eb1d99518b863c520392d1a",
+        "masterSha256": "2553f2e93fc00426def936043790ccca5143ec890a59e11171c51157cada19ea"
       }
     },
     {
@@ -562,7 +705,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-11-justice.png",
-      "bundledPath": "tools/card-assets/normalized/major-11-justice.png",
+      "bundledPath": "tools/card-assets/shipping/major-11-justice.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -603,6 +746,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-11-justice.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 431979,
+        "sha256": "57acb756871549c235c1f01954461ec8d140ac1fb23c277014be3d38d4014d65",
+        "masterSha256": "6c139d93f4e46763cc31555d9aec04b6457d157f828833ab9be3383009094afa"
       }
     },
     {
@@ -612,7 +768,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-12-hanged-man.png",
-      "bundledPath": "tools/card-assets/normalized/major-12-hanged-man.png",
+      "bundledPath": "tools/card-assets/shipping/major-12-hanged-man.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -653,6 +809,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-12-hanged-man.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 389961,
+        "sha256": "7d224b255712f6a06c239ace6ba3ec9024029f75021e55aa6e21baaeb67bda7f",
+        "masterSha256": "1b76833f3892b5ab52543a71543d7138ee7389cf384d51a10debaeba138ac110"
       }
     },
     {
@@ -662,7 +831,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-13-death.png",
-      "bundledPath": "tools/card-assets/normalized/major-13-death.png",
+      "bundledPath": "tools/card-assets/shipping/major-13-death.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -703,6 +872,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-13-death.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 508488,
+        "sha256": "beb927c147206cf726b6718407354d9045c59c8cd788e27dd85ceb0fb2352a2f",
+        "masterSha256": "64cb6b338feabd3b7434e7ca4faca333d9aa52c07cb2077e5e7bfee5a0c65f51"
       }
     },
     {
@@ -712,7 +894,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-14-temperance.png",
-      "bundledPath": "tools/card-assets/normalized/major-14-temperance.png",
+      "bundledPath": "tools/card-assets/shipping/major-14-temperance.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -753,6 +935,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-14-temperance.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 407248,
+        "sha256": "83d9f9a69afb1bd4c8fd79002ea45e754c1b222990d0a53c0c9e5ce854f3bbcc",
+        "masterSha256": "4d1abf5a28204842cae3e043bf60b8095924743a3948f9b754ab9c9ef81295c1"
       }
     },
     {
@@ -762,7 +957,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-15-devil.png",
-      "bundledPath": "tools/card-assets/normalized/major-15-devil.png",
+      "bundledPath": "tools/card-assets/shipping/major-15-devil.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -803,6 +998,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-15-devil.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 459285,
+        "sha256": "b724be174bc927bbd06fe9b5154bdb49f9054b410f41d09edfacf0cda95d5f28",
+        "masterSha256": "9241c2193c8483764b17f6dd06f03c7558c4ff376b56cc6156dc15e499bb5f3e"
       }
     },
     {
@@ -812,7 +1020,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-16-tower.png",
-      "bundledPath": "tools/card-assets/normalized/major-16-tower.png",
+      "bundledPath": "tools/card-assets/shipping/major-16-tower.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -853,6 +1061,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-16-tower.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 299191,
+        "sha256": "c6a4af888e890a29625775bfceea6e6970891f6083aa41147f1472ab51888e6d",
+        "masterSha256": "5d595dcffe286d371f2145573dcf6b601170cab06ba9f4288959f6ea4ca9c8ad"
       }
     },
     {
@@ -862,7 +1083,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-17-star.png",
-      "bundledPath": "tools/card-assets/normalized/major-17-star.png",
+      "bundledPath": "tools/card-assets/shipping/major-17-star.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -903,6 +1124,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-17-star.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 435235,
+        "sha256": "a8908b55ad083bd37723cb6dbad65db4b732edefe39efcc57cf6c9d1d436e5c8",
+        "masterSha256": "c73eac94e8abf34a65a0f23b4e0fe957719f22567f0d40dcaebc4ba7c7e59534"
       }
     },
     {
@@ -912,7 +1146,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-18-moon.png",
-      "bundledPath": "tools/card-assets/normalized/major-18-moon.png",
+      "bundledPath": "tools/card-assets/shipping/major-18-moon.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -953,6 +1187,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-18-moon.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 435170,
+        "sha256": "35f15aad0c1e84c507a35c620e892b88148081c263c1d9e6a42df619af8135db",
+        "masterSha256": "d2e9d27f57d856e9fbc1310245ac06872162224ed7e0af41397b0d04ed3cf175"
       }
     },
     {
@@ -962,7 +1209,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-19-sun.png",
-      "bundledPath": "tools/card-assets/normalized/major-19-sun.png",
+      "bundledPath": "tools/card-assets/shipping/major-19-sun.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1003,6 +1250,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-19-sun.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 459704,
+        "sha256": "25841fa9be58cde8be3253fe3593213380efb4113eb9a3741e9b43ae75e34a6b",
+        "masterSha256": "1a69861db8477eeb246711150c7debe5817bd083e3777031492e22ee9afecea3"
       }
     },
     {
@@ -1012,7 +1272,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-20-judgement.png",
-      "bundledPath": "tools/card-assets/normalized/major-20-judgement.png",
+      "bundledPath": "tools/card-assets/shipping/major-20-judgement.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1053,6 +1313,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-20-judgement.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 432921,
+        "sha256": "57c45378114a8ce1117ba0cdb54c91501602044a82df7bfe37ecbcbb75e989ab",
+        "masterSha256": "e110428f122a16fd1a04ad2b1052481216e6ca480d722f9a06bc98ff7db5c4e2"
       }
     },
     {
@@ -1062,7 +1335,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/major-21-world.png",
-      "bundledPath": "tools/card-assets/normalized/major-21-world.png",
+      "bundledPath": "tools/card-assets/shipping/major-21-world.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1103,6 +1376,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/major-21-world.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 437788,
+        "sha256": "eb6d20eaea2f8d8836370a67eb38cbd18e792b2cc217a55ca6aa0d38dd4ca36c",
+        "masterSha256": "f73a914e792ce78e2010b82aae20b42da91493680c74abb610193a554ba02b65"
       }
     },
     {
@@ -1112,7 +1398,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-ace.png",
-      "bundledPath": "tools/card-assets/normalized/wands-ace.png",
+      "bundledPath": "tools/card-assets/shipping/wands-ace.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1153,6 +1439,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/wands-ace.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 337073,
+        "sha256": "4d26e3bee698b4450ae1d86f5b84c978c2e7d0723544e6393786515d36ca0107",
+        "masterSha256": "7af343ddcceb395a821c3ec30d82f1319c0b3b2f4a2e8a71f245a62c831b1603"
       }
     },
     {
@@ -1162,7 +1461,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-02.png",
-      "bundledPath": "tools/card-assets/normalized/wands-02.png",
+      "bundledPath": "tools/card-assets/shipping/wands-02.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1203,6 +1502,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/wands-02.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 357219,
+        "sha256": "f7855c02ed5e6dcf3ca7a25256025a3de2a8948d3119c364e0839c8e4601987f",
+        "masterSha256": "9f4926990556d68d2ae4c7c3a15725a0025eca394ff7cf15572b67353c33708f"
       }
     },
     {
@@ -1212,7 +1524,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-03.png",
-      "bundledPath": "tools/card-assets/normalized/wands-03.png",
+      "bundledPath": "tools/card-assets/shipping/wands-03.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1253,6 +1565,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/wands-03.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 335802,
+        "sha256": "49bb0ae7f91d9c6e34ec56b0e088fc69b9d7c0b581aa0d4789e087b1d0ecbfba",
+        "masterSha256": "53b65d79be948e4d8445ae9ccd61e93cb5b5e814f604247ceb4f1909411491fc"
       }
     },
     {
@@ -1262,7 +1587,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-04.png",
-      "bundledPath": "tools/card-assets/normalized/wands-04.png",
+      "bundledPath": "tools/card-assets/shipping/wands-04.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1303,6 +1628,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/wands-04.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 392626,
+        "sha256": "1b90d611604f1b2646c9a9180e69102ae290ee542e051375bfab763c74148b46",
+        "masterSha256": "dd74ad9e9e7cbda8b2929988222607b5d99185bb0eb9f7fcab8393c299c6fcbd"
       }
     },
     {
@@ -1312,7 +1650,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-05.png",
-      "bundledPath": "tools/card-assets/normalized/wands-05.png",
+      "bundledPath": "tools/card-assets/shipping/wands-05.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1353,6 +1691,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/wands-05.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 453313,
+        "sha256": "c1e7ab9e44ba3007d170d61b0487347976cb8520630756f3e4cb32e3410beea7",
+        "masterSha256": "d78324bab7820589b3eae9b41f2171f22f2a590c070c90e9dc33447c3756cc29"
       }
     },
     {
@@ -1362,7 +1713,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-06.png",
-      "bundledPath": "tools/card-assets/normalized/wands-06.png",
+      "bundledPath": "tools/card-assets/shipping/wands-06.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1403,6 +1754,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/wands-06.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 372254,
+        "sha256": "361f5684e8d792584d2717d9e498a2d20813baaa181e4e19df7fd1a4433f63c5",
+        "masterSha256": "f997e048008f09a290c4abba7f2190ed7ff83a9318f29b10e1994622fd67a9b2"
       }
     },
     {
@@ -1412,7 +1776,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-07.png",
-      "bundledPath": "tools/card-assets/normalized/wands-07.png",
+      "bundledPath": "tools/card-assets/shipping/wands-07.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1453,6 +1817,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/wands-07.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 351449,
+        "sha256": "a6a718b655ec9eb9c8e16f23616345504d0be297451d33b589949d8cc5874cc7",
+        "masterSha256": "cf10842eb161f03936af96c68c43cf7509a8d3567e929bbdf7d3b4dcf27045fa"
       }
     },
     {
@@ -1462,7 +1839,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-08.png",
-      "bundledPath": "tools/card-assets/normalized/wands-08.png",
+      "bundledPath": "tools/card-assets/shipping/wands-08.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1503,6 +1880,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/wands-08.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 379237,
+        "sha256": "f34d2990efe64be4d9069a338fc978c08b8756d2f8d31b9c74427d3794fdbfb0",
+        "masterSha256": "f2203adadee770985981f4798a1ae6b17509f1f652ec5a56690e319784e492b8"
       }
     },
     {
@@ -1512,7 +1902,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-09.png",
-      "bundledPath": "tools/card-assets/normalized/wands-09.png",
+      "bundledPath": "tools/card-assets/shipping/wands-09.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1553,6 +1943,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/wands-09.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 467849,
+        "sha256": "a0927b75969cef2ed8bd41f4c15609304fe781f19045adfb70eba3d588dbb059",
+        "masterSha256": "52f9b6f0cca838a0818828f1fe17b4fa1a1e3e42bcce891eefca27567acf2b10"
       }
     },
     {
@@ -1562,7 +1965,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-10.png",
-      "bundledPath": "tools/card-assets/normalized/wands-10.png",
+      "bundledPath": "tools/card-assets/shipping/wands-10.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1603,6 +2006,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/wands-10.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 511437,
+        "sha256": "7674a095f6830dc39085845c5d51f7c2ae8d92e211066c504f3be7a2bfe5fd81",
+        "masterSha256": "95b402ea7bf8d1cf7c6d8d766f17dd4141fd5318d2487eef9d902fa5c7ccb874"
       }
     },
     {
@@ -1612,7 +2028,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-page.png",
-      "bundledPath": "tools/card-assets/normalized/wands-page.png",
+      "bundledPath": "tools/card-assets/shipping/wands-page.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1653,6 +2069,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/wands-page.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 373848,
+        "sha256": "edf10db99104cbfe3ef2770a091d88655db9f25c13e93c9bf1b427f307a8e3ab",
+        "masterSha256": "c8756c854195eb7e6e5ce690bcf5eafecbf3e9241e8470207e6bcf7bacfbd7c3"
       }
     },
     {
@@ -1662,7 +2091,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-knight.png",
-      "bundledPath": "tools/card-assets/normalized/wands-knight.png",
+      "bundledPath": "tools/card-assets/shipping/wands-knight.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1703,6 +2132,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/wands-knight.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 336459,
+        "sha256": "cf5c07d167e72277557da14428302bc6aad63e9739ba5c49c9661634ae54aea1",
+        "masterSha256": "810a4587c8d0030f2a9aef7785a68335084c4c295f29ae8fdf39fb1390716947"
       }
     },
     {
@@ -1712,7 +2154,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-queen.png",
-      "bundledPath": "tools/card-assets/normalized/wands-queen.png",
+      "bundledPath": "tools/card-assets/shipping/wands-queen.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1753,6 +2195,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/wands-queen.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 422293,
+        "sha256": "3d06ce41b4668369423a8e583ea37c4eb9d16a3f1d1ad8ae6cc1e9df6f657ede",
+        "masterSha256": "bef44320749c7c83c0a3b778f277e32c1ddc0df0211127ceb59e29bef8d2fb89"
       }
     },
     {
@@ -1762,7 +2217,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/wands-king.png",
-      "bundledPath": "tools/card-assets/normalized/wands-king.png",
+      "bundledPath": "tools/card-assets/shipping/wands-king.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1803,6 +2258,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/wands-king.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 383363,
+        "sha256": "36ede40645832cb526e007bd6237591d517050c8faa71144c6587dcc6c63114e",
+        "masterSha256": "b8751a9c14d7fd138e952734dd153e3e334163537c25d595ebea0cf31c180d62"
       }
     },
     {
@@ -1812,7 +2280,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/cups-ace.png",
-      "bundledPath": "tools/card-assets/normalized/cups-ace.png",
+      "bundledPath": "tools/card-assets/shipping/cups-ace.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1853,6 +2321,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/cups-ace.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 395068,
+        "sha256": "aab482a303223e5f2e4e4240a7cca56ca34e1be9050fdf8ad28721b95c210d68",
+        "masterSha256": "a45eb1994a384e7207e226a7691e653797920e290a512247eb82b7d12e628143"
       }
     },
     {
@@ -1862,7 +2343,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/cups-02.png",
-      "bundledPath": "tools/card-assets/normalized/cups-02.png",
+      "bundledPath": "tools/card-assets/shipping/cups-02.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1903,6 +2384,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/cups-02.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 427701,
+        "sha256": "81a4ee628d62e1b0c125e281ea00f2b101b576abb900a244d9755d7c24ea5ea8",
+        "masterSha256": "4fb299b4b1d331f6c1c5d96547271f2802168fe3fd8d6b188a3fd7e0271d013c"
       }
     },
     {
@@ -1912,7 +2406,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/cups-03.png",
-      "bundledPath": "tools/card-assets/normalized/cups-03.png",
+      "bundledPath": "tools/card-assets/shipping/cups-03.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -1953,6 +2447,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/cups-03.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 461081,
+        "sha256": "22c75098d4df084b717f8f45a7f2353407af193e87183d6172e4907fb5b3521b",
+        "masterSha256": "f3bb67c3ddc03a22c51d92a8072ae9e0ca5bc19d6843ad422e25596924850a04"
       }
     },
     {
@@ -1962,7 +2469,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/cups-04.png",
-      "bundledPath": "tools/card-assets/normalized/cups-04.png",
+      "bundledPath": "tools/card-assets/shipping/cups-04.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2003,6 +2510,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/cups-04.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 431160,
+        "sha256": "84cdb769674f4bbd9bce6cae93811dc738a9ece2013caa494738d761be6c65a0",
+        "masterSha256": "7f821d3f3915c3fdc64145a9ca46531208bf393b5f376ae5095e33ca9b3b3493"
       }
     },
     {
@@ -2012,7 +2532,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/cups-05.png",
-      "bundledPath": "tools/card-assets/normalized/cups-05.png",
+      "bundledPath": "tools/card-assets/shipping/cups-05.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2053,6 +2573,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/cups-05.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 428613,
+        "sha256": "bbb1f38633775a0375d52716fb61270447911cfdbd466106ad179a1c8917d79b",
+        "masterSha256": "4edbc89d166fadbb9f081f6072e8b043e386549e10a9dcded77557beb7cfb3df"
       }
     },
     {
@@ -2062,7 +2595,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/cups-06.png",
-      "bundledPath": "tools/card-assets/normalized/cups-06.png",
+      "bundledPath": "tools/card-assets/shipping/cups-06.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2103,6 +2636,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/cups-06.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 416022,
+        "sha256": "83dcda5ba5be8c572fdacd74470bc16b81354a8619d32bd73d56ec3f1b68e449",
+        "masterSha256": "9daa4f79f44e1827eeb67d06e13e463f4186062f61c15cdbcbd3d0e9ea749463"
       }
     },
     {
@@ -2112,7 +2658,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/cups-07.png",
-      "bundledPath": "tools/card-assets/normalized/cups-07.png",
+      "bundledPath": "tools/card-assets/shipping/cups-07.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2153,6 +2699,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/cups-07.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 422861,
+        "sha256": "77cc66d7fd463fc8abbf3931efc8d3d63076287ff059809014c119482762e66b",
+        "masterSha256": "5aa08fa99c72852f514a17067c0c1d0acf85385926a585ba737425dc9e67099f"
       }
     },
     {
@@ -2162,7 +2721,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/cups-08.png",
-      "bundledPath": "tools/card-assets/normalized/cups-08.png",
+      "bundledPath": "tools/card-assets/shipping/cups-08.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2203,6 +2762,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/cups-08.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 347327,
+        "sha256": "79b6bc3ebc2835dd6bdb8cbf4f9eafc57584dd0d2fb59cd25d3bf2379cd654c6",
+        "masterSha256": "bd7794af5b816d12f949acb4fd4f7f7f7c75448d7c9321fabf07a62571055037"
       }
     },
     {
@@ -2212,7 +2784,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/cups-09.png",
-      "bundledPath": "tools/card-assets/normalized/cups-09.png",
+      "bundledPath": "tools/card-assets/shipping/cups-09.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2253,6 +2825,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/cups-09.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 362890,
+        "sha256": "34db33cf2134726f21b6c263aab908fba3de8570d92b2ae9a223dd5d208d8ce9",
+        "masterSha256": "26a9ee4b6c1d964421193ddd79142de318208b459e3aaef12d66d55feb8b7d47"
       }
     },
     {
@@ -2262,7 +2847,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/cups-10.png",
-      "bundledPath": "tools/card-assets/normalized/cups-10.png",
+      "bundledPath": "tools/card-assets/shipping/cups-10.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2303,6 +2888,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/cups-10.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 444696,
+        "sha256": "b4a5ebde7ad9f36419d6daf04dd2c7c2270dea294791f3919d1a807415a368a9",
+        "masterSha256": "bfa9a7a7b7a87e2c172e5e0dcb82f993e4cbbeeaeff7de1c45f20718f8b7653b"
       }
     },
     {
@@ -2312,7 +2910,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/cups-page.png",
-      "bundledPath": "tools/card-assets/normalized/cups-page.png",
+      "bundledPath": "tools/card-assets/shipping/cups-page.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2353,6 +2951,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/cups-page.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 414195,
+        "sha256": "f7ea17af17b3e136a018170df13ec977a7f3ea5c8a9443f25a012fccc93cac08",
+        "masterSha256": "563c384fb7e572b53bf4561cb145dd426fdcfac6857472ab2b82291f22582de7"
       }
     },
     {
@@ -2362,7 +2973,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/cups-knight.png",
-      "bundledPath": "tools/card-assets/normalized/cups-knight.png",
+      "bundledPath": "tools/card-assets/shipping/cups-knight.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2403,6 +3014,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/cups-knight.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 525043,
+        "sha256": "21bd96212bc4360620e3e528cc06d43a761f110d960df4120bb9a206d40e00db",
+        "masterSha256": "1c0e9e9997a503ba07d2fdd6aa71b0968c788d128a92355bc0fb81fedee8c3c0"
       }
     },
     {
@@ -2412,7 +3036,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/cups-queen.png",
-      "bundledPath": "tools/card-assets/normalized/cups-queen.png",
+      "bundledPath": "tools/card-assets/shipping/cups-queen.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2453,6 +3077,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/cups-queen.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 387611,
+        "sha256": "94b524df4af4680b4ccb320c871e1446830656f6558b815518ced5a8f1d29285",
+        "masterSha256": "118d82c463800bbf09b4a790fa54cd56944c78be5a47e679b1b329a34f1d61ed"
       }
     },
     {
@@ -2462,7 +3099,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/cups-king.png",
-      "bundledPath": "tools/card-assets/normalized/cups-king.png",
+      "bundledPath": "tools/card-assets/shipping/cups-king.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2503,6 +3140,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/cups-king.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 504780,
+        "sha256": "10a457e99a0445910435ae9565a3cb7a9a648bc1b3a13911fd3bf34e81b4f6fa",
+        "masterSha256": "0e936d5141fb4aa78f71b964d40dd0bfb5c38a4399aa1097f9491e2866930dcf"
       }
     },
     {
@@ -2512,7 +3162,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/swords-ace.png",
-      "bundledPath": "tools/card-assets/normalized/swords-ace.png",
+      "bundledPath": "tools/card-assets/shipping/swords-ace.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2553,6 +3203,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/swords-ace.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 306483,
+        "sha256": "799316f509a672d0f464709ef4a1c66dcb11987eeadf94ab524d0cb38d255f46",
+        "masterSha256": "a4d0d3c72d78740667a25504da5a7b644de9fab64e6592c7131904a7d1c29f4c"
       }
     },
     {
@@ -2562,7 +3225,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/swords-02.png",
-      "bundledPath": "tools/card-assets/normalized/swords-02.png",
+      "bundledPath": "tools/card-assets/shipping/swords-02.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2603,6 +3266,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/swords-02.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 326302,
+        "sha256": "ddcba67f11a10bdda851d26456ca33eee226f7a31538c53d51a682feaeccbc05",
+        "masterSha256": "615a7c2315c32edec0a9e04caf4b0e892adb0b6aef8f237a45715d2e456d3c36"
       }
     },
     {
@@ -2612,7 +3288,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/swords-03.png",
-      "bundledPath": "tools/card-assets/normalized/swords-03.png",
+      "bundledPath": "tools/card-assets/shipping/swords-03.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2653,6 +3329,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/swords-03.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 376042,
+        "sha256": "55ecefcc18cd1c211fa7b4a991565c6499b4062b835723dfe61ff2e519f03fbe",
+        "masterSha256": "be78883999b4f66c59d6e11bd605333385cf1a429463546c3e2d853a9b62c350"
       }
     },
     {
@@ -2662,7 +3351,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/swords-04.png",
-      "bundledPath": "tools/card-assets/normalized/swords-04.png",
+      "bundledPath": "tools/card-assets/shipping/swords-04.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2703,6 +3392,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/swords-04.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 348461,
+        "sha256": "435ff0b732665b73f852deaf9a96a5fd6e41f108fbe06952c73d20d6c95f1f88",
+        "masterSha256": "58fc1bf9e0acbdff68aa56d51adf6cabc47a5fefe597e4490ba1ec401df72af8"
       }
     },
     {
@@ -2712,7 +3414,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/swords-05.png",
-      "bundledPath": "tools/card-assets/normalized/swords-05.png",
+      "bundledPath": "tools/card-assets/shipping/swords-05.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2753,6 +3455,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/swords-05.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 418857,
+        "sha256": "b378c14d649803e102d40742e05f3c2e3f1653b767eec07d0503fe3d74b97dc6",
+        "masterSha256": "09b20ca0772ff9882ff84ade8044dbc6a1c4c7577f711d4b7b9f4d4d08afe5ea"
       }
     },
     {
@@ -2762,7 +3477,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/swords-06.png",
-      "bundledPath": "tools/card-assets/normalized/swords-06.png",
+      "bundledPath": "tools/card-assets/shipping/swords-06.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2803,6 +3518,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/swords-06.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 408466,
+        "sha256": "c3bd6b54d423e0589b7bb2f6fd73a1affc0c770814c5c7d67f263cc8c52c4089",
+        "masterSha256": "42d42ca45b1bac5ed91d15d287b0bbd2ba06824c7fcab15a1c3d87c2feb0937e"
       }
     },
     {
@@ -2812,7 +3540,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/swords-07.png",
-      "bundledPath": "tools/card-assets/normalized/swords-07.png",
+      "bundledPath": "tools/card-assets/shipping/swords-07.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2853,6 +3581,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/swords-07.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 392889,
+        "sha256": "c491ccc568967451c03c50079cf0c04ff2e33c06dda8a1c7bd7074aec1610335",
+        "masterSha256": "5de807ce24f484f7bd49800ee30db932cabf8f07ca0ca9ac85c36f6d375d89da"
       }
     },
     {
@@ -2862,7 +3603,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/swords-08.png",
-      "bundledPath": "tools/card-assets/normalized/swords-08.png",
+      "bundledPath": "tools/card-assets/shipping/swords-08.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2903,6 +3644,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/swords-08.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 431115,
+        "sha256": "c8a82fbccb77ff054e026f14f503425ee77a159b2d278ca0ae1b199f0c374813",
+        "masterSha256": "6339968e5890027a3f445230837bd4af5b1ded46627cbd996d482da5bb5d477a"
       }
     },
     {
@@ -2912,7 +3666,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/swords-09.png",
-      "bundledPath": "tools/card-assets/normalized/swords-09.png",
+      "bundledPath": "tools/card-assets/shipping/swords-09.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -2953,6 +3707,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/swords-09.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 468024,
+        "sha256": "9b988616af27a365cc79574f6a7182d4c8f95a8370ca534172d3bde3d6ce55ca",
+        "masterSha256": "d4f4cdd871cfb3e120c529e79ce908648e8fea7465f108f6aea1ff6072c81e0c"
       }
     },
     {
@@ -2962,7 +3729,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/swords-10.png",
-      "bundledPath": "tools/card-assets/normalized/swords-10.png",
+      "bundledPath": "tools/card-assets/shipping/swords-10.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -3003,6 +3770,19 @@
             "bottom": 64
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/swords-10.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 261015,
+        "sha256": "196bc604231bb37397519d41d4afbfb1703847ad53905d8b63ffa448c892a81b",
+        "masterSha256": "22d5d6a565058fa7863598cdddfe9c8f1a0fdf5d9a25484292232e70e64c3a24"
       }
     },
     {
@@ -3012,7 +3792,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/swords-page.png",
-      "bundledPath": "tools/card-assets/normalized/swords-page.png",
+      "bundledPath": "tools/card-assets/shipping/swords-page.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -3053,6 +3833,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/swords-page.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 426716,
+        "sha256": "6c12d9d832b07960407d9711e2e0eb8d1a59a37f2a3fd1c888a6246c5f9c96ff",
+        "masterSha256": "7ff854270195f3a153cfd60a17b3e0da9711c188e6b6eda9133b5f615030105f"
       }
     },
     {
@@ -3062,7 +3855,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/swords-knight.png",
-      "bundledPath": "tools/card-assets/normalized/swords-knight.png",
+      "bundledPath": "tools/card-assets/shipping/swords-knight.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -3103,6 +3896,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/swords-knight.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 477424,
+        "sha256": "d10bb272b1c759d60bf45f935c07647956be408aa9d803b52c76043992a4e80c",
+        "masterSha256": "286f9f5924d7713075dcbb829b49f2ddb6f8444f6a06ea055fa39672989548f9"
       }
     },
     {
@@ -3112,7 +3918,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/swords-queen.png",
-      "bundledPath": "tools/card-assets/normalized/swords-queen.png",
+      "bundledPath": "tools/card-assets/shipping/swords-queen.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -3153,6 +3959,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/swords-queen.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 397540,
+        "sha256": "e66ab9de7241ec865b365324951ded86f6ec01175d0e37fbe944c24a12845ff4",
+        "masterSha256": "40349e5d158980411e25a4a6c97fca20d5c58e90b6e1c7f149413d45f42fe66d"
       }
     },
     {
@@ -3162,7 +3981,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/swords-king.png",
-      "bundledPath": "tools/card-assets/normalized/swords-king.png",
+      "bundledPath": "tools/card-assets/shipping/swords-king.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -3203,6 +4022,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/swords-king.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 375496,
+        "sha256": "b7368fae8db2b2eeb57a3e7a8774b09e86f02a8897647769b3095a00a95a1291",
+        "masterSha256": "da47dda4d85e7658339ac6f5332e0fdf38d1888fef730a00ef0ba08185dc903f"
       }
     },
     {
@@ -3212,7 +4044,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/pentacles-ace.png",
-      "bundledPath": "tools/card-assets/normalized/pentacles-ace.png",
+      "bundledPath": "tools/card-assets/shipping/pentacles-ace.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -3253,6 +4085,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/pentacles-ace.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 396984,
+        "sha256": "9fa619fb97da8ce35ccea36afc1a4678bd28c89fcf1087dd11e2083a89c72714",
+        "masterSha256": "b4a8f820257e0b8fa6b48fabb37307777785c8290984ac05473ce919ffd7023f"
       }
     },
     {
@@ -3262,7 +4107,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/pentacles-02.png",
-      "bundledPath": "tools/card-assets/normalized/pentacles-02.png",
+      "bundledPath": "tools/card-assets/shipping/pentacles-02.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -3303,6 +4148,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/pentacles-02.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 428127,
+        "sha256": "1437a315ecd3170ca56b3cc07bd363b7398d4f0387fe1d5557c413c6d0797fd2",
+        "masterSha256": "4c1e340eeb9598a9fa0face9b0016ca06d7d57e4dfc7e6046c9c777a79cb90cd"
       }
     },
     {
@@ -3312,7 +4170,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/pentacles-03.png",
-      "bundledPath": "tools/card-assets/normalized/pentacles-03.png",
+      "bundledPath": "tools/card-assets/shipping/pentacles-03.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -3353,6 +4211,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/pentacles-03.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 475256,
+        "sha256": "a26051e64e0aae52ccc8358f00b59d43188dfb4344bee3227367dc275474fb34",
+        "masterSha256": "831772525a181da859d2d9a1ff010acafe3711b1220c795c7a10d46906bd5d72"
       }
     },
     {
@@ -3362,7 +4233,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/pentacles-04.png",
-      "bundledPath": "tools/card-assets/normalized/pentacles-04.png",
+      "bundledPath": "tools/card-assets/shipping/pentacles-04.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -3403,6 +4274,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/pentacles-04.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 320150,
+        "sha256": "bb71fc6bafa530b081db05b2997a2f881b7c80ecc5043dcd74e94826471cfc30",
+        "masterSha256": "2322049dd3b23e30e85c52b11375afdfc305f1db4554b9ed25ead72447da1b22"
       }
     },
     {
@@ -3412,7 +4296,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/pentacles-05.png",
-      "bundledPath": "tools/card-assets/normalized/pentacles-05.png",
+      "bundledPath": "tools/card-assets/shipping/pentacles-05.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -3453,6 +4337,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/pentacles-05.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 478964,
+        "sha256": "d3d99db3edfbc4aab79ab614886f767e3488d33af3f4fb4e943cd2413799f8fa",
+        "masterSha256": "87fc525ab08f8b00569d4062bf00f2b5c36ceaced5dcd0fd0c19f4deb47dc765"
       }
     },
     {
@@ -3462,7 +4359,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/pentacles-06.png",
-      "bundledPath": "tools/card-assets/normalized/pentacles-06.png",
+      "bundledPath": "tools/card-assets/shipping/pentacles-06.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -3503,6 +4400,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/pentacles-06.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 474498,
+        "sha256": "fe5f2b6ca79f26548de5e67bdc39887814a301bc93add1311b86287704d2d893",
+        "masterSha256": "a97a817fb411f5f9943b6604f34494e3c81d962bb77fb515b62ab07d234dbdea"
       }
     },
     {
@@ -3512,7 +4422,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/pentacles-07.png",
-      "bundledPath": "tools/card-assets/normalized/pentacles-07.png",
+      "bundledPath": "tools/card-assets/shipping/pentacles-07.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -3553,6 +4463,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/pentacles-07.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 394084,
+        "sha256": "2ffd1bf24901b46060b5503519e6e5d8b32c62ecc36dc7eb56b7cd8b993aafc2",
+        "masterSha256": "2b9af729f8a2832d5f787932ef95b9cac7309efcf31cf435f2dbab38b0bf782a"
       }
     },
     {
@@ -3562,7 +4485,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/pentacles-08.png",
-      "bundledPath": "tools/card-assets/normalized/pentacles-08.png",
+      "bundledPath": "tools/card-assets/shipping/pentacles-08.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -3603,6 +4526,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/pentacles-08.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 447499,
+        "sha256": "59b00f56549d3023235949a58872e735f58f320df3d026b0b9b705624d04b443",
+        "masterSha256": "148368671d93db859f34c9146e5651fdfd6327ff925504435c606f64e1c583f2"
       }
     },
     {
@@ -3612,7 +4548,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/pentacles-09.png",
-      "bundledPath": "tools/card-assets/normalized/pentacles-09.png",
+      "bundledPath": "tools/card-assets/shipping/pentacles-09.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -3653,6 +4589,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/pentacles-09.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 454398,
+        "sha256": "b9e214bf3aba8eacc8b3d513539cf148280b9e380147d49415721eee95c0ce1c",
+        "masterSha256": "e58be601764d0fe17516238fe60c838d5db88f0c733b1c758e0f1c5b495be79d"
       }
     },
     {
@@ -3662,7 +4611,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/pentacles-10.png",
-      "bundledPath": "tools/card-assets/normalized/pentacles-10.png",
+      "bundledPath": "tools/card-assets/shipping/pentacles-10.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -3703,6 +4652,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/pentacles-10.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 447624,
+        "sha256": "910468042e6d85ae8d868b8a834def5b0ded0fba0d858689b733263269c8cac7",
+        "masterSha256": "caddb8c4206ec7f7607c650ce6ae9de30143c90b6618cae647357384f6ed8466"
       }
     },
     {
@@ -3712,7 +4674,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/pentacles-page.png",
-      "bundledPath": "tools/card-assets/normalized/pentacles-page.png",
+      "bundledPath": "tools/card-assets/shipping/pentacles-page.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -3753,6 +4715,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/pentacles-page.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 357859,
+        "sha256": "6269af31a946835c8c6e580214ca57a0be8c76e32a83c6bd0567845dc97ea49a",
+        "masterSha256": "ff6415ea84157e626807e959f2557704d20089ade22ca5dc907d4573cd395e48"
       }
     },
     {
@@ -3762,7 +4737,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/pentacles-knight.png",
-      "bundledPath": "tools/card-assets/normalized/pentacles-knight.png",
+      "bundledPath": "tools/card-assets/shipping/pentacles-knight.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -3803,6 +4778,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/pentacles-knight.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 386064,
+        "sha256": "463c2c69346b1324ab90432fcdee2ff9118b0c31ec94b3a037ce810a0ad1f844",
+        "masterSha256": "9bf15a5aa180e721f58968c858252cbb562844d792ed91d7ca53c59aa77069c3"
       }
     },
     {
@@ -3812,7 +4800,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/pentacles-queen.png",
-      "bundledPath": "tools/card-assets/normalized/pentacles-queen.png",
+      "bundledPath": "tools/card-assets/shipping/pentacles-queen.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -3853,6 +4841,19 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/pentacles-queen.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 444814,
+        "sha256": "be75af483b9ba74a303c1a6a05a2128a61e77d216fb002468e3571a7025d722e",
+        "masterSha256": "34eae27a295a4d9a1c54460a80a2304025cff1801d01a4025d52fb5d73a697e1"
       }
     },
     {
@@ -3862,7 +4863,7 @@
       "provider": "google-vertex-adc",
       "model": "gemini-3.1-flash-image",
       "sourceOutputPath": "tools/card-assets/source/pentacles-king.png",
-      "bundledPath": "tools/card-assets/normalized/pentacles-king.png",
+      "bundledPath": "tools/card-assets/shipping/pentacles-king.jpg",
       "width": 848,
       "height": 1264,
       "colorMode": "RGB",
@@ -3903,7 +4904,21 @@
             "bottom": 0
           }
         }
+      },
+      "shipping": {
+        "encodingVersion": "jpeg-q88-progressive-v1",
+        "format": "JPEG",
+        "quality": 88,
+        "progressive": true,
+        "chromaSubsampling": "4:2:0",
+        "path": "tools/card-assets/shipping/pentacles-king.jpg",
+        "width": 1024,
+        "height": 1536,
+        "bytes": 492310,
+        "sha256": "82a7a972bb3a655921ceb42abbdc7c6d544ac35135841483632eecef22fde16d",
+        "masterSha256": "ea0df8a0b2b9afec4015a9c011f588b0277b3b5e6cc0394befa7f5dccf0750ed"
       }
     }
-  ]
+  ],
+  "shippingEncodingVersion": "jpeg-q88-progressive-v1"
 }

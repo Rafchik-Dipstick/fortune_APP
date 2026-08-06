@@ -134,15 +134,24 @@ for (const [key, cropEntry] of Object.entries(cropPlan.cards)) {
   );
 }
 
+// One illustration as the app downloads it. The whole-deck budget lives in
+// tools/bundle-budget/validate.mjs; this keeps a single card from silently
+// regressing the payload.
+const maximumShippingBytes = 640 * 1024;
+
 const cardKeys = new Set();
 const checksums = new Set();
 const normalizedChecksums = new Set();
+const shippingChecksums = new Set();
 const manifestedPaths = new Set();
 const normalizedPaths = new Set();
+const shippingPaths = new Set();
 const referencedPrompts = new Set();
 const canonicalCardIndex = new Map(promptCatalog.cardOrder.map((key, index) => [key, index]));
 let previousCanonicalIndex = -1;
 let normalizedCardCount = 0;
+let shippedCardCount = 0;
+let shippingBytesTotal = 0;
 
 for (const [index, card] of manifest.cards.entries()) {
   const prefix = `cards[${String(index)}]`;
@@ -242,10 +251,12 @@ for (const [index, card] of manifest.cards.entries()) {
       normalizeRepositoryPath(card.normalization.outputPath) === expectedNormalizedPath,
       `${prefix}.normalization.outputPath must use its canonical normalized path.`,
     );
-    assert(
-      normalizeRepositoryPath(card.bundledPath) === expectedNormalizedPath,
-      `${prefix}.bundledPath must use its normalized output.`,
-    );
+    if (!card.shipping) {
+      assert(
+        normalizeRepositoryPath(card.bundledPath) === expectedNormalizedPath,
+        `${prefix}.bundledPath must use its normalized output until a shipping asset exists.`,
+      );
+    }
 
     const absoluteNormalizedPath = resolve(repositoryRoot, card.normalization.outputPath);
     const normalizedBuffer = await readFile(absoluteNormalizedPath);
@@ -316,6 +327,74 @@ for (const [index, card] of manifest.cards.entries()) {
     );
   }
 
+  if (card.shipping) {
+    shippedCardCount += 1;
+    const expectedShippingPath = `tools/card-assets/shipping/${card.key}.jpg`;
+    assert(
+      card.normalization,
+      `${prefix} cannot ship an optimized asset without a normalized master.`,
+    );
+    assert(
+      manifest.shippingEncodingVersion === card.shipping.encodingVersion,
+      `${prefix}.shipping.encodingVersion must match the manifest encoding version.`,
+    );
+    assert(
+      card.shipping.format === 'JPEG' && card.shipping.progressive === true,
+      `${prefix}.shipping must be a progressive JPEG.`,
+    );
+    assert(
+      Number.isInteger(card.shipping.quality) &&
+        card.shipping.quality >= 80 &&
+        card.shipping.quality <= 95,
+      `${prefix}.shipping.quality must stay inside the reviewed 80–95 range.`,
+    );
+    assert(
+      card.shipping.masterSha256 === card.normalization.sha256,
+      `${prefix}.shipping was encoded from a stale normalized master.`,
+    );
+    assert(
+      normalizeRepositoryPath(card.shipping.path) === expectedShippingPath,
+      `${prefix}.shipping.path must use its canonical shipping path.`,
+    );
+    assert(
+      normalizeRepositoryPath(card.bundledPath) === expectedShippingPath,
+      `${prefix}.bundledPath must reference the optimized asset the app ships.`,
+    );
+    assert(
+      card.shipping.width === cropPlan.outputWidth &&
+        card.shipping.height === cropPlan.outputHeight,
+      `${prefix}.shipping dimensions must match the crop plan.`,
+    );
+
+    const absoluteShippingPath = resolve(repositoryRoot, card.shipping.path);
+    const shippingBuffer = await readFile(absoluteShippingPath);
+    const shippingStat = await stat(absoluteShippingPath);
+    assert(
+      shippingBuffer.subarray(0, 3).toString('hex') === 'ffd8ff',
+      `${expectedShippingPath} is not a JPEG file.`,
+    );
+    assert(
+      shippingStat.size === card.shipping.bytes,
+      `${prefix}.shipping.bytes does not match the file.`,
+    );
+    assert(
+      card.shipping.bytes <= maximumShippingBytes,
+      `${expectedShippingPath} exceeds the ${String(maximumShippingBytes / 1024)} KiB shipping budget.`,
+    );
+    const shippingChecksum = createHash('sha256').update(shippingBuffer).digest('hex');
+    assert(
+      shippingChecksum === card.shipping.sha256,
+      `${prefix}.shipping.sha256 does not match the file.`,
+    );
+    assert(
+      !shippingChecksums.has(shippingChecksum),
+      `Duplicate shipping asset checksum: ${shippingChecksum}.`,
+    );
+    shippingChecksums.add(shippingChecksum);
+    shippingPaths.add(expectedShippingPath);
+    shippingBytesTotal += card.shipping.bytes;
+  }
+
   assert(
     card.localizedAltText && typeof card.localizedAltText.en === 'string',
     `${prefix}.localizedAltText.en is required.`,
@@ -366,11 +445,43 @@ assert(
   'Normalized PNG count must match normalized manifest entries.',
 );
 
+const shippingDirectory = resolve(toolsDirectory, 'shipping');
+let shippingFiles = [];
+try {
+  shippingFiles = (await readdir(shippingDirectory, { withFileTypes: true }))
+    .filter((entry) => entry.isFile() && entry.name.toLocaleLowerCase('en').endsWith('.jpg'))
+    .map((entry) =>
+      normalizeRepositoryPath(relative(repositoryRoot, resolve(shippingDirectory, entry.name))),
+    );
+} catch (error) {
+  if (error.code !== 'ENOENT') {
+    throw error;
+  }
+}
+for (const shippingPath of shippingFiles) {
+  assert(shippingPaths.has(shippingPath), `Shipping JPEG lacks a manifest entry: ${shippingPath}.`);
+}
+assert(
+  shippingFiles.length === shippedCardCount,
+  'Shipping JPEG count must match shipping manifest entries.',
+);
+if (shippedCardCount > 0) {
+  assert(
+    shippedCardCount === normalizedCardCount,
+    'Every normalized master must have an optimized shipping asset before release.',
+  );
+}
+
 const generationStatus =
   cardKeys.size === manifest.expectedCardCount
     ? 'full deck complete'
     : 'remaining prompts are planned';
 
+const shippingSummary =
+  shippedCardCount === 0
+    ? 'no optimized shipping assets yet'
+    : `${String(shippedCardCount)}/${String(manifest.expectedCardCount)} shipping assets at ${(shippingBytesTotal / 1_048_576).toFixed(1)} MiB`;
+
 process.stdout.write(
-  `Card asset manifest is valid (${String(cardKeys.size)}/${String(manifest.expectedCardCount)} full-deck sources generated; ${String(normalizedCardCount)}/${String(manifest.expectedCardCount)} normalized; ${generationStatus}).\n`,
+  `Card asset manifest is valid (${String(cardKeys.size)}/${String(manifest.expectedCardCount)} full-deck sources generated; ${String(normalizedCardCount)}/${String(manifest.expectedCardCount)} normalized; ${shippingSummary}; ${generationStatus}).\n`,
 );

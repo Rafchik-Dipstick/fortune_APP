@@ -2,9 +2,9 @@ import type { ImageSourcePropType } from 'react-native';
 
 import type { Orientation } from '@fortuneness/shared-types';
 
-import queenOfCupsIllustration from '../../../../tools/card-assets/normalized/cups-queen.png';
-import theFoolIllustration from '../../../../tools/card-assets/normalized/major-00-fool.png';
-import threeOfWandsIllustration from '../../../../tools/card-assets/normalized/wands-03.png';
+import queenOfCupsIllustration from '../../../../tools/card-assets/shipping/cups-queen.jpg';
+import theFoolIllustration from '../../../../tools/card-assets/shipping/major-00-fool.jpg';
+import threeOfWandsIllustration from '../../../../tools/card-assets/shipping/wands-03.jpg';
 
 export interface VerticalSliceCard {
   altText: string;
