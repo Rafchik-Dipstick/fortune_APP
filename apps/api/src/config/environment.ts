@@ -129,6 +129,52 @@ const bundleIdentifierSchema = z
   .max(255)
   .regex(/^[A-Za-z0-9]+(?:[.-][A-Za-z0-9]+)+$/u);
 
+const productIdentifierSchema = z
+  .string()
+  .trim()
+  .min(3)
+  .max(160)
+  .regex(/^[A-Za-z0-9]+(?:\.[A-Za-z0-9]+)+$/u);
+
+const optionalTrimmedSchema = (maximumLength: number) =>
+  z
+    .string()
+    .trim()
+    .max(maximumLength)
+    .default('')
+    .transform((value) => (value.length === 0 ? null : value));
+
+const environmentBoolean = (defaultValue: boolean) =>
+  z.preprocess((value) => {
+    if (value === undefined || value === '') {
+      return defaultValue;
+    }
+    if (value === 'true') {
+      return true;
+    }
+    if (value === 'false') {
+      return false;
+    }
+    return value;
+  }, z.boolean());
+
+const base64Pkcs8KeySchema = z
+  .string()
+  .trim()
+  .min(1)
+  .refine(
+    (value) => {
+      const decoded = Buffer.from(value, 'base64');
+      return (
+        decoded.length > 0 &&
+        decoded.toString('base64') === value.replace(/\s+/gu, '') &&
+        decoded.toString('utf8').includes('PRIVATE KEY')
+      );
+    },
+    { message: 'must be canonical base64 for a PEM private key' },
+  )
+  .transform((value) => Buffer.from(value, 'base64').toString('utf8'));
+
 const rawApiEnvironmentSchema = z
   .object({
     NODE_ENV: z.enum(nodeEnvironments).default('development'),
@@ -161,6 +207,27 @@ const rawApiEnvironmentSchema = z
     HISTORY_CURSOR_HMAC_KEYS_JSON: keyRingSchema,
     HISTORY_CURSOR_CURRENT_KEY_VERSION: keyVersionSchema,
     ACCOUNT_DELETION_REAUTH_MAX_AGE_SECONDS: environmentInteger(300, 60, 900),
+    APP_APPLE_ID: z
+      .string()
+      .trim()
+      .regex(/^\d*$/u, { message: 'must be the numeric App Apple ID' })
+      .default('')
+      .transform((value) => (value.length === 0 ? null : Number(value))),
+    APPLE_IAP_ISSUER_ID: optionalTrimmedSchema(64),
+    APPLE_IAP_KEY_ID: optionalTrimmedSchema(32),
+    APPLE_IAP_PRIVATE_KEY_BASE64: base64Pkcs8KeySchema.optional(),
+    APPLE_IAP_ENVIRONMENT: z.enum(['SANDBOX', 'PRODUCTION', 'XCODE']).default('SANDBOX'),
+    APP_STORE_NOTIFICATION_ENCRYPTION_KEYS_JSON: keyRingSchema,
+    APP_STORE_NOTIFICATION_CURRENT_KEY_VERSION: keyVersionSchema,
+    APP_STORE_NOTIFICATION_RAW_TTL_DAYS: environmentInteger(90, 1, 365),
+    APPLE_CONSUMPTION_INFO_ENABLED: environmentBoolean(false),
+    IAP_FORTUNE_PACK_10_PRODUCT_ID: productIdentifierSchema.default(
+      'app.fortuneness.fortunepack10',
+    ),
+    IAP_ORACLE_PLUS_MONTHLY_PRODUCT_ID: productIdentifierSchema.default(
+      'app.fortuneness.oracleplus.monthly',
+    ),
+    IAP_ORACLE_PLUS_MONTHLY_EXPECTED_BILLING_PLAN_TYPE: optionalTrimmedSchema(64),
   })
   .superRefine((environment, context) => {
     if (environment.NODE_ENV === 'production' && environment.TRUST_PROXY === 0) {
@@ -193,6 +260,7 @@ const rawApiEnvironmentSchema = z
         'APP_ACCOUNT_TOKEN_ENCRYPTION_CURRENT_KEY_VERSION',
       ],
       ['HISTORY_CURSOR_HMAC_KEYS_JSON', 'HISTORY_CURSOR_CURRENT_KEY_VERSION'],
+      ['APP_STORE_NOTIFICATION_ENCRYPTION_KEYS_JSON', 'APP_STORE_NOTIFICATION_CURRENT_KEY_VERSION'],
     ] as const) {
       // Own-property check: a version like "constructor" must not pass by
       // resolving to an inherited Object.prototype member.
@@ -203,6 +271,53 @@ const rawApiEnvironmentSchema = z
           message: `must name a key present in ${keysField}`,
         });
       }
+    }
+
+    const appStoreCredentialFields = [
+      'APPLE_IAP_ISSUER_ID',
+      'APPLE_IAP_KEY_ID',
+      'APPLE_IAP_PRIVATE_KEY_BASE64',
+    ] as const;
+    const presentCredentials = appStoreCredentialFields.filter(
+      (field) => environment[field] !== null && environment[field] !== undefined,
+    );
+    if (presentCredentials.length !== 0 && presentCredentials.length !== 3) {
+      for (const field of appStoreCredentialFields) {
+        if (environment[field] === null || environment[field] === undefined) {
+          context.addIssue({
+            code: 'custom',
+            path: [field],
+            message: 'App Store Server API credentials must be configured together',
+          });
+        }
+      }
+    }
+
+    if (environment.NODE_ENV === 'production') {
+      if (environment.APPLE_IAP_ENVIRONMENT === 'XCODE') {
+        context.addIssue({
+          code: 'custom',
+          path: ['APPLE_IAP_ENVIRONMENT'],
+          message: 'the Xcode StoreKit test environment is local-only',
+        });
+      }
+      if (presentCredentials.length !== 3) {
+        context.addIssue({
+          code: 'custom',
+          path: ['APPLE_IAP_ISSUER_ID'],
+          message: 'App Store Server API credentials are required in production',
+        });
+      }
+    }
+
+    if (
+      environment.IAP_FORTUNE_PACK_10_PRODUCT_ID === environment.IAP_ORACLE_PLUS_MONTHLY_PRODUCT_ID
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['IAP_ORACLE_PLUS_MONTHLY_PRODUCT_ID'],
+        message: 'commerce product identifiers must be distinct',
+      });
     }
   });
 
@@ -234,9 +349,28 @@ export interface ArchiveEnvironment {
   historyCursorHmacKeys: VersionedKeyRing;
 }
 
+export interface AppStoreServerApiCredentials {
+  issuerId: string;
+  keyId: string;
+  privateKeyPem: string;
+}
+
+export interface CommerceEnvironment {
+  appAppleId: number | null;
+  appStoreServerApi: AppStoreServerApiCredentials | null;
+  consumptionInfoEnabled: boolean;
+  environment: 'SANDBOX' | 'PRODUCTION' | 'XCODE';
+  expectedSubscriptionBillingPlanType: string | null;
+  fortunePack10ProductId: string;
+  notificationEncryptionKeys: VersionedKeyRing;
+  notificationRawTtlDays: number;
+  oraclePlusMonthlyProductId: string;
+}
+
 export interface ApiEnvironment {
   archive: ArchiveEnvironment;
   authentication: AuthenticationEnvironment;
+  commerce: CommerceEnvironment;
   corsOrigins: string[];
   databaseUrl: string;
   logLevel: (typeof logLevels)[number];
@@ -272,6 +406,30 @@ export const parseApiEnvironment = (source: NodeJS.ProcessEnv): ApiEnvironment =
         currentVersion: result.data.HISTORY_CURSOR_CURRENT_KEY_VERSION,
         keys: result.data.HISTORY_CURSOR_HMAC_KEYS_JSON,
       },
+    },
+    commerce: {
+      appAppleId: result.data.APP_APPLE_ID,
+      appStoreServerApi:
+        result.data.APPLE_IAP_ISSUER_ID !== null &&
+        result.data.APPLE_IAP_KEY_ID !== null &&
+        result.data.APPLE_IAP_PRIVATE_KEY_BASE64 !== undefined
+          ? {
+              issuerId: result.data.APPLE_IAP_ISSUER_ID,
+              keyId: result.data.APPLE_IAP_KEY_ID,
+              privateKeyPem: result.data.APPLE_IAP_PRIVATE_KEY_BASE64,
+            }
+          : null,
+      consumptionInfoEnabled: result.data.APPLE_CONSUMPTION_INFO_ENABLED,
+      environment: result.data.APPLE_IAP_ENVIRONMENT,
+      expectedSubscriptionBillingPlanType:
+        result.data.IAP_ORACLE_PLUS_MONTHLY_EXPECTED_BILLING_PLAN_TYPE,
+      fortunePack10ProductId: result.data.IAP_FORTUNE_PACK_10_PRODUCT_ID,
+      notificationEncryptionKeys: {
+        currentVersion: result.data.APP_STORE_NOTIFICATION_CURRENT_KEY_VERSION,
+        keys: result.data.APP_STORE_NOTIFICATION_ENCRYPTION_KEYS_JSON,
+      },
+      notificationRawTtlDays: result.data.APP_STORE_NOTIFICATION_RAW_TTL_DAYS,
+      oraclePlusMonthlyProductId: result.data.IAP_ORACLE_PLUS_MONTHLY_PRODUCT_ID,
     },
     authentication: {
       accountDeletionReauthMaxAgeSeconds: result.data.ACCOUNT_DELETION_REAUTH_MAX_AGE_SECONDS,

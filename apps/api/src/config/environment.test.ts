@@ -23,7 +23,14 @@ const validAuthenticationEnvironment = {
   APP_ACCOUNT_TOKEN_ENCRYPTION_CURRENT_KEY_VERSION: 'v1',
   HISTORY_CURSOR_HMAC_KEYS_JSON: keyRing,
   HISTORY_CURSOR_CURRENT_KEY_VERSION: 'v1',
+  APP_STORE_NOTIFICATION_ENCRYPTION_KEYS_JSON: keyRing,
+  APP_STORE_NOTIFICATION_CURRENT_KEY_VERSION: 'v1',
 } as const;
+
+const appStorePrivateKey = Buffer.from(
+  '-----BEGIN PRIVATE KEY-----\nMIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEH\n-----END PRIVATE KEY-----\n',
+  'utf8',
+).toString('base64');
 
 describe('parseApiEnvironment', () => {
   it('applies safe local defaults and normalizes explicit origins', () => {
@@ -145,5 +152,73 @@ describe('parseApiEnvironment', () => {
     } catch (error) {
       expect(String(error)).not.toContain(malformedKey);
     }
+  });
+
+  it('defaults commerce configuration closed with the documented products', () => {
+    const environment = parseApiEnvironment({
+      ...validAuthenticationEnvironment,
+      DATABASE_URL: databaseUrl,
+    });
+
+    expect(environment.commerce).toMatchObject({
+      appAppleId: null,
+      appStoreServerApi: null,
+      consumptionInfoEnabled: false,
+      environment: 'SANDBOX',
+      expectedSubscriptionBillingPlanType: null,
+      fortunePack10ProductId: 'app.fortuneness.fortunepack10',
+      notificationRawTtlDays: 90,
+      oraclePlusMonthlyProductId: 'app.fortuneness.oracleplus.monthly',
+    });
+    expect(environment.commerce.notificationEncryptionKeys.currentVersion).toBe('v1');
+  });
+
+  it('requires complete App Store Server API credentials together', () => {
+    expect(() =>
+      parseApiEnvironment({
+        ...validAuthenticationEnvironment,
+        DATABASE_URL: databaseUrl,
+        APPLE_IAP_ISSUER_ID: '57246542-96fe-1a63-e053-0824d011072a',
+      }),
+    ).toThrow(/APPLE_IAP_KEY_ID/);
+
+    const environment = parseApiEnvironment({
+      ...validAuthenticationEnvironment,
+      DATABASE_URL: databaseUrl,
+      APPLE_IAP_ISSUER_ID: '57246542-96fe-1a63-e053-0824d011072a',
+      APPLE_IAP_KEY_ID: '2X9R4HXF34',
+      APPLE_IAP_PRIVATE_KEY_BASE64: appStorePrivateKey,
+    });
+    expect(environment.commerce.appStoreServerApi).toMatchObject({
+      issuerId: '57246542-96fe-1a63-e053-0824d011072a',
+      keyId: '2X9R4HXF34',
+    });
+    expect(environment.commerce.appStoreServerApi?.privateKeyPem).toContain('PRIVATE KEY');
+  });
+
+  it('rejects the local-only Xcode commerce environment in production', () => {
+    expect(() =>
+      parseApiEnvironment({
+        ...validAuthenticationEnvironment,
+        DATABASE_URL: databaseUrl,
+        NODE_ENV: 'production',
+        TRUST_PROXY: '1',
+        APPLE_IAP_ENVIRONMENT: 'XCODE',
+        APPLE_IAP_ISSUER_ID: '57246542-96fe-1a63-e053-0824d011072a',
+        APPLE_IAP_KEY_ID: '2X9R4HXF34',
+        APPLE_IAP_PRIVATE_KEY_BASE64: appStorePrivateKey,
+      }),
+    ).toThrow(/APPLE_IAP_ENVIRONMENT/);
+  });
+
+  it('requires App Store Server API credentials in production', () => {
+    expect(() =>
+      parseApiEnvironment({
+        ...validAuthenticationEnvironment,
+        DATABASE_URL: databaseUrl,
+        NODE_ENV: 'production',
+        TRUST_PROXY: '1',
+      }),
+    ).toThrow(/APPLE_IAP_ISSUER_ID/);
   });
 });
