@@ -213,6 +213,14 @@ model ExternalIdentity {
   @@index([userId, provider])
 }
 
+model IdentityProofReplay {
+  fingerprint String   @id @db.Char(64)
+  verifiedAt  DateTime @default(now()) @db.Timestamptz(3)
+  expiresAt   DateTime @db.Timestamptz(3)
+
+  @@index([expiresAt])
+}
+
 model SessionFamily {
   id                        String         @id @default(uuid()) @db.Uuid
   userId                    String         @db.Uuid

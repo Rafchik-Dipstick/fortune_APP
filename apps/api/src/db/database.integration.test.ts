@@ -84,6 +84,19 @@ async function createPurchaseFixture(transactionId = `tx-${randomUUID()}`) {
 }
 
 describe('PostgreSQL integrity', { concurrent: false }, () => {
+  it('rejects a replayed verified Game Center proof fingerprint', async () => {
+    const fingerprint = 'c'.repeat(64);
+    await prisma.identityProofReplay.create({
+      data: { fingerprint, expiresAt: new Date(Date.now() + 900_000) },
+    });
+
+    await expect(
+      prisma.identityProofReplay.create({
+        data: { fingerprint, expiresAt: new Date(Date.now() + 900_000) },
+      }),
+    ).rejects.toSatisfy((error: unknown) => mapDatabaseError(error)?.kind === 'UNIQUE_CONSTRAINT');
+  });
+
   it('rejects a duplicate user draw idempotency record', async () => {
     const fixture = await createDrawFixture();
     await prisma.fortuneDraw.create({ data: fixture.data });

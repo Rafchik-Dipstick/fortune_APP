@@ -993,3 +993,30 @@ git diff --check
 ```
 
 Deployment impact: API startup validation and local cryptographic utilities only. No real secret was generated or stored, no route/session/account was created, and no Apple, Railway, database, credential, or deployed environment changed.
+
+### 2026-08-06 — Phase 5 hardened Game Center proof verifier
+
+- Added persistent replay-fingerprint storage with a unique SHA-256 key, bounded expiry, and an expiry index; the fingerprint contains only hashed signed proof material and no raw player identifier, salt, or signature.
+- Implemented Apple's exact non-Arcade signed-byte construction (`teamPlayerID`, bundle ID, big-endian UInt64 timestamp, salt) and RSA-SHA256 PKCS#1 v1.5 signature verification with strict persistent-ID, exact-bundle, freshness, and future-skew checks.
+- Added current-write/dual-read HMAC identity output for `teamPlayerID` pepper rotation and a separate current-version `gamePlayerID` migration digest; verified results contain only digests, proof fingerprint/expiry, and authoritative authentication time.
+- Hardened public-key retrieval against SSRF: exact configurable HTTPS host allowlists, no credentials/custom port/fragment, all DNS answers required to be public, a connection pinned to a prevalidated address with the original TLS SNI/Host, no redirect following, a 3-second timeout, and a 64 KiB response cap.
+- Added cache-control-aware key caching with concurrent-load deduplication and certificate-expiry capping.
+- Validated the signing certificate as a current non-CA Apple RSA code-signing leaf, upgraded allowlisted AIA issuer retrieval to HTTPS, verified every issuer signature/CA/time boundary with loop/depth protection, and required termination at Node's trusted root store.
+- Added negative coverage for temporary IDs, wrong bundles, stale/future timestamps, invalid signatures, unapproved hosts, private/link-local/reserved IPv4 and IPv6 targets, malformed certificates, key-fetch failure, and cache expiry/concurrency.
+- Exercised the real retrieval/chain path with Apple's published `gc-prod-9.cer` at a date inside its validity window: the allowlisted Apple fetch returned 1,924 bytes and 300-second cache policy, the DigiCert chain reached a trusted root, and the eligible leaf exposed an RSA key.
+- Applied both migrations and both seed passes to a generated PostgreSQL 17 database; the database integration suite and invariants passed, and the harness dropped and verified removal of its exact target.
+
+Verification required before commit:
+
+```text
+TEST_DATABASE_ADMIN_URL=<injected local admin URL> corepack npm run test:db
+corepack npm run db:schema:validate
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: local proof verification, one checked-in replay table migration, and tests only. The live read-only certificate exercise did not authenticate a player; no raw proof was stored, no route was mounted, and no Apple account, Railway service, persistent database, secret, or deployed environment changed.
