@@ -7,13 +7,21 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "prisma generate && tsc -p tsconfig.build.json",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate:status": "prisma migrate status",
+    "db:schema:format": "prisma format",
+    "db:schema:validate": "prisma validate",
+    "db:seed": "prisma db seed",
+    "prisma:generate": "prisma generate",
     "start": "node dist/main.js",
     "test": "vitest run",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "prisma generate && tsc -p tsconfig.json"
   },
   "dependencies": {
     "@fortuneness/api-contracts": "0.0.0",
+    "@prisma/adapter-pg": "7.9.1",
+    "@prisma/client": "7.9.1",
     "cors": "2.8.6",
     "express": "5.2.1",
     "express-rate-limit": "8.6.2",
@@ -27,6 +35,8 @@
     "@types/express": "5.0.6",
     "@types/pg": "8.20.4",
     "@types/supertest": "7.2.1",
+    "dotenv": "17.4.2",
+    "prisma": "7.9.1",
     "supertest": "7.2.2"
   }
 }

@@ -48,3 +48,4 @@ desktop.ini
 
 # Prisma-local environment
 **/prisma/.env
+apps/api/src/generated/prisma/

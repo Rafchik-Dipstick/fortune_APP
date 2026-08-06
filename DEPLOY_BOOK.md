@@ -852,3 +852,29 @@ git status --short --branch
 ```
 
 Deployment impact: documentation and verification evidence only. No code, schema, asset, credential, external service, or deployed state changed.
+
+### 2026-08-06 — Phase 4 canonical Prisma integrity model
+
+- Continued code implementation with external Apple/EAS/Railway setup explicitly deferred by the owner; acceptance evidence remains open and is not represented as complete.
+- Added Prisma ORM 7 with the PostgreSQL driver adapter, explicit generated-client commands, a Prisma 7 configuration boundary, and schema validation in the root quality gate.
+- Reviewed and allowlisted only the pinned Prisma CLI/engine lifecycle scripts required for schema generation and migrations; `npm install-scripts ls` reports no unreviewed scripts.
+- Defined the complete Phase 4 identity, session, idempotency, financial ownership, token binding, tarot content, allowance, draw, commerce, consent, deletion, notification, and audit model in the canonical Prisma schema.
+- Generated the initial PostgreSQL migration and added constraints Prisma cannot express: nonoverlapping allowance ranges, partial uniqueness for pending reveals/current token bindings/active templates/deletion requests, quota and ledger checks, immutable ownership, append-only credit history, and irreversible zero-balance financial cutoff.
+- Kept generated Prisma Client output ignored and reproducible so a clean checkout generates the exact client before typecheck/build.
+- Applied the migration successfully to an isolated local PostgreSQL 17 probe database, confirmed 21 tables, 86 constraints, and 10 custom triggers, then dropped only that disposable database and verified it no longer exists.
+
+Verification required before commit:
+
+```text
+corepack npm install-scripts ls
+corepack npm run db:schema:format --workspace @fortuneness/api
+corepack npm run db:schema:validate --workspace @fortuneness/api
+corepack npm run prisma:generate --workspace @fortuneness/api
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: checked-in PostgreSQL schema and initial migration only. No database command connected to Railway or any other database, and no migration, seed, backup, or deployed service changed.

@@ -14,9 +14,10 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "check": "npm run format:check && npm run lint && npm run config:check && npm run typecheck && npm run test && npm run openapi:check && npm run content:validate && npm run asset:validate && npm run brand:validate && npm run build",
+    "check": "npm run format:check && npm run lint && npm run config:check && npm run db:schema:validate && npm run typecheck && npm run test && npm run openapi:check && npm run content:validate && npm run asset:validate && npm run brand:validate && npm run build",
     "brand:validate": "node tools/brand-assets/validate.mjs",
     "config:check": "npm run config:check --workspaces --if-present",
+    "db:schema:validate": "npm run db:schema:validate --workspace @fortuneness/api",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "openapi:check": "npm run openapi:check --workspace @fortuneness/api-contracts",
@@ -43,8 +44,10 @@
     "vitest": "4.1.10"
   },
   "allowScripts": {
+    "@prisma/engines@7.9.1": true,
     "esbuild@0.28.1": true,
-    "esbuild@0.25.12": true
+    "esbuild@0.25.12": true,
+    "prisma@7.9.1": true
   },
   "overrides": {
     "react": "19.2.3",

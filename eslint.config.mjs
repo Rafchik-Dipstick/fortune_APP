@@ -8,6 +8,7 @@ export default tseslint.config(
       'node_modules/',
       'dist/',
       '**/dist/**',
+      'apps/api/src/generated/prisma/**',
       'build/',
       'coverage/',
       '.expo/',

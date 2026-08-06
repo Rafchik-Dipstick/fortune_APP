@@ -1,0 +1,596 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserStatus {
+  ACTIVE
+  DELETION_PENDING
+  PURGED
+  BLOCKED
+}
+
+enum ExternalIdentityProvider {
+  GAME_CENTER
+  SIGN_IN_WITH_APPLE
+}
+
+enum Arcana {
+  MAJOR
+  MINOR
+}
+
+enum TarotSuit {
+  WANDS
+  CUPS
+  SWORDS
+  PENTACLES
+}
+
+enum TarotRank {
+  ACE
+  TWO
+  THREE
+  FOUR
+  FIVE
+  SIX
+  SEVEN
+  EIGHT
+  NINE
+  TEN
+  PAGE
+  KNIGHT
+  QUEEN
+  KING
+}
+
+enum Orientation {
+  UPRIGHT
+  REVERSED
+}
+
+enum FortuneIntention {
+  GENERAL
+  LOVE
+  WORK
+  GROWTH
+}
+
+enum AllowanceSource {
+  FREE_DAILY
+  SUBSCRIPTION_DAILY
+  PACK_CREDIT
+}
+
+enum IdempotencyActorType {
+  USER
+  FINANCIAL_SUBJECT
+  APPLE_NOTIFICATION
+  SYSTEM
+}
+
+enum IdempotencyOutcomeStatus {
+  PENDING
+  COMPLETED
+}
+
+enum IapEnvironment {
+  SANDBOX
+  PRODUCTION
+  XCODE
+}
+
+enum IapProductType {
+  CONSUMABLE
+  AUTO_RENEWABLE_SUBSCRIPTION
+}
+
+enum IapApplicationStatus {
+  RECEIVED
+  APPLIED
+  QUARANTINED
+}
+
+enum IapDisposition {
+  PENDING
+  APPLIED
+  ALREADY_APPLIED
+  DELIVERED_TO_OTHER_ACCOUNT
+  OWNER_UNKNOWN
+  OWNER_CLOSED_NO_BENEFIT
+  REJECTED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  GRACE_PERIOD
+  BILLING_RETRY
+  EXPIRED
+  REVOKED
+}
+
+enum LedgerReason {
+  PACK_PURCHASE
+  FORTUNE_DRAW
+  REFUND_DEBIT
+  REFUND_REINSTATEMENT
+  SUPPORT_ADJUSTMENT
+  MIGRATION
+}
+
+enum PackGrantDisposition {
+  ACTIVE
+  PARTIALLY_REFUNDED
+  FULLY_REFUNDED
+  OWNER_CLOSED
+}
+
+enum TokenBindingReason {
+  INITIAL
+  ROTATION
+  REPAIR
+  PURGE
+}
+
+enum AppStoreNotificationProcessingStatus {
+  RECEIVED
+  PROCESSING
+  APPLIED
+  RETRYABLE_FAILURE
+  TERMINAL_FAILURE
+  UNKNOWN_RETAINED
+}
+
+enum ConsumptionProductScope {
+  CONSUMABLE
+  AUTO_RENEWABLE_SUBSCRIPTION
+}
+
+enum AccountDeletionStatus {
+  PENDING
+  CANCELLED
+  PURGED
+}
+
+enum AuditActorType {
+  USER
+  SUPPORT
+  SYSTEM
+  APPLE
+}
+
+model User {
+  id                           String                   @id @default(uuid()) @db.Uuid
+  status                       UserStatus               @default(ACTIVE)
+  sessionVersion               Int                      @default(1)
+  resolvedLocale               String                   @default("en") @db.VarChar(16)
+  accountTimeZone              String                   @db.VarChar(128)
+  pendingTimeZone              String?                  @db.VarChar(128)
+  timeZoneEffectiveAt          DateTime?                @db.Timestamptz(3)
+  nextTimeZoneChangeEligibleAt DateTime?                @db.Timestamptz(3)
+  onboardingCompletedAt        DateTime?                @db.Timestamptz(3)
+  reminderEnabled              Boolean                  @default(false)
+  reminderLocalMinutes         Int                      @default(540)
+  soundEnabled                 Boolean                  @default(true)
+  hapticsEnabled               Boolean                  @default(true)
+  reduceMotionPreferred        Boolean                  @default(false)
+  commerceReviewRequired       Boolean                  @default(false)
+  activeFinancialSubjectId     String?                  @unique @db.Uuid
+  createdAt                    DateTime                 @default(now()) @db.Timestamptz(3)
+  updatedAt                    DateTime                 @updatedAt @db.Timestamptz(3)
+  deletedAt                    DateTime?                @db.Timestamptz(3)
+  activeFinancialSubject       FinancialSubject?        @relation("ActiveUserFinancialSubject", fields: [activeFinancialSubjectId], references: [id], onDelete: SetNull)
+  externalIdentities           ExternalIdentity[]
+  sessionFamilies              SessionFamily[]
+  allowancePeriods             AllowancePeriod[]
+  allowanceUsages              AllowanceUsage[]
+  fortuneDraws                 FortuneDraw[]
+  deletionRequests             AccountDeletionRequest[]
+
+  @@index([status])
+  @@index([timeZoneEffectiveAt])
+}
+
+model ExternalIdentity {
+  id                       String                   @id @default(uuid()) @db.Uuid
+  provider                 ExternalIdentityProvider
+  userId                   String                   @db.Uuid
+  keyVersion               String                   @db.VarChar(32)
+  subjectDigest            String                   @db.Char(64)
+  secondaryKeyVersion      String?                  @db.VarChar(32)
+  secondaryMigrationDigest String?                  @db.Char(64)
+  lastAuthenticatedAt      DateTime                 @db.Timestamptz(3)
+  createdAt                DateTime                 @default(now()) @db.Timestamptz(3)
+  updatedAt                DateTime                 @updatedAt @db.Timestamptz(3)
+  user                     User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, keyVersion, subjectDigest])
+  @@index([provider, secondaryKeyVersion, secondaryMigrationDigest])
+  @@index([userId, provider])
+}
+
+model SessionFamily {
+  id                        String         @id @default(uuid()) @db.Uuid
+  userId                    String         @db.Uuid
+  gameCenterAuthenticatedAt DateTime       @db.Timestamptz(3)
+  issuedAt                  DateTime       @default(now()) @db.Timestamptz(3)
+  expiresAt                 DateTime       @db.Timestamptz(3)
+  revokedAt                 DateTime?      @db.Timestamptz(3)
+  revocationReason          String?        @db.VarChar(64)
+  createdAt                 DateTime       @default(now()) @db.Timestamptz(3)
+  user                      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokens             RefreshToken[]
+
+  @@index([userId, revokedAt, expiresAt])
+}
+
+model RefreshToken {
+  id                String                @id @default(uuid()) @db.Uuid
+  familyId          String                @db.Uuid
+  tokenHash         String                @unique @db.Char(64)
+  predecessorId     String?               @unique @db.Uuid
+  consumedAt        DateTime?             @db.Timestamptz(3)
+  expiresAt         DateTime              @db.Timestamptz(3)
+  requestHash       String?               @db.Char(64)
+  idempotencyKey    String?               @db.Uuid
+  deviceIdHash      String?               @db.Char(64)
+  deviceDescription String?               @db.VarChar(128)
+  createdAt         DateTime              @default(now()) @db.Timestamptz(3)
+  family            SessionFamily         @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  predecessor       RefreshToken?         @relation("RefreshRotation", fields: [predecessorId], references: [id], onDelete: SetNull)
+  replacement       RefreshToken?         @relation("RefreshRotation")
+  replayReceipt     RefreshReplayReceipt?
+
+  @@unique([familyId, idempotencyKey])
+  @@index([familyId, expiresAt])
+}
+
+model RefreshReplayReceipt {
+  id                   String       @id @default(uuid()) @db.Uuid
+  refreshTokenId       String       @unique @db.Uuid
+  idempotencyKey       String       @db.Uuid
+  requestHash          String       @db.Char(64)
+  encryptedResponse    Bytes        @db.ByteA
+  encryptionKeyVersion String       @db.VarChar(32)
+  expiresAt            DateTime     @db.Timestamptz(3)
+  createdAt            DateTime     @default(now()) @db.Timestamptz(3)
+  refreshToken         RefreshToken @relation(fields: [refreshTokenId], references: [id], onDelete: Cascade)
+
+  @@unique([refreshTokenId, idempotencyKey])
+  @@index([expiresAt])
+}
+
+model IdempotencyRecord {
+  id               String                   @id @default(uuid()) @db.Uuid
+  actorType        IdempotencyActorType
+  actorId          String                   @db.VarChar(128)
+  method           String                   @db.VarChar(16)
+  normalizedRoute  String                   @db.VarChar(160)
+  key              String                   @db.Uuid
+  requestHash      String                   @db.Char(64)
+  outcomeStatus    IdempotencyOutcomeStatus @default(PENDING)
+  httpStatus       Int?
+  resultReference  String?                  @db.VarChar(160)
+  responseSnapshot Json?                    @db.JsonB
+  createdAt        DateTime                 @default(now()) @db.Timestamptz(3)
+  retainUntil      DateTime?                @db.Timestamptz(3)
+
+  @@unique([actorType, actorId, method, normalizedRoute, key])
+  @@index([retainUntil])
+}
+
+model FinancialSubject {
+  id                   String                    @id @default(uuid()) @db.Uuid
+  benefitsDisabledAt   DateTime?                 @db.Timestamptz(3)
+  createdAt            DateTime                  @default(now()) @db.Timestamptz(3)
+  activeUser           User?                     @relation("ActiveUserFinancialSubject")
+  tokenBindings        AppAccountTokenBinding[]
+  packCreditGrants     PackCreditGrant[]
+  creditLedgerEntries  CreditLedgerEntry[]
+  iapTransactions      IapTransaction[]
+  subscriptionBenefits SubscriptionEntitlement[]
+  consumptionConsents  ConsumptionConsent[]
+
+  @@index([benefitsDisabledAt])
+}
+
+model AppAccountTokenBinding {
+  id                   String                   @id @default(uuid()) @db.Uuid
+  financialSubjectId   String                   @db.Uuid
+  keyVersion           String                   @db.VarChar(32)
+  tokenDigest          String                   @db.Char(64)
+  encryptedToken       Bytes?                   @db.ByteA
+  encryptionKeyVersion String?                  @db.VarChar(32)
+  validFrom            DateTime                 @default(now()) @db.Timestamptz(3)
+  validTo              DateTime?                @db.Timestamptz(3)
+  cryptoErasedAt       DateTime?                @db.Timestamptz(3)
+  reason               TokenBindingReason
+  rotatedFromBindingId String?                  @db.Uuid
+  auditEventId         String?                  @db.Uuid
+  createdAt            DateTime                 @default(now()) @db.Timestamptz(3)
+  financialSubject     FinancialSubject         @relation(fields: [financialSubjectId], references: [id], onDelete: Restrict)
+  rotatedFromBinding   AppAccountTokenBinding?  @relation("TokenBindingRotation", fields: [rotatedFromBindingId], references: [id], onDelete: SetNull)
+  replacementBindings  AppAccountTokenBinding[] @relation("TokenBindingRotation")
+  iapTransactions      IapTransaction[]
+
+  @@unique([keyVersion, tokenDigest])
+  @@index([financialSubjectId, validTo])
+}
+
+model TarotCard {
+  key               String            @id @db.VarChar(48)
+  displayNumber     String            @db.VarChar(16)
+  nameEn            String            @db.VarChar(80)
+  arcana            Arcana
+  suit              TarotSuit?
+  rank              TarotRank?
+  assetKey          String            @unique @db.VarChar(80)
+  illustrationAltEn String            @db.VarChar(500)
+  sortOrder         Int               @unique
+  active            Boolean           @default(true)
+  createdAt         DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime          @updatedAt @db.Timestamptz(3)
+  templates         FortuneTemplate[]
+  draws             FortuneDraw[]
+
+  @@index([arcana, suit, sortOrder])
+}
+
+model FortuneTemplate {
+  id             String           @id @default(uuid()) @db.Uuid
+  cardKey        String           @db.VarChar(48)
+  locale         String           @db.VarChar(16)
+  orientation    Orientation
+  intention      FortuneIntention
+  variant        Int              @default(1)
+  headline       String           @db.VarChar(120)
+  message        String           @db.VarChar(1200)
+  gentleAction   String           @db.VarChar(500)
+  affirmation    String           @db.VarChar(300)
+  contentVersion String           @db.VarChar(48)
+  active         Boolean          @default(true)
+  createdAt      DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime         @updatedAt @db.Timestamptz(3)
+  card           TarotCard        @relation(fields: [cardKey], references: [key], onDelete: Restrict)
+  draws          FortuneDraw[]
+
+  @@unique([cardKey, locale, orientation, intention, variant, contentVersion])
+  @@index([locale, intention, orientation, active])
+}
+
+model AllowancePeriod {
+  id               String          @default(uuid()) @db.Uuid
+  userId           String          @db.Uuid
+  sequence         BigInt
+  startedAt        DateTime        @db.Timestamptz(3)
+  resetAt          DateTime        @db.Timestamptz(3)
+  timeZoneSnapshot String          @db.VarChar(128)
+  createdAt        DateTime        @default(now()) @db.Timestamptz(3)
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usage            AllowanceUsage?
+  draws            FortuneDraw[]
+
+  @@id([userId, id])
+  @@unique([userId, sequence])
+  @@unique([userId, id])
+  @@index([userId, startedAt, resetAt])
+}
+
+model AllowanceUsage {
+  id                String          @id @default(uuid()) @db.Uuid
+  userId            String          @db.Uuid
+  allowancePeriodId String          @unique @db.Uuid
+  freeUsed          Int             @default(0)
+  subscriptionUsed  Int             @default(0)
+  updatedAt         DateTime        @updatedAt @db.Timestamptz(3)
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  allowancePeriod   AllowancePeriod @relation(fields: [userId, allowancePeriodId], references: [userId, id], onDelete: Cascade)
+
+  @@unique([userId, allowancePeriodId])
+}
+
+model FortuneDraw {
+  id                      String             @id @default(uuid()) @db.Uuid
+  userId                  String             @db.Uuid
+  cardKey                 String             @db.VarChar(48)
+  templateId              String             @db.Uuid
+  allowancePeriodId       String             @db.Uuid
+  allowanceSource         AllowanceSource
+  intention               FortuneIntention
+  orientation             Orientation
+  resolvedLocale          String             @db.VarChar(16)
+  sequence                BigInt
+  cardDisplayNumber       String             @db.VarChar(16)
+  cardNameSnapshot        String             @db.VarChar(80)
+  illustrationAltSnapshot String             @db.VarChar(500)
+  headlineSnapshot        String             @db.VarChar(120)
+  messageSnapshot         String             @db.VarChar(1200)
+  gentleActionSnapshot    String             @db.VarChar(500)
+  affirmationSnapshot     String             @db.VarChar(300)
+  contentVersionSnapshot  String             @db.VarChar(48)
+  issuedAt                DateTime           @default(now()) @db.Timestamptz(3)
+  viewedAt                DateTime?          @db.Timestamptz(3)
+  clientIdempotencyKey    String             @db.Uuid
+  requestHash             String             @db.Char(64)
+  user                    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  card                    TarotCard          @relation(fields: [cardKey], references: [key], onDelete: Restrict)
+  template                FortuneTemplate    @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  allowancePeriod         AllowancePeriod    @relation(fields: [userId, allowancePeriodId], references: [userId, id], onDelete: Restrict)
+  creditLedgerEntry       CreditLedgerEntry?
+
+  @@unique([userId, clientIdempotencyKey])
+  @@unique([userId, sequence])
+  @@unique([userId, id])
+  @@index([userId, issuedAt(sort: Desc), id(sort: Desc)])
+  @@index([userId, cardKey, issuedAt(sort: Desc)])
+  @@index([userId, viewedAt])
+}
+
+model IapTransaction {
+  id                    String                  @id @default(uuid()) @db.Uuid
+  environment           IapEnvironment
+  transactionId         String                  @db.VarChar(64)
+  originalTransactionId String                  @db.VarChar(64)
+  productId             String                  @db.VarChar(160)
+  productType           IapProductType
+  billingPlanType       String?                 @db.VarChar(64)
+  financialSubjectId    String                  @db.Uuid
+  tokenBindingId        String?                 @db.Uuid
+  purchaseAt            DateTime                @db.Timestamptz(3)
+  expiresAt             DateTime?               @db.Timestamptz(3)
+  revocationAt          DateTime?               @db.Timestamptz(3)
+  revocationReason      String?                 @db.VarChar(64)
+  revocationPercentage  Int?
+  applicationStatus     IapApplicationStatus    @default(RECEIVED)
+  disposition           IapDisposition          @default(PENDING)
+  appliedAt             DateTime?               @db.Timestamptz(3)
+  normalizedPayload     Json                    @db.JsonB
+  jwsHash               String                  @db.Char(64)
+  createdAt             DateTime                @default(now()) @db.Timestamptz(3)
+  updatedAt             DateTime                @updatedAt @db.Timestamptz(3)
+  financialSubject      FinancialSubject        @relation(fields: [financialSubjectId], references: [id], onDelete: Restrict)
+  tokenBinding          AppAccountTokenBinding? @relation(fields: [tokenBindingId], references: [id], onDelete: SetNull)
+  packCreditGrant       PackCreditGrant?
+  creditLedgerEntries   CreditLedgerEntry[]
+
+  @@unique([environment, transactionId])
+  @@index([environment, originalTransactionId])
+  @@index([financialSubjectId, purchaseAt])
+}
+
+model PackCreditGrant {
+  id                            String               @id @default(uuid()) @db.Uuid
+  financialSubjectId            String               @db.Uuid
+  purchaseTransactionId         String               @unique @db.Uuid
+  originalUnits                 Int                  @default(10)
+  drawnUnits                    Int                  @default(0)
+  currentRefundTargetUnits      Int                  @default(0)
+  currentRefundedUnspentUnits   Int                  @default(0)
+  currentUnrecoveredRefundUnits Int                  @default(0)
+  greatestRefundSourceAt        DateTime?            @db.Timestamptz(3)
+  greatestRefundSourceId        String?              @db.VarChar(128)
+  greatestRefundSourceType      String?              @db.VarChar(64)
+  disposition                   PackGrantDisposition @default(ACTIVE)
+  createdAt                     DateTime             @default(now()) @db.Timestamptz(3)
+  updatedAt                     DateTime             @updatedAt @db.Timestamptz(3)
+  financialSubject              FinancialSubject     @relation(fields: [financialSubjectId], references: [id], onDelete: Restrict)
+  purchaseTransaction           IapTransaction       @relation(fields: [purchaseTransactionId], references: [id], onDelete: Restrict)
+  ledgerEntries                 CreditLedgerEntry[]
+
+  @@index([financialSubjectId, createdAt])
+}
+
+model CreditLedgerEntry {
+  id                    String           @id @default(uuid()) @db.Uuid
+  financialSubjectId    String           @db.Uuid
+  delta                 Int
+  balanceAfter          Int
+  reason                LedgerReason
+  grantId               String?          @db.Uuid
+  purchaseTransactionId String?          @db.Uuid
+  drawId                String?          @unique @db.Uuid
+  refundSourceId        String?          @db.VarChar(128)
+  effectKey             String           @unique @db.VarChar(256)
+  createdAt             DateTime         @default(now()) @db.Timestamptz(3)
+  financialSubject      FinancialSubject @relation(fields: [financialSubjectId], references: [id], onDelete: Restrict)
+  grant                 PackCreditGrant? @relation(fields: [grantId], references: [id], onDelete: Restrict)
+  purchaseTransaction   IapTransaction?  @relation(fields: [purchaseTransactionId], references: [id], onDelete: Restrict)
+  draw                  FortuneDraw?     @relation(fields: [drawId], references: [id], onDelete: SetNull)
+
+  @@index([financialSubjectId, createdAt, id])
+  @@index([grantId, createdAt])
+}
+
+model SubscriptionEntitlement {
+  id                    String             @id @default(uuid()) @db.Uuid
+  environment           IapEnvironment
+  originalTransactionId String             @db.VarChar(64)
+  financialSubjectId    String             @db.Uuid
+  productId             String             @db.VarChar(160)
+  status                SubscriptionStatus
+  paidThrough           DateTime?          @db.Timestamptz(3)
+  graceThrough          DateTime?          @db.Timestamptz(3)
+  revokedAt             DateTime?          @db.Timestamptz(3)
+  autoRenewEnabled      Boolean?
+  lastAppleEventTime    DateTime           @db.Timestamptz(3)
+  lastAppleSourceId     String             @db.VarChar(128)
+  createdAt             DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt             DateTime           @updatedAt @db.Timestamptz(3)
+  financialSubject      FinancialSubject   @relation(fields: [financialSubjectId], references: [id], onDelete: Restrict)
+
+  @@unique([environment, originalTransactionId])
+  @@index([financialSubjectId, status, paidThrough])
+}
+
+model AppStoreNotification {
+  id                   String                               @id @default(uuid()) @db.Uuid
+  notificationUuid     String                               @unique @db.Uuid
+  notificationType     String                               @db.VarChar(80)
+  notificationSubtype  String?                              @db.VarChar(80)
+  environment          IapEnvironment
+  payloadHash          String                               @db.Char(64)
+  encryptedPayload     Bytes?                               @db.ByteA
+  encryptionKeyVersion String?                              @db.VarChar(32)
+  payloadDeleteAt      DateTime?                            @db.Timestamptz(3)
+  processingStatus     AppStoreNotificationProcessingStatus @default(RECEIVED)
+  leaseOwner           String?                              @db.VarChar(128)
+  leaseExpiresAt       DateTime?                            @db.Timestamptz(3)
+  attemptCount         Int                                  @default(0)
+  lastErrorCode        String?                              @db.VarChar(80)
+  sourceAt             DateTime                             @db.Timestamptz(3)
+  receivedAt           DateTime                             @default(now()) @db.Timestamptz(3)
+  updatedAt            DateTime                             @updatedAt @db.Timestamptz(3)
+
+  @@index([processingStatus, leaseExpiresAt, receivedAt])
+  @@index([payloadDeleteAt])
+}
+
+model ConsumptionConsent {
+  id                 String                  @id @default(uuid()) @db.Uuid
+  financialSubjectId String                  @db.Uuid
+  policyVersion      String                  @db.VarChar(48)
+  scope              ConsumptionProductScope
+  grantedAt          DateTime                @db.Timestamptz(3)
+  revokedAt          DateTime?               @db.Timestamptz(3)
+  auditProof         Json                    @db.JsonB
+  createdAt          DateTime                @default(now()) @db.Timestamptz(3)
+  financialSubject   FinancialSubject        @relation(fields: [financialSubjectId], references: [id], onDelete: Restrict)
+
+  @@unique([financialSubjectId, policyVersion, scope])
+  @@index([financialSubjectId, scope, revokedAt])
+}
+
+model AccountDeletionRequest {
+  id          String                @id @default(uuid()) @db.Uuid
+  userId      String                @db.Uuid
+  status      AccountDeletionStatus @default(PENDING)
+  requestedAt DateTime              @default(now()) @db.Timestamptz(3)
+  purgeAt     DateTime              @db.Timestamptz(3)
+  cancelledAt DateTime?             @db.Timestamptz(3)
+  purgedAt    DateTime?             @db.Timestamptz(3)
+  leaseOwner  String?               @db.VarChar(128)
+  leaseUntil  DateTime?             @db.Timestamptz(3)
+  updatedAt   DateTime              @updatedAt @db.Timestamptz(3)
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, purgeAt, leaseUntil])
+  @@index([userId, requestedAt])
+}
+
+model AuditEvent {
+  id         String         @id @default(uuid()) @db.Uuid
+  actorType  AuditActorType
+  actorId    String?        @db.VarChar(128)
+  action     String         @db.VarChar(120)
+  targetType String         @db.VarChar(80)
+  targetId   String?        @db.VarChar(128)
+  metadata   Json           @db.JsonB
+  createdAt  DateTime       @default(now()) @db.Timestamptz(3)
+
+  @@index([targetType, targetId, createdAt])
+  @@index([actorType, actorId, createdAt])
+}
