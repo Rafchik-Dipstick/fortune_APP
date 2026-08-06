@@ -1020,3 +1020,25 @@ git diff --check
 ```
 
 Deployment impact: local proof verification, one checked-in replay table migration, and tests only. The live read-only certificate exercise did not authenticate a player; no raw proof was stored, no route was mounted, and no Apple account, Railway service, persistent database, secret, or deployed environment changed.
+
+### 2026-08-06 — Phase 5 authoritative access sessions
+
+- Added signed 15-minute HS256 access tokens carrying the immutable Game Center authentication time, user ID, session-family ID, user session version, issuer, audience, issued time, and expiry; every token publishes its signing-key version as `kid`.
+- Resolved verification keys strictly by `kid`, restricted verification to HS256, and enforced issuer, audience, expiry, and bounded clock tolerance. Approved previous keys continue to verify during rotation and fail closed as soon as they are removed.
+- Added authoritative authentication middleware that accepts one strict Bearer token form and then reloads the named session family and owning user on every request.
+- Required the database family to be unrevoked and unexpired, to belong to the token subject, and to match both the user's current `sessionVersion` and the immutable `auth_time`; logout, deletion, blocking, and session supersession therefore invalidate an already-issued JWT immediately.
+- Preserved deletion-state semantics with `423 ACCOUNT_DELETION_PENDING` and `410 ACCOUNT_PURGED`, kept all authentication responses non-cacheable, and exposed a typed request context for downstream transactional rechecks.
+- Added coverage for valid claims, expiry, tampering, wrong audience, retained/removed signing keys, missing credentials, family revocation/expiry, session-version mismatch, deletion pending, and purge state.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+corepack npm run lint
+corepack npm run typecheck --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: local API token and middleware code plus the pinned `jose` runtime dependency only. No route was mounted, no real signing secret or session was created, and no Apple, Railway, database, credential, or deployed environment changed.
