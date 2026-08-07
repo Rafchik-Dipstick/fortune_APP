@@ -1545,3 +1545,21 @@ git diff --check
 ```
 
 Deployment impact: local mobile instrumentation, three screen call sites, and two documents. No native module, capability, permission, or entitlement changed. Verification did not run prebuild, open a device, launch the app, transmit a measurement, or alter a deployed environment.
+
+### 2026-08-07 — Production release preparation
+
+- Declared `ITSAppUsesNonExemptEncryption: false` in the iOS `infoPlist`. The binary reaches for no encryption of its own: transport security and the keychain belong to the operating system, and `expo-crypto` is used only for random identifiers and SHA-256 digests, neither of which is encryption. The AES-GCM, HMAC, and RSA work this product depends on runs server side and never ships in the app. Without the key, App Store Connect asks the export-compliance question again on every upload.
+- Removed three variables from `apps/api/.env.example` that no code reads. `SUPPORTED_LOCALES` and `DEFAULT_LOCALE` were superseded by the content package, which owns the locale set; `ACCOUNT_PURGE_DELAY_DAYS` was superseded by `AccountDeletionService`, which takes its 30-day delay as a constructor option and is never given one from configuration. They are inherited from the specification's §14 draft list, which predates the implemented schema. An operator setting them in Railway would have believed they took effect, so they are worse than absent — this is a correction to the configuration contract, not a behavior change.
+- Corrected `docs/secret-rotation-runbook.md`, which named the error-reporting variable `ERROR_REPORTING_DSN`. The implemented name is `SENTRY_DSN`, and a rotation runbook that names a variable that does not exist fails at the moment it is most needed.
+- Added `docs/production-release-checklist.md`: the decisions that are immutable once a build ships, every Railway variable that must be set by hand against the ones that safely default, the eight key rings to generate fresh, the Apple-side configuration order, the EAS production variables, the single release-gate command, and the nine gates that need a person, a Mac, or a deployed environment and therefore cannot be closed from a local checkout.
+- Deleted `apps/mobile/src/i18n/copy.ts`, a Phase 1 scaffold module that nothing imported. It held the strings "The Oracle is taking shape." and "This development build confirms the iPhone and iPad foundation. The first card ritual arrives in the next visual phase," alongside a `status` of "Phase 1 scaffold". No screen rendered them, so this changes no behavior — but shipping a string that announces the product is unfinished, inside the binary submitted for review, is a risk with no upside. `pseudo.ts` is retained: `app-text.tsx` and `qa-locale.tsx` still depend on it.
+- Audited the rest of the tree for material that must not reach a release build and changed nothing else, because nothing else needed changing. The single `console.log` is `__DEV__`-guarded and documented as Metro-only; the art-review harness and the pseudo-locale control are `__DEV__`-guarded at both the route and their entry points; `grant-dev-draws.ts` refuses to run unless `DEPLOYMENT_ENVIRONMENT` is `local` and lives outside the compiled `src` tree; the only committed environment files are examples; and the only committed certificates are Apple's public roots.
+
+Verification required before commit:
+
+```text
+corepack npm run check
+git diff --check
+```
+
+Deployment impact: one iOS Info.plist key, one configuration example, and three documents. No API surface, database schema, entitlement, capability, or permission changed. The removed variables were never read, so no deployed behavior depends on them. Verification did not serve a request, run prebuild, open a device, contact Apple, open a database, or alter a deployed environment. The production API domain remains undetermined, so `EXPO_PUBLIC_API_URL` is still unset for the production profile and no production build can yet be made.

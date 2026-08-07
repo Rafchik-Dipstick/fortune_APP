@@ -121,6 +121,14 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         ...config.ios?.infoPlist,
         CFBundleDevelopmentRegion: 'en',
         CFBundleLocalizations: supportedLocales,
+        // Declared false because the binary reaches for no encryption of its
+        // own: transport security and the keychain are the operating system's,
+        // and expo-crypto is used only for random identifiers and SHA-256
+        // digests, which are not encryption. The AES-GCM, HMAC, and RSA work
+        // this product depends on runs server side and never ships here.
+        // Without the key, App Store Connect asks the export-compliance
+        // question again on every upload.
+        ITSAppUsesNonExemptEncryption: false,
       },
       privacyManifests,
     },
