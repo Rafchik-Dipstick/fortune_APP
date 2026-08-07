@@ -5,6 +5,19 @@ import UIKit
 
 private let authenticationChangeEvent = "onAuthenticationChange"
 
+/**
+ `Promise.reject(code:description:)` is a dead end for diagnostics: the message
+ JavaScript receives is built from `Exception.reason`, and the base class hard
+ codes that to "undefined reason". A description passed to the initializer is
+ never read, so every rejection through it looks identical no matter the cause.
+ Overriding `reason` is the only way the text survives the bridge.
+ */
+private final class GameCenterProofException: GenericException<String> {
+  override var reason: String {
+    "Game Center could not produce an identity proof: \(param)"
+  }
+}
+
 public final class FortunenessGameCenterModule: Module {
   private var authenticationStarted = false
 
@@ -142,12 +155,10 @@ public final class FortunenessGameCenterModule: Module {
     player.fetchItems(forIdentityVerificationSignature: { publicKeyURL, signature, salt, timestamp, error in
       if let error {
         // Apple's own reason is the only thing that distinguishes a network
-        // failure from an app that Game Center does not recognise. Discarding
-        // it left "undefined reason" as the sole symptom of every cause.
+        // failure from an app Game Center does not recognise.
         let details = error as NSError
         promise.reject(
-          "E_GAME_CENTER_PROOF_UNAVAILABLE",
-          "Game Center could not produce an identity proof: \(details.localizedDescription) [\(details.domain) \(details.code)]"
+          GameCenterProofException("\(details.localizedDescription) [\(details.domain) \(details.code)]")
         )
         return
       }
