@@ -74,23 +74,41 @@ function CardBack() {
       importantForAccessibility="no-hide-descendants"
       style={styles.back}
     >
-      <View style={styles.backRow}>
-        <AppText color="gold">✦</AppText>
-        <AppText color="gold">☾</AppText>
-        <AppText color="gold">✦</AppText>
-      </View>
-      <View style={styles.backCenter}>
-        <AppText color="gold" style={styles.moon}>
-          ☽
-        </AppText>
-        <AppText color="gold" style={styles.starLine}>
-          · ✦ · ✧ · ✦ ·
-        </AppText>
-      </View>
-      <View style={[styles.backRow, styles.rotated]}>
-        <AppText color="gold">✦</AppText>
-        <AppText color="gold">☾</AppText>
-        <AppText color="gold">✦</AppText>
+      <View style={styles.backInner}>
+        <View style={styles.backRow}>
+          <AppText color="gold" style={styles.backGlyph}>
+            ✦
+          </AppText>
+          <AppText color="gold" style={styles.backGlyph}>
+            ☾
+          </AppText>
+          <AppText color="gold" style={styles.backGlyph}>
+            ✦
+          </AppText>
+        </View>
+        <View style={styles.backCenter}>
+          <View style={styles.moonRing}>
+            <View style={styles.moonRingInner}>
+              <AppText color="gold" style={styles.moon}>
+                ☽
+              </AppText>
+            </View>
+          </View>
+          <AppText color="gold" style={styles.starLine}>
+            · ✦ · ✧ · ✦ ·
+          </AppText>
+        </View>
+        <View style={[styles.backRow, styles.rotated]}>
+          <AppText color="gold" style={styles.backGlyph}>
+            ✦
+          </AppText>
+          <AppText color="gold" style={styles.backGlyph}>
+            ☾
+          </AppText>
+          <AppText color="gold" style={styles.backGlyph}>
+            ✦
+          </AppText>
+        </View>
       </View>
     </View>
   );
@@ -109,37 +127,42 @@ function CardFace({
   return (
     <View style={styles.face}>
       <View style={styles.cardLabelRow}>
-        <AppText color="gold" variant="caption">
+        <AppText color="gold" style={styles.labelGlyph} variant="caption">
           {number}
         </AppText>
-        <AppText color="gold" variant="caption">
+        <AppText color="gold" style={styles.labelGlyph} variant="caption">
           {suitSymbol}
         </AppText>
       </View>
-      <View style={styles.illustrationFrame}>
-        {illustration ? (
-          <Image
-            accessibilityLabel={artAltText}
-            resizeMode="cover"
-            source={illustration}
-            style={[styles.illustration, reversed ? styles.reversed : undefined]}
-          />
-        ) : (
-          <View
-            accessibilityLabel={artAltText}
-            accessibilityRole="image"
-            style={styles.illustrationPlaceholder}
-          >
-            <AppText color="gold" style={styles.placeholderMoon}>
-              ☾
-            </AppText>
-            <AppText color="textMuted" style={styles.placeholderCopy} variant="caption">
-              Illustration proof pending
-            </AppText>
-          </View>
-        )}
+      <View style={styles.illustrationOuterFrame}>
+        <View style={styles.illustrationFrame}>
+          {illustration ? (
+            <Image
+              accessibilityLabel={artAltText}
+              resizeMode="cover"
+              source={illustration}
+              style={[styles.illustration, reversed ? styles.reversed : undefined]}
+            />
+          ) : (
+            <View
+              accessibilityLabel={artAltText}
+              accessibilityRole="image"
+              style={styles.illustrationPlaceholder}
+            >
+              <AppText color="gold" style={styles.placeholderMoon}>
+                ☾
+              </AppText>
+              <AppText color="textMuted" style={styles.placeholderCopy} variant="caption">
+                Illustration proof pending
+              </AppText>
+            </View>
+          )}
+        </View>
       </View>
       <View style={styles.cardNameBlock}>
+        <AppText color="gold" style={styles.nameDivider}>
+          · ✦ ·
+        </AppText>
         <AppText style={styles.cardName} variant="label">
           {cardName}
         </AppText>
@@ -162,8 +185,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceRaised,
     shadowColor: colors.focus,
     shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.16,
-    shadowRadius: 22,
+    shadowOpacity: 0.2,
+    shadowRadius: 26,
   },
   compact: {
     borderRadius: radii.control,
@@ -173,33 +196,70 @@ const styles = StyleSheet.create({
     borderWidth: 3,
   },
   pressed: {
-    opacity: 0.88,
-    transform: [{ translateY: 2 }],
+    opacity: 0.9,
+    transform: [{ translateY: 2 }, { scale: 0.98 }],
   },
   back: {
     flex: 1,
-    justifyContent: 'space-between',
     borderColor: colors.goldMuted,
     borderRadius: radii.card - 5,
     borderWidth: 1,
     margin: spacing.xs,
-    padding: spacing.md,
+    padding: spacing.xxs,
     backgroundColor: colors.surface,
+  },
+  backInner: {
+    flex: 1,
+    justifyContent: 'space-between',
+    borderColor: colors.goldMuted,
+    borderRadius: radii.card - 9,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: spacing.md,
   },
   backRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  backGlyph: {
+    textShadowColor: colors.gold,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 6,
+  },
   backCenter: {
     alignItems: 'center',
     gap: spacing.lg,
   },
+  moonRing: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 128,
+    height: 128,
+    borderColor: colors.goldMuted,
+    borderRadius: 64,
+    borderWidth: 1,
+  },
+  moonRingInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 108,
+    height: 108,
+    borderColor: colors.goldMuted,
+    borderRadius: 54,
+    borderWidth: StyleSheet.hairlineWidth,
+    backgroundColor: colors.surfaceRaised,
+  },
   moon: {
     fontSize: 56,
+    textShadowColor: colors.gold,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 14,
   },
   starLine: {
     fontSize: 18,
     letterSpacing: 3,
+    textShadowColor: colors.gold,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
   rotated: {
     transform: [{ rotate: '180deg' }],
@@ -215,6 +275,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.xs,
+  },
+  labelGlyph: {
+    letterSpacing: 1,
+    textShadowColor: colors.gold,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 5,
+  },
+  illustrationOuterFrame: {
+    flex: 1,
+    borderColor: colors.goldMuted,
+    borderRadius: radii.control + 3,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 3,
   },
   illustrationFrame: {
     flex: 1,
@@ -240,21 +313,34 @@ const styles = StyleSheet.create({
   },
   placeholderMoon: {
     fontSize: 52,
+    textShadowColor: colors.gold,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 12,
   },
   placeholderCopy: {
     textAlign: 'center',
   },
   cardNameBlock: {
-    minHeight: 58,
+    minHeight: 64,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: spacing.xs,
+    gap: 2,
+    paddingTop: spacing.xxs,
+  },
+  nameDivider: {
+    fontSize: 11,
+    letterSpacing: 2,
   },
   cardName: {
     fontFamily: 'Georgia',
+    fontSize: 17,
+    letterSpacing: 0.8,
+    lineHeight: 22,
     textAlign: 'center',
   },
   orientation: {
+    letterSpacing: 1.5,
     textAlign: 'center',
+    textTransform: 'uppercase',
   },
 });
