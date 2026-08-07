@@ -294,7 +294,7 @@ describe('parseApiEnvironment', () => {
         APPLE_IAP_KEY_ID: '2X9R4HXF34',
         APPLE_IAP_PRIVATE_KEY_BASE64: appStorePrivateKey,
       }),
-    ).toThrow(/ERROR_REPORTING_DSN/);
+    ).toThrow(/SENTRY_DSN/);
   });
 
   it('parses a DSN into ingest coordinates without keeping the raw value', () => {
@@ -302,8 +302,8 @@ describe('parseApiEnvironment', () => {
       ...validAuthenticationEnvironment,
       DATABASE_URL: databaseUrl,
       DEPLOYMENT_ENVIRONMENT: 'staging',
-      ERROR_REPORTING_DSN: 'https://abc123@o1.ingest.example.com/42',
-      ERROR_REPORTING_RELEASE: 'fortuneness-api@1.2.3',
+      SENTRY_DSN: 'https://abc123@o1.ingest.example.com/42',
+      SENTRY_RELEASE: 'fortuneness-api@1.2.3',
     });
 
     expect(environment.observability.errorReporting).toEqual({
@@ -326,9 +326,9 @@ describe('parseApiEnvironment', () => {
       parseApiEnvironment({
         ...validAuthenticationEnvironment,
         DATABASE_URL: databaseUrl,
-        ERROR_REPORTING_DSN: dsn,
+        SENTRY_DSN: dsn,
       }),
-    ).toThrow(/ERROR_REPORTING_DSN/);
+    ).toThrow(/SENTRY_DSN/);
   });
 
   it('orders the database, statement, and request deadlines so the innermost fails first', () => {

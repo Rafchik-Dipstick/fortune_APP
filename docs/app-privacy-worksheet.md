@@ -18,11 +18,21 @@ This worksheet is the source of truth for the App Store Connect **App Privacy** 
 | Purchase History         | Yes       | Yes                | No                | App Functionality | Apple transaction identifiers and entitlement state needed to grant and audit readings          |
 | Other User Content       | Yes       | Yes                | No                | App Functionality | The reading archive and card collection the player generated                                    |
 | Product Interaction      | No        | —                  | —                 | —                 | No analytics SDK is installed and no interaction events are sent                                |
-| Crash / Performance Data | No        | —                  | —                 | —                 | No crash reporter is installed                                                                  |
+| Crash / Performance Data | No        | —                  | —                 | —                 | No crash reporter and no analytics SDK ship in the app; see the Phase 13 note below             |
 | Identifiers (IDFA)       | No        | —                  | —                 | —                 | The app never links `AdSupport` and never presents an ATT prompt                                |
 | Contact Info             | No        | —                  | —                 | —                 | Game Center provides no email or postal address to the app                                      |
 | Location                 | No        | —                  | —                 | —                 | Only an IANA time-zone name is reported, which is not a location under Apple's definition       |
-| Diagnostics              | No        | —                  | —                 | —                 | Server logs are operational and never leave Railway                                             |
+| Diagnostics              | No        | —                  | —                 | —                 | Operational only; server error reports describe the service, never the player — see below       |
+
+### Phase 13 note — on-device timing and server error reporting
+
+Two things were added in Phase 13 that look, at a glance, like they should change the two "No" rows above. Neither does, and the reasoning is recorded here so a future reviewer does not have to re-derive it.
+
+**On-device performance timing.** `apps/mobile/src/observability/performance.ts` records how long startup, card reveal, collection paging, and returning from background take. It is a bounded in-memory ring buffer holding a span name and a duration. It is never persisted, never transmitted, and prints only to the Metro console in a development build. Nothing is collected in Apple's sense, because nothing leaves the device. Crash / Performance Data stays **No**, and Product Interaction stays **No** because no interaction event exists at all.
+
+**Server error reporting.** The API sends scrubbed error reports to Sentry. The report carries an error type, a scrubbed message, a scrubbed stack, the deployment environment, the release, a request ID, and the matched route pattern. It carries no player identifier, no session or purchase token, no request body or headers, and no reading content; `apps/api/src/observability/error-reporter.test.ts` asserts each of those. Diagnostics stays **No** because the data describes the service, not any player. The wording of the Diagnostics row was corrected all the same: server logs no longer "never leave Railway", and a worksheet that says otherwise would be inaccurate even if the label answer is unchanged.
+
+Row 8 below asks a person to confirm both judgements before submission.
 
 Tracking answer: **No**. Fortuneness has no advertising SDK, no third-party analytics, and shares nothing with data brokers, so `NSPrivacyTracking` is `false` and `NSPrivacyTrackingDomains` is empty.
 
@@ -69,14 +79,15 @@ Tracking answer: **No**. Fortuneness has no advertising SDK, no third-party anal
 
 ## Rows a person must close
 
-| #   | Row                                                                                               | Status  |
-| --- | ------------------------------------------------------------------------------------------------- | ------- |
-| 1   | The App Store Connect App Privacy answers match the table above, field by field                   | NOT RUN |
-| 2   | The published privacy policy at `EXPO_PUBLIC_PRIVACY_URL` describes exactly these data types      | NOT RUN |
-| 3   | The policy states the 30-day deletion processing period and that Apple billing is separate        | NOT RUN |
-| 4   | The support page at `EXPO_PUBLIC_SUPPORT_URL` is reachable and answers deletion questions         | NOT RUN |
-| 5   | A prebuild on macOS emits `PrivacyInfo.xcprivacy` containing every row of the two manifest tables | NOT RUN |
-| 6   | App Review's account-deletion requirement is satisfied by the in-app path, verified on a device   | NOT RUN |
-| 7   | Every third-party SDK in the final build ships its own privacy manifest and signature             | NOT RUN |
+| #   | Row                                                                                                                 | Status  |
+| --- | ------------------------------------------------------------------------------------------------------------------- | ------- |
+| 1   | The App Store Connect App Privacy answers match the table above, field by field                                     | NOT RUN |
+| 2   | The published privacy policy at `EXPO_PUBLIC_PRIVACY_URL` describes exactly these data types                        | NOT RUN |
+| 3   | The policy states the 30-day deletion processing period and that Apple billing is separate                          | NOT RUN |
+| 4   | The support page at `EXPO_PUBLIC_SUPPORT_URL` is reachable and answers deletion questions                           | NOT RUN |
+| 5   | A prebuild on macOS emits `PrivacyInfo.xcprivacy` containing every row of the two manifest tables                   | NOT RUN |
+| 6   | App Review's account-deletion requirement is satisfied by the in-app path, verified on a device                     | NOT RUN |
+| 7   | Every third-party SDK in the final build ships its own privacy manifest and signature                               | NOT RUN |
+| 8   | The Phase 13 note above is confirmed: on-device timing is never transmitted and no error report carries player data | NOT RUN |
 
-Row 5 is mechanical but needs Xcode, so it cannot run in this environment. Rows 1 through 4 and 6 are judgement calls that belong to the people who own the store listing and the policy text.
+Row 5 is mechanical but needs Xcode, so it cannot run in this environment. Rows 1 through 4, 6, and 8 are judgement calls that belong to the people who own the store listing and the policy text.

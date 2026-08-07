@@ -1,6 +1,6 @@
 # Fortuneness Deploy Book
 
-Last updated: 2026-08-06
+Last updated: 2026-08-07
 
 This is the chronological build, verification, and deployment record for Fortuneness. It is maintained in the same commit as every logical implementation change. Entries are append-only apart from correcting inaccurate instructions, and secrets must never be recorded here.
 
@@ -8,15 +8,17 @@ The canonical product and technical requirements live in [`FORTUNENESS_SPEC.md`]
 
 ## Current delivery state
 
-| Phase                                             | State                             | Current gate                                                                                                                         |
-| ------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Phase 0 — owner accounts, naming, and risk spikes | Blocked on owner/external actions | Apple, Expo/EAS, Railway, Google ADC, editorial ownership, and reviewer-access decisions remain open.                                |
-| Phase 1 — repository and quality scaffold         | In progress                       | JavaScript/API/mobile scaffold is present; native modules, entitlement evidence, EAS linkage, and signed device builds remain gated. |
-| Phase 2 — design system and adaptive slice        | In progress                       | Static fixtures and 24 templates exist; human editorial/art approval and the Expo device matrix remain open.                         |
-| Phase 3 — API skeleton and shared contracts       | Local implementation complete     | Full local gate passes; Railway staging linkage, variables, PostgreSQL, deploy, and live health evidence remain external.            |
-| Phases 4–10                                       | Not started                       | Must follow the acceptance order in the specification.                                                                               |
-| Phase 11 — full deck and content                  | In progress                       | All 78 crops validate; human art/alt-text review, bundle integration, 624 approved templates, and device/performance gates remain.   |
-| Phases 12–17                                      | Not started                       | Must follow the acceptance order in the specification.                                                                               |
+| Phase                                             | State                             | Current gate                                                                                                                                              |
+| ------------------------------------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Phase 0 — owner accounts, naming, and risk spikes | Blocked on owner/external actions | Apple, Expo/EAS, Railway, Google ADC, editorial ownership, and reviewer-access decisions remain open.                                                     |
+| Phase 1 — repository and quality scaffold         | In progress                       | JavaScript/API/mobile scaffold is present; native modules, entitlement evidence, EAS linkage, and signed device builds remain gated.                      |
+| Phase 2 — design system and adaptive slice        | In progress                       | Static fixtures and 24 templates exist; human editorial/art approval and the Expo device matrix remain open.                                              |
+| Phase 3 — API skeleton and shared contracts       | Local implementation complete     | Full local gate passes; Railway staging linkage, variables, PostgreSQL, deploy, and live health evidence remain external.                                 |
+| Phases 4–10                                       | Local implementation complete     | Offline gates pass; physical-device Game Center and Apple Sandbox commerce evidence remain external.                                                      |
+| Phase 11 — full deck and content                  | In progress                       | All 78 crops validate; human art/alt-text review, bundle integration, 624 approved templates, and device/performance gates remain.                        |
+| Phase 12 — settings, reminder, legal, deletion    | Local implementation complete     | Offline gates pass; App Privacy answers, published policy text, and device reminder/deletion runs remain external.                                        |
+| Phase 13 — security and reliability hardening     | Code evidence complete            | Retest, redaction, deadlines, egress, and telemetry land offline; the staging load run, dashboards, rotation drill, and device profiling remain external. |
+| Phases 14–17                                      | Not started                       | Must follow the acceptance order in the specification.                                                                                                    |
 
 ## Phase 0 deployment blockers
 
@@ -32,6 +34,7 @@ These items require owner credentials, external account changes, hardware, legal
 - Assign the editorial owner and confirm capacity for at least 624 reviewed English fortune templates and 78 reviewed illustration descriptions.
 - Complete the identity/commerce trust-boundary review and the physical-device Game Center/StoreKit spike.
 - Close the Game Center-only reviewer-access gate or select Sign in with Apple before Phase 5.
+- Create the Sentry organization and two separated projects or environments. Since Phase 13 the API refuses to start a production deployment without `SENTRY_DSN`, so this is a hard deployment prerequisite rather than a nicety.
 
 ## Environments
 
@@ -1459,3 +1462,86 @@ git diff --check
 ```
 
 Deployment impact: two local foreground feedback assets, two Expo package dependencies, public Expo plugin configuration, session preference UI, and client feedback code only. A future development-client rebuild must include the new native packages; verification did not run prebuild, request microphone/background modes, play device audio/haptics, mutate server preferences, or change a deployed environment.
+
+### 2026-08-07 — Phase 13 outbound egress, deadlines, redaction, and telemetry
+
+- Added one guarded outbound HTTPS boundary for the whole process: HTTPS-only exact-host allowlist, no credentials, ports, or fragments, DNS answers that must resolve wholly to public addresses, the connection pinned to a validated address with the original hostname as SNI, a response-size ceiling, and a deadline. The Game Center certificate fetcher now delegates to it. Apple's App Store Server client is subclassed so its traffic uses the same transport instead of the vendor library's bundled `node-fetch`; a test drives the real library request path against the override, and another asserts the allowlist still matches Apple's own base URLs. The declared egress inventory — Game Center keys, issuer certificates, the App Store Server API, the error-reporting ingest host, and Apple's OCSP responder — is logged once at startup so a deployed instance can be diffed against the runbook.
+- Replaced path-enumerated log redaction with scrubbing by key name and by value shape at every depth. A PEM key, compact JWS, bearer credential, connection URL, or unexplained long blob is removed wherever it appears, and surviving strings are length-capped so a private reading cannot be reconstructed from a log line.
+- Added deadlines at four layers, ordered by configuration validation so the innermost aborts first: PostgreSQL lock, statement, and idle-in-transaction timeouts, a per-request deadline returning the existing retryable envelope, and socket-level header and keep-alive deadlines. Made the connection pool size configurable and raised its default from 2 to 10, which two connections could not have served at the acceptance concurrency.
+- Split the single rate-limit budget into independent counters for authentication, draw, the Apple webhook, and everything else, so a notification flood or a proof-verification flood cannot consume the budget a player's ordinary reads depend on.
+- Added error reporting to Sentry's envelope endpoint through the egress guard rather than the Sentry SDK, which would have attached request headers, bodies, cookies, and IPs by default and bypassed the allowlist. Reports carry a scrubbed type, message, and stack, the deployment, the release, a request ID, and the matched route pattern. Local runs never report; volume is capped at 30 per minute; delivery failure is logged and swallowed.
+- Added route and transaction latency histograms, a five-minute 5xx ratio, a fifteen-minute purchase-delivery ratio derived from the money-bearing route outcomes, and a reconciliation snapshot, flushed as one structured record per interval with the Phase 13 objectives and Phase 16 halt conditions as a single set of thresholds. Metric keys are express route patterns, never resolved identifiers.
+- Declared the deployment environment explicitly and made the configuration refuse to start when it disagrees with the App Store commerce environment: staging may hold only Sandbox trust, production only Production, and Xcode stays local-only.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+corepack npm run lint -- --quiet
+corepack npm run typecheck --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api
+corepack npm run build --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: new required and optional API environment variables (`DEPLOYMENT_ENVIRONMENT`, the four database and request deadlines, the four rate-limit budgets, `SENTRY_DSN`, `SENTRY_RELEASE`, `METRICS_FLUSH_INTERVAL_MS`), all recorded in `apps/api/.env.example`. A production deployment now fails closed without `SENTRY_DSN` and without a `DEPLOYMENT_ENVIRONMENT` that agrees with `APPLE_IAP_ENVIRONMENT`; both are recorded as Phase 0 blockers. Verification did not serve a request, ship a log, send a report, contact Apple or Sentry, open a database, or alter a deployed environment.
+
+### 2026-08-07 — Phase 13 penetration retest of the trust model
+
+- Added an adversarial suite that attacks each boundary rather than exercising it: ten hostile Game Center public-key URL classes refused before a socket opens, tampered and unsigned tokens, foreign issuer and audience, expiry past tolerance, absent and prototype-inherited key versions, malformed and oversized Apple notification envelopes, error envelopes carrying no internal detail, reflected request IDs, cross-origin refusal, content-type smuggling, and a request body that cannot mutate `Object.prototype`.
+- Fixed the one code finding the retest produced. Versioned key lookup used a plain index, so a JWS `kid` naming an inherited `Object.prototype` member resolved to a function instead of nothing. No key confusion was reachable, because the resulting value fails the downstream cryptographic call — but relying on a library to reject a value the lookup should never have produced is not a control, and the environment parser already validated key versions by own property. `resolveVersionedKey` now resolves by own property and is the only lookup path for access tokens, deletion-management tokens, and ciphertext key versions.
+- Recorded the retest in `docs/phase13-penetration-retest.md`: method and limits, five findings with severities and fixes, a verdict for each of the twenty abuse cases with its evidence, and six rows that stay open on external gates rather than being claimed closed.
+- Documented the versioned secret-rotation procedure in `docs/secret-rotation-runbook.md`, routine and emergency, with the wait period each ring needs before its old version is removed and the reason crypto-erasure constrains the purchase-token encryption key.
+- Made the dependency audit a release gate at high severity inside `npm run check`.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+corepack npm run lint -- --quiet
+corepack npm run audit:dependencies
+corepack npm run typecheck --workspace @fortuneness/api
+corepack npm run test --workspace @fortuneness/api
+git diff --check
+```
+
+Deployment impact: API source and tests, one new release gate, and two documents. Verification did not serve a request, contact Apple or Sentry, open a database, rotate a secret, or alter a deployed environment.
+
+### 2026-08-07 — Phase 13 load-test harness and observability runbook
+
+- Added `apps/api/scripts/load-test.mjs`. It seeds synthetic sessions directly in the target database, mints access tokens with that deployment's own keyring, drives state, draw, history, collection, bootstrap, and both unauthenticated rejection paths at a configured concurrency, judges the run against the Phase 13 objectives, runs the database invariant checks, exits non-zero on a miss, and cleans up only the accounts recorded in its own run file.
+- Recorded in `docs/phase13-observability-runbook.md` what the service emits, what it deliberately never collects, the four dashboards to build from the flushed record, and the alert rules with their Phase 16 halt conditions. Documented why there is no scrape endpoint: it would add a publicly reachable surface needing its own authentication, rate limit, and review, to carry data the log stream already carries.
+- Stated the harness's limits rather than implying coverage it does not have. A real Game Center login needs a physical device and a real notification needs Apple, so those two scenarios drive input that must be rejected and measure the cost of refusing it at volume.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+corepack npm run lint -- --quiet
+node --check apps/api/scripts/load-test.mjs
+git diff --check
+```
+
+Deployment impact: one staging tool and one document. The harness was **not executed**: it requires a deployed Railway staging API, that API's database, and that API's keyring, none of which exist. It writes rows and consumes real allowance and must never be pointed at production. No request was served and no environment altered.
+
+### 2026-08-07 — Phase 13 mobile performance instrumentation
+
+- Added an on-device recorder naming the app's own moments: module load, launch to a usable Oracle, card face ready, content VoiceOver-reachable, first collection page, appended page, and return from background, plus memory-warning and backgrounding counts. A trace viewer can show that something took 1.8 seconds but cannot say which span that was, and the two readings lead to different fixes.
+- Kept it entirely on the device. It is a bounded in-memory ring buffer holding a span name and a duration, never persisted, never transmitted, and printed only to the Metro console in a development build. The App Privacy worksheet declares no analytics SDK and no crash reporter, and this must not quietly make that declaration false.
+- Skipped the span on a resumed reveal rather than reporting a card that was already on screen as an instant one, and gave first-page and appended-page separate budgets because they are different costs.
+- Recorded the profiling protocol in `docs/phase13-mobile-performance-protocol.md`: budgets for the oldest supported device, the device matrix, and five scenarios covering cold startup, reveal, collection scroll against the ten-thousand-reading fixture, simulated memory pressure, and background and foreground transitions at three durations.
+- Updated `docs/app-privacy-worksheet.md` with a Phase 13 note explaining why on-device timing and scrubbed server error reporting leave both the Crash/Performance Data and Diagnostics answers at **No**, corrected the Diagnostics wording that claimed server logs never leave Railway, and added a row for a person to confirm both judgements before submission.
+
+Verification required before commit:
+
+```text
+corepack npm run format:check
+corepack npm run lint -- --quiet
+corepack npm run privacy:validate
+corepack npm run typecheck --workspace @fortuneness/mobile
+corepack npm run test --workspace @fortuneness/mobile
+corepack npm run build --workspace @fortuneness/mobile
+git diff --check
+```
+
+Deployment impact: local mobile instrumentation, three screen call sites, and two documents. No native module, capability, permission, or entitlement changed. Verification did not run prebuild, open a device, launch the app, transmit a measurement, or alter a deployed environment.

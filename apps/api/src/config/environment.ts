@@ -240,8 +240,8 @@ const rawApiEnvironmentSchema = z
     RATE_LIMIT_AUTHENTICATION_MAX: environmentInteger(20, 1, 1_000_000),
     RATE_LIMIT_DRAW_MAX: environmentInteger(30, 1, 1_000_000),
     RATE_LIMIT_WEBHOOK_MAX: environmentInteger(600, 1, 1_000_000),
-    ERROR_REPORTING_DSN: errorReportingDsnSchema,
-    ERROR_REPORTING_RELEASE: optionalTrimmedSchema(128),
+    SENTRY_DSN: errorReportingDsnSchema,
+    SENTRY_RELEASE: optionalTrimmedSchema(128),
     METRICS_FLUSH_INTERVAL_MS: environmentInteger(60_000, 5_000, 3_600_000),
     APP_BUNDLE_ID: bundleIdentifierSchema,
     GAME_CENTER_ALLOWED_PUBLIC_KEY_HOSTS: hostAllowlistSchema.default(['static.gc.apple.com']),
@@ -316,13 +316,10 @@ const rawApiEnvironmentSchema = z
       });
     }
 
-    if (
-      environment.DEPLOYMENT_ENVIRONMENT === 'production' &&
-      environment.ERROR_REPORTING_DSN === null
-    ) {
+    if (environment.DEPLOYMENT_ENVIRONMENT === 'production' && environment.SENTRY_DSN === null) {
       context.addIssue({
         code: 'custom',
-        path: ['ERROR_REPORTING_DSN'],
+        path: ['SENTRY_DSN'],
         message: 'must be configured before the production deployment starts',
       });
     }
@@ -626,9 +623,9 @@ export const parseApiEnvironment = (source: NodeJS.ProcessEnv): ApiEnvironment =
     logLevel: result.data.LOG_LEVEL,
     nodeEnvironment: result.data.NODE_ENV,
     observability: {
-      errorReporting: result.data.ERROR_REPORTING_DSN,
+      errorReporting: result.data.SENTRY_DSN,
       metricsFlushIntervalMs: result.data.METRICS_FLUSH_INTERVAL_MS,
-      release: result.data.ERROR_REPORTING_RELEASE,
+      release: result.data.SENTRY_RELEASE,
     },
     outboundRequestTimeoutMs: result.data.OUTBOUND_REQUEST_TIMEOUT_MS,
     port: result.data.PORT,

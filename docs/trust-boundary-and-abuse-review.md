@@ -1,7 +1,8 @@
 # Fortuneness Identity and Commerce Trust-Boundary Review
 
-Status: Design review v1 — implementation evidence pending  
+Status: Design review v1 — retested against the implementation on 2026-08-07  
 Reviewed: 2026-08-05  
+Retested: 2026-08-07 — see [`phase13-penetration-retest.md`](./phase13-penetration-retest.md) for per-abuse-case verdicts, five findings and their fixes, and the external gates that stay open. This document remains the design of record; the retest is the evidence.  
 Scope: Game Center identity, app sessions, account switching, fortune allowance, StoreKit delivery, App Store notifications, credit/refund accounting, offline caches, and account deletion
 
 ## Gate outcome
@@ -104,19 +105,19 @@ Status values mean:
 
 ## Mandatory implementation checks by phase
 
-| Phase       | Evidence required to keep this review closed                                                                                                                                                                 |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Phase 0     | Physical iPhone persistent Game Center proof; signed IPA Game Center entitlement; Xcode-versus-Sandbox JWS distinction; `appAccountToken` receipt; reviewer-access decision; final IDs/configuration record. |
-| Phase 1     | Lockfile install, audit, lint/type/test/build gates; Expo Doctor; native config introspection; no unused push entitlement; no secret-bearing examples.                                                       |
-| Phase 3     | Strict shared request/response contracts, request IDs, bounded bodies, rate-limit framework, privacy-safe errors, trust-proxy/CORS fail-closed configuration.                                                |
-| Phase 4     | Identity/commerce/deletion schema, lock helpers, foreign keys, partial uniqueness, ledger checks/permissions, deterministic seed, restore and tombstone runbook.                                             |
-| Phase 5     | Game Center signature/SSRF/replay/rotation/concurrency tests; rotating refresh-family tests; immediate authoritative invalidation; account switching.                                                        |
-| Phase 6     | Allowance/time-zone/idempotency/unviewed-reading/selection properties and 50+ concurrent request tests.                                                                                                      |
-| Phase 7     | Kill-point reveal recovery; account-partitioned memory/SQLite isolation; clear-on-switch/logout/deletion/mismatch.                                                                                           |
-| Phase 9     | Apple JWS/environment/product/owner verification; atomic crash matrix; notification/reconciliation races; mismatch privacy; refund/subscription permutations; consent payloads.                              |
-| Phase 12    | Recent-auth deletion gate; immediate revocation; purge cutoff; cancellation race; late Apple events; reminder permission and local-only scheduling.                                                          |
-| Phase 13    | Penetration retest, secret rotation, dependency review, PII/log redaction, rate/timeout/outbound policy, load tests, operational alerts.                                                                     |
-| Phase 15–16 | Environment/secret/notification URL audit, backup evidence, reviewer path rehearsal, rollback/switch drills, and production monitoring thresholds.                                                           |
+| Phase       | Evidence required to keep this review closed                                                                                                                                                                                                     |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Phase 0     | Physical iPhone persistent Game Center proof; signed IPA Game Center entitlement; Xcode-versus-Sandbox JWS distinction; `appAccountToken` receipt; reviewer-access decision; final IDs/configuration record.                                     |
+| Phase 1     | Lockfile install, audit, lint/type/test/build gates; Expo Doctor; native config introspection; no unused push entitlement; no secret-bearing examples.                                                                                           |
+| Phase 3     | Strict shared request/response contracts, request IDs, bounded bodies, rate-limit framework, privacy-safe errors, trust-proxy/CORS fail-closed configuration.                                                                                    |
+| Phase 4     | Identity/commerce/deletion schema, lock helpers, foreign keys, partial uniqueness, ledger checks/permissions, deterministic seed, restore and tombstone runbook.                                                                                 |
+| Phase 5     | Game Center signature/SSRF/replay/rotation/concurrency tests; rotating refresh-family tests; immediate authoritative invalidation; account switching.                                                                                            |
+| Phase 6     | Allowance/time-zone/idempotency/unviewed-reading/selection properties and 50+ concurrent request tests.                                                                                                                                          |
+| Phase 7     | Kill-point reveal recovery; account-partitioned memory/SQLite isolation; clear-on-switch/logout/deletion/mismatch.                                                                                                                               |
+| Phase 9     | Apple JWS/environment/product/owner verification; atomic crash matrix; notification/reconciliation races; mismatch privacy; refund/subscription permutations; consent payloads.                                                                  |
+| Phase 12    | Recent-auth deletion gate; immediate revocation; purge cutoff; cancellation race; late Apple events; reminder permission and local-only scheduling.                                                                                              |
+| Phase 13    | Penetration retest, secret rotation, dependency review, PII/log redaction, rate/timeout/outbound policy, load tests, operational alerts. Code evidence delivered 2026-08-07; the staging load run and the deployed-environment audits stay open. |
+| Phase 15–16 | Environment/secret/notification URL audit, backup evidence, reviewer path rehearsal, rollback/switch drills, and production monitoring thresholds.                                                                                               |
 
 ## Review triggers
 
