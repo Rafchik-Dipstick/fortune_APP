@@ -312,6 +312,33 @@ describe('parseApiEnvironment', () => {
     ).toThrow(/SENTRY_DSN/);
   });
 
+  it.each(['staging', 'production'] as const)(
+    'refuses non-persistent Game Center identifiers in %s',
+    (deployment) => {
+      // Accepting a temporary identifier means accepting an identity that can
+      // change under the account that owns it. Local development is the only
+      // place a real player cannot be harmed by that.
+      expect(() =>
+        parseApiEnvironment({
+          ...validAuthenticationEnvironment,
+          DATABASE_URL: databaseUrl,
+          DEPLOYMENT_ENVIRONMENT: deployment,
+          GAME_CENTER_ALLOW_NONPERSISTENT_IDS: 'true',
+          SENTRY_DSN: 'https://abc123@o1.ingest.example.com/42',
+        }),
+      ).toThrow(/GAME_CENTER_ALLOW_NONPERSISTENT_IDS/);
+    },
+  );
+
+  it('defaults to refusing non-persistent Game Center identifiers', () => {
+    const environment = parseApiEnvironment({
+      ...validAuthenticationEnvironment,
+      DATABASE_URL: databaseUrl,
+    });
+
+    expect(environment.authentication.allowNonPersistentGameCenterIds).toBe(false);
+  });
+
   it('parses a DSN into ingest coordinates without keeping the raw value', () => {
     const environment = parseApiEnvironment({
       ...validAuthenticationEnvironment,

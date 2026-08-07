@@ -75,6 +75,14 @@ export interface AuthenticationCoordinatorDependencies {
       idempotencyKey: string,
     ): Promise<RefreshSessionResponse>;
   };
+  /**
+   * Accepts a temporary Game Center identifier. Sandbox players -- every build
+   * that is not from TestFlight or the App Store -- never get a persistent one,
+   * so without this a development build cannot sign in at all. Defaults to
+   * false, and the server refuses the same allowance outside a local
+   * deployment, so a release build cannot turn it on unilaterally.
+   */
+  allowNonPersistentIds?: boolean;
   clearAccountData(): Promise<void>;
   createUuid(): string;
   deviceContext(): { locale: string; timeZone: string };
@@ -263,7 +271,7 @@ export class AuthenticationCoordinator {
       this.publish({ phase: 'GAME_CENTER_BLOCKED' });
       return;
     }
-    if (!nativeState.scopedIdsPersistent) {
+    if (!nativeState.scopedIdsPersistent && !this.dependencies.allowNonPersistentIds) {
       await this.invalidateAccount();
       this.publish({ phase: 'NONPERSISTENT_ID' });
       return;

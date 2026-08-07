@@ -52,7 +52,7 @@ export class GameCenterProofVerifier {
   ) {}
 
   async verify(request: GameCenterAuthRequest): Promise<VerifiedGameCenterIdentity> {
-    if (!request.scopedIdsPersistent) {
+    if (!request.scopedIdsPersistent && !this.environment.allowNonPersistentGameCenterIds) {
       throw new GameCenterVerificationError('NONPERSISTENT_ID');
     }
     if (request.proof.bundleId !== this.environment.bundleId) {

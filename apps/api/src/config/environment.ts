@@ -260,6 +260,11 @@ const rawApiEnvironmentSchema = z
     GAME_CENTER_ALLOWED_CERTIFICATE_HOSTS: hostAllowlistSchema.default(['cacerts.digicert.com']),
     GAME_CENTER_IDENTITY_HMAC_KEYS_JSON: keyRingSchema,
     GAME_CENTER_IDENTITY_CURRENT_KEY_VERSION: keyVersionSchema,
+    // Game Center issues non-persistent scoped identifiers to sandbox players,
+    // which is every build that is not from TestFlight or the App Store. This
+    // accepts them so the rest of the application can be exercised on a
+    // development build; the superRefine below rejects it outside `local`.
+    GAME_CENTER_ALLOW_NONPERSISTENT_IDS: environmentBoolean(false),
     GAME_CENTER_PROOF_MAX_AGE_SECONDS: environmentInteger(300, 30, 900),
     GAME_CENTER_PROOF_CLOCK_SKEW_SECONDS: environmentInteger(60, 0, 300),
     JWT_ACCESS_KEYS_JSON: keyRingSchema,
@@ -415,6 +420,20 @@ const rawApiEnvironmentSchema = z
       }
     }
 
+    // Accepting a temporary Game Center identifier means accepting an identity
+    // that can change under the account it owns, so it is refused anywhere a
+    // real player could reach it. `local` is the only deployment that may.
+    if (
+      environment.GAME_CENTER_ALLOW_NONPERSISTENT_IDS &&
+      environment.DEPLOYMENT_ENVIRONMENT !== 'local'
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['GAME_CENTER_ALLOW_NONPERSISTENT_IDS'],
+        message: 'non-persistent Game Center identifiers are local-only',
+      });
+    }
+
     if (environment.NODE_ENV === 'production') {
       if (environment.APPLE_IAP_ENVIRONMENT === 'XCODE') {
         context.addIssue({
@@ -452,6 +471,8 @@ export interface AuthenticationEnvironment {
   accountDeletionReauthMaxAgeSeconds: number;
   appAccountTokenEncryptionKeys: VersionedKeyRing;
   appAccountTokenHmacKeys: VersionedKeyRing;
+  /** Local-only escape hatch; the schema refuses it anywhere else. */
+  allowNonPersistentGameCenterIds: boolean;
   bundleId: string;
   gameCenterCertificateHosts: string[];
   gameCenterIdentityKeys: VersionedKeyRing;
@@ -597,6 +618,7 @@ export const parseApiEnvironment = (source: NodeJS.ProcessEnv): ApiEnvironment =
         currentVersion: result.data.APP_ACCOUNT_TOKEN_HMAC_CURRENT_KEY_VERSION,
         keys: result.data.APP_ACCOUNT_TOKEN_HMAC_KEYS_JSON,
       },
+      allowNonPersistentGameCenterIds: result.data.GAME_CENTER_ALLOW_NONPERSISTENT_IDS,
       bundleId: result.data.APP_BUNDLE_ID,
       gameCenterCertificateHosts: result.data.GAME_CENTER_ALLOWED_CERTIFICATE_HOSTS,
       gameCenterIdentityKeys: {

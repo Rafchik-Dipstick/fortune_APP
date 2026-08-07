@@ -100,6 +100,31 @@ describe('GameCenterProofVerifier', () => {
     });
   });
 
+  it('accepts a temporary identifier only when the local allowance is set', async () => {
+    // Game Center hands sandbox players temporary scoped identifiers, and every
+    // build that is not from TestFlight or the App Store is a sandbox player.
+    // The allowance exists so a development build can sign in at all; the
+    // environment schema refuses it outside a local deployment.
+    const permissive = new GameCenterProofVerifier(
+      { ...authenticationEnvironment, allowNonPersistentGameCenterIds: true },
+      { getPublicKey: vi.fn().mockResolvedValue(publicKey) },
+      () => now,
+    );
+
+    const verified = await permissive.verify(createRequest({ scopedIdsPersistent: false }));
+    expect(verified.currentIdentity.digest).toMatch(/^[a-f0-9]{64}$/u);
+
+    // Every other check still applies to that same request.
+    await expect(
+      permissive.verify(
+        createRequest({
+          scopedIdsPersistent: false,
+          proof: { ...createRequest().proof, bundleId: 'app.someone-else.game' },
+        }),
+      ),
+    ).rejects.toMatchObject({ code: 'BUNDLE_MISMATCH' });
+  });
+
   it('rejects stale, future, and cryptographically invalid proofs', async () => {
     const staleTimestamp = BigInt(
       now.getTime() - (authenticationEnvironment.gameCenterProofMaxAgeSeconds + 1) * 1_000,

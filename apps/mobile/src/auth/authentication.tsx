@@ -33,6 +33,7 @@ import {
   saveStoredCredentials,
 } from './session-storage';
 import { clearAllLocalAccountData } from '../local-data/account-cleanup';
+import { publicEnvironment } from '../config/public-environment';
 
 interface AuthenticationContextValue extends AuthenticationState {
   applyAccountUpdate: (user: MeResponse['user']) => void;
@@ -47,6 +48,10 @@ const AuthenticationContext = createContext<AuthenticationContextValue | undefin
 
 function createCoordinator(): AuthenticationCoordinator {
   return new AuthenticationCoordinator({
+    // Both halves must hold: a release binary has __DEV__ false, and preview
+    // and production builds resolve a different app environment. Neither can
+    // reach this on its own.
+    allowNonPersistentIds: __DEV__ && publicEnvironment.appEnvironment === 'development',
     api: {
       authenticate: authenticateGameCenter,
       bootstrap: getAccountBootstrap,
