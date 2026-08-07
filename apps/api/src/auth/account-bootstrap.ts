@@ -8,12 +8,9 @@ import {
   runReadCommittedTransaction,
 } from '../db/transactions.js';
 import { type PrismaClient } from '../generated/prisma/client.js';
+import { resolveCurrentPurchaseToken } from '../iap/purchase-token.js';
 import { type AuthenticationContext } from '../middleware/authentication.js';
-import { decryptBytes } from '../security/crypto.js';
 import { serializeAuthenticatedUser } from './game-center-login.js';
-
-const purchaseTokenContextPrefix = 'app-account-token:';
-const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 
 export type AccountBootstrapErrorCode =
   'ACCOUNT_DELETION_PENDING' | 'ACCOUNT_PURGED' | 'AUTH_REQUIRED';
@@ -61,36 +58,19 @@ export class AccountBootstrapService {
       }
       await lockFinancialSubjectForUpdate(transaction, userLock.activeFinancialSubjectId);
       const user = await transaction.user.findUniqueOrThrow({ where: { id: userLock.id } });
-      const binding = await transaction.appAccountTokenBinding.findFirst({
-        where: {
-          financialSubjectId: userLock.activeFinancialSubjectId,
-          validTo: null,
-          cryptoErasedAt: null,
-          encryptedToken: { not: null },
+      // Delegating to the reconciliation-side implementation keeps every
+      // reader and writer of appAccountToken bindings on one convention; it
+      // also mints or rotates a binding when none is recoverable, so bootstrap
+      // never strands a session that login would have healed.
+      const { token: appAccountToken } = await resolveCurrentPurchaseToken(
+        transaction,
+        userLock.activeFinancialSubjectId,
+        {
+          encryptionKeys: this.environment.appAccountTokenEncryptionKeys,
+          hmacKeys: this.environment.appAccountTokenHmacKeys,
         },
-        orderBy: { validFrom: 'desc' },
-      });
-      if (binding === null) {
-        throw new AccountBootstrapError('AUTH_REQUIRED');
-      }
-      if (binding.encryptedToken === null || binding.encryptionKeyVersion === null) {
-        throw new AccountBootstrapError('AUTH_REQUIRED');
-      }
-
-      let appAccountToken: string;
-      try {
-        appAccountToken = decryptBytes(
-          Buffer.from(binding.encryptedToken),
-          binding.encryptionKeyVersion,
-          this.environment.appAccountTokenEncryptionKeys,
-          `${purchaseTokenContextPrefix}${binding.id}`,
-        ).toString('utf8');
-      } catch (error) {
-        throw new AccountBootstrapError('AUTH_REQUIRED', error);
-      }
-      if (!uuidPattern.test(appAccountToken)) {
-        throw new AccountBootstrapError('AUTH_REQUIRED');
-      }
+        now,
+      );
 
       return meResponseSchema.parse({
         user: serializeAuthenticatedUser(user),

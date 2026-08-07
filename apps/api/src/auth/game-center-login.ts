@@ -12,24 +12,21 @@ import {
 import { type AuthenticationEnvironment } from '../config/environment.js';
 import { type Prisma, type PrismaClient } from '../generated/prisma/client.js';
 import { DatabaseError } from '../db/errors.js';
-import { lockUserForUpdate, runReadCommittedTransaction } from '../db/transactions.js';
-import { canonicalizeIanaTimeZone } from '../fortune/account-day.js';
 import {
-  createCurrentHmacDigest,
-  createOpaqueToken,
-  decryptBytes,
-  encryptBytes,
-} from '../security/crypto.js';
+  lockFinancialSubjectForUpdate,
+  lockUserForUpdate,
+  runReadCommittedTransaction,
+} from '../db/transactions.js';
+import { canonicalizeIanaTimeZone } from '../fortune/account-day.js';
+import { resolveCurrentPurchaseToken } from '../iap/purchase-token.js';
+import { createCurrentHmacDigest, createOpaqueToken } from '../security/crypto.js';
 import { type DeletionManagementTokenService } from '../account/deletion-management-token.js';
 import { type AccessTokenService } from './access-token.js';
 import { type VerifiedGameCenterIdentity } from './game-center-proof.js';
 
 const millisecondsPerDay = 86_400_000;
-const purchaseTokenContextPrefix = 'app-account-token:';
-const purchaseTokenDigestPrefix = 'app-account-token:';
 const refreshTokenDigestPrefix = 'refresh-token:';
 const deviceDigestPrefix = 'session-device:';
-const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 
 export interface GameCenterIdentityVerifier {
   verify(request: GameCenterAuthRequest): Promise<VerifiedGameCenterIdentity>;
@@ -77,12 +74,6 @@ interface LoginDependencies {
 }
 
 type FullUser = Prisma.UserGetPayload<Record<string, never>>;
-
-function toPrismaBytes(value: Buffer): Uint8Array<ArrayBuffer> {
-  const bytes = new Uint8Array(value.byteLength);
-  bytes.set(value);
-  return bytes;
-}
 
 export function serializeAuthenticatedUser(user: FullUser): AuthenticatedUser {
   return {
@@ -472,6 +463,12 @@ export class GameCenterLoginService {
     return user;
   }
 
+  /**
+   * The appAccountToken must round-trip through the one implementation that
+   * Apple-event reconciliation reads back (`resolveCurrentPurchaseToken`).
+   * Login previously ran its own encrypt/digest convention against the same
+   * rows, which left each side unable to open bindings the other wrote.
+   */
   private async loadOrCreatePurchaseToken(
     transaction: Prisma.TransactionClient,
     user: FullUser,
@@ -480,85 +477,17 @@ export class GameCenterLoginService {
     if (user.activeFinancialSubjectId === null) {
       throw new GameCenterLoginError('IDENTITY_CONFLICT');
     }
-    const existing = await transaction.appAccountTokenBinding.findFirst({
-      where: {
-        financialSubjectId: user.activeFinancialSubjectId,
-        validTo: null,
-        cryptoErasedAt: null,
-        encryptedToken: { not: null },
+    await lockFinancialSubjectForUpdate(transaction, user.activeFinancialSubjectId);
+    const current = await resolveCurrentPurchaseToken(
+      transaction,
+      user.activeFinancialSubjectId,
+      {
+        encryptionKeys: this.environment.appAccountTokenEncryptionKeys,
+        hmacKeys: this.environment.appAccountTokenHmacKeys,
       },
-      orderBy: { validFrom: 'desc' },
-    });
-    if (existing !== null) {
-      if (existing.encryptedToken === null || existing.encryptionKeyVersion === null) {
-        throw new GameCenterLoginError('IDENTITY_CONFLICT');
-      }
-      let rawToken: string;
-      try {
-        rawToken = decryptBytes(
-          Buffer.from(existing.encryptedToken),
-          existing.encryptionKeyVersion,
-          this.environment.appAccountTokenEncryptionKeys,
-          `${purchaseTokenContextPrefix}${existing.id}`,
-        ).toString('utf8');
-      } catch (error) {
-        throw new GameCenterLoginError('IDENTITY_CONFLICT', error);
-      }
-      if (!uuidPattern.test(rawToken)) {
-        throw new GameCenterLoginError('IDENTITY_CONFLICT');
-      }
-      const currentDigest = createCurrentHmacDigest(
-        `${purchaseTokenDigestPrefix}${rawToken}`,
-        this.environment.appAccountTokenHmacKeys,
-      );
-      if (
-        existing.keyVersion !== currentDigest.keyVersion ||
-        existing.tokenDigest !== currentDigest.digest ||
-        existing.encryptionKeyVersion !==
-          this.environment.appAccountTokenEncryptionKeys.currentVersion
-      ) {
-        const currentCiphertext = encryptBytes(
-          Buffer.from(rawToken, 'utf8'),
-          this.environment.appAccountTokenEncryptionKeys,
-          `${purchaseTokenContextPrefix}${existing.id}`,
-        );
-        await transaction.appAccountTokenBinding.update({
-          where: { id: existing.id },
-          data: {
-            keyVersion: currentDigest.keyVersion,
-            tokenDigest: currentDigest.digest,
-            encryptedToken: toPrismaBytes(currentCiphertext.encrypted),
-            encryptionKeyVersion: currentCiphertext.keyVersion,
-          },
-        });
-      }
-      return rawToken;
-    }
-
-    const bindingId = this.uuidFactory();
-    const rawToken = this.uuidFactory();
-    const digest = createCurrentHmacDigest(
-      `${purchaseTokenDigestPrefix}${rawToken}`,
-      this.environment.appAccountTokenHmacKeys,
+      now,
+      this.uuidFactory,
     );
-    const ciphertext = encryptBytes(
-      Buffer.from(rawToken, 'utf8'),
-      this.environment.appAccountTokenEncryptionKeys,
-      `${purchaseTokenContextPrefix}${bindingId}`,
-    );
-    await transaction.appAccountTokenBinding.create({
-      data: {
-        id: bindingId,
-        financialSubjectId: user.activeFinancialSubjectId,
-        keyVersion: digest.keyVersion,
-        tokenDigest: digest.digest,
-        encryptedToken: toPrismaBytes(ciphertext.encrypted),
-        encryptionKeyVersion: ciphertext.keyVersion,
-        validFrom: now,
-        reason: 'INITIAL',
-        createdAt: now,
-      },
-    });
-    return rawToken;
+    return current.token;
   }
 }
