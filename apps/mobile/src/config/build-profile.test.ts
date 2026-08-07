@@ -20,7 +20,7 @@ describe('mobile build profiles', () => {
   });
 
   it('uses isolated non-production identifiers by default', () => {
-    expect(resolveBundleIdentifier('development', undefined)).toBe('app.fortuneness.dev');
+    expect(resolveBundleIdentifier('development', undefined)).toBe('app.fortuneness.dev2');
     expect(resolveBundleIdentifier('preview', undefined)).toBe('app.fortuneness.preview');
   });
 

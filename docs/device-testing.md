@@ -9,12 +9,18 @@ Start from [local development](local-development.md) with the API and Metro alre
 `plugins/with-game-center.cjs` sets the `com.apple.developer.game-center` entitlement, so the App ID has to grant it. EAS registers the identifier during the first build but does not enable that capability, which fails the build with:
 
 ```
-Provisioning profile "*[expo] app.fortuneness.dev AdHoc ..." doesn't include the Game Center capability.
+Provisioning profile "*[expo] app.fortuneness.dev2 AdHoc ..." doesn't include the Game Center capability.
 ```
 
 1. Open <https://developer.apple.com/account/resources/identifiers/list>.
-2. Select `app.fortuneness.dev`.
+2. Select `app.fortuneness.dev2`.
 3. Tick **Game Center**, then **Save**.
+
+The development identifier is `app.fortuneness.dev2` rather than `app.fortuneness.dev` because the
+original one was consumed by an App Store Connect app record that was later deleted. Apple never
+releases a bundle identifier once a record has claimed it, so `app.fortuneness.dev` can no longer
+back an app record and is unusable for both Game Center proofs and In-App Purchase. Never delete
+the record for a development identifier; it cannot be recreated.
 
 EAS caches the provisioning profile, so it must be reissued or the next build fails identically:
 
@@ -47,7 +53,8 @@ The client asks Game Center for an identity proof and the API verifies it agains
 
 - Use a **physical device**. Identity verification is not dependable on the Simulator.
 - Sign in on the phone: **Settings → Game Center**.
-- `APP_BUNDLE_ID` in `apps/api/.env` must equal the build's bundle identifier. Both are `app.fortuneness.dev`; [game-center-proof.ts](../apps/api/src/auth/game-center-proof.ts) rejects the proof outright when they differ.
+- `APP_BUNDLE_ID` in `apps/api/.env` must equal the build's bundle identifier. Both are `app.fortuneness.dev2`; [game-center-proof.ts](../apps/api/src/auth/game-center-proof.ts) rejects the proof outright when they differ.
+- An **App Store Connect app record must exist** for that identifier. Without one, authentication still succeeds but `fetchItems(forIdentityVerificationSignature:)` fails with `GKErrorDomain 15` (`gameUnrecognized`) before any request reaches the API.
 - The phone reaches the API over the LAN address written by `dev:setup`. Allow Node through the Windows firewall on a private network for ports 3000 and 8081.
 - The API fetches Apple's signing certificate on demand, so it needs outbound HTTPS to `static.gc.apple.com` and `cacerts.digicert.com`. Those are the only hosts its egress allowlist permits.
 - A proof is valid for 300 seconds. A phone whose clock has drifted fails here.
@@ -64,7 +71,7 @@ No App Store Connect setup at all. Add a StoreKit configuration file in Xcode, d
 
 ### Route B — Apple sandbox (no Mac)
 
-1. **App Store Connect app record** for `app.fortuneness.dev`. Products belong to an app record, so one must exist for this bundle identifier.
+1. **App Store Connect app record** for `app.fortuneness.dev2`. Products belong to an app record, so one must exist for this bundle identifier.
 2. **Sign the Paid Applications Agreement** under Business. Products silently fail to load without it, which looks like an app bug.
 3. **Create the products** to match `apps/api/.env`:
 

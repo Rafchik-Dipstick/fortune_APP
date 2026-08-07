@@ -32,7 +32,7 @@ export function resolveBundleIdentifier(
     );
   }
 
-  return profile === 'preview' ? 'app.fortuneness.preview' : 'app.fortuneness.dev';
+  return profile === 'preview' ? 'app.fortuneness.preview' : 'app.fortuneness.dev2';
 }
 
 /**
