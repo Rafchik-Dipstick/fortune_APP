@@ -47,7 +47,11 @@ public final class FortunenessIapModule: Module {
 
     OnCreate {
       self.updatesTask = _Concurrency.Task(priority: .utility) {
-        for await update in Transaction.updates {
+        // `Transaction` must stay fully qualified everywhere in this file:
+        // ExpoModulesCore brings SwiftUI into scope, and SwiftUI declares its
+        // own `Transaction`, so the bare name is ambiguous and fails to
+        // compile. Same reason `_Concurrency.Task` is spelled out above.
+        for await update in StoreKit.Transaction.updates {
           self.emitVerifiedUpdate(update)
         }
       }
@@ -123,7 +127,7 @@ public final class FortunenessIapModule: Module {
 
     AsyncFunction("getCurrentEntitlementsAsync") { () -> [[String: Any?]] in
       var entitlements: [[String: Any?]] = []
-      for await result in Transaction.currentEntitlements {
+      for await result in StoreKit.Transaction.currentEntitlements {
         if case .verified(let transaction) = result {
           entitlements.append(
             self.serializeTransaction(
@@ -138,7 +142,7 @@ public final class FortunenessIapModule: Module {
 
     AsyncFunction("getUnfinishedTransactionsAsync") { () -> [[String: Any?]] in
       var unfinished: [[String: Any?]] = []
-      for await result in Transaction.unfinished {
+      for await result in StoreKit.Transaction.unfinished {
         if case .verified(let transaction) = result {
           unfinished.append(
             self.serializeTransaction(
@@ -152,7 +156,7 @@ public final class FortunenessIapModule: Module {
     }
 
     AsyncFunction("finishTransactionAsync") { (transactionId: String) -> Bool in
-      for await result in Transaction.unfinished {
+      for await result in StoreKit.Transaction.unfinished {
         if case .verified(let transaction) = result,
           String(transaction.id) == transactionId {
           await transaction.finish()
@@ -180,7 +184,7 @@ public final class FortunenessIapModule: Module {
     }
   }
 
-  private func emitVerifiedUpdate(_ result: VerificationResult<Transaction>) {
+  private func emitVerifiedUpdate(_ result: VerificationResult<StoreKit.Transaction>) {
     guard case .verified(let transaction) = result else {
       return
     }
@@ -191,7 +195,7 @@ public final class FortunenessIapModule: Module {
   }
 
   private func serializeTransaction(
-    _ transaction: Transaction,
+    _ transaction: StoreKit.Transaction,
     jwsRepresentation: String
   ) -> [String: Any?] {
     return [
