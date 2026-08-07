@@ -100,6 +100,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name: 'Fortuneness',
     slug: 'fortuneness',
+    // Pinned so an EAS command can never bind this app to whichever account
+    // happens to be logged in. Fortuneness is its own project under this
+    // account, unrelated to anything else published there.
+    owner: 'infinityenglish',
     version: '0.1.0',
     backgroundColor: '#0D0A1A',
     icon: brandMarkPath,
@@ -165,6 +169,17 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     experiments: {
       typedRoutes: true,
       reactCompiler: true,
+    },
+    extra: {
+      ...config.extra,
+      eas: {
+        ...config.extra?.eas,
+        // A dynamic config cannot be written by `eas init`, so the identifier
+        // of https://expo.dev/accounts/infinityenglish/projects/fortuneness is
+        // recorded here by hand. It pairs with `owner` above: together they are
+        // what stops a build from resolving to some other account's project.
+        projectId: 'dd4a8f29-b320-4533-afb0-dd4aff873073',
+      },
     },
   };
 };
