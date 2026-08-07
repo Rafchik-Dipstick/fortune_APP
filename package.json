@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "check": "npm run format:check && npm run lint && npm run config:check && npm run db:schema:validate && npm run typecheck && npm run test && npm run openapi:check && npm run content:validate && npm run asset:validate && npm run asset:audio:validate && npm run brand:validate && npm run build && npm run asset:budget",
+    "check": "npm run format:check && npm run lint && npm run config:check && npm run privacy:validate && npm run db:schema:validate && npm run typecheck && npm run test && npm run openapi:check && npm run content:validate && npm run asset:validate && npm run asset:audio:validate && npm run brand:validate && npm run build && npm run asset:budget",
     "brand:validate": "node tools/brand-assets/validate.mjs",
     "config:check": "npm run config:check --workspaces --if-present",
     "db:schema:validate": "npm run db:schema:validate --workspace @fortuneness/api",
@@ -22,6 +22,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "openapi:check": "npm run openapi:check --workspace @fortuneness/api-contracts",
+    "privacy:validate": "node tools/privacy/validate.mjs",
     "openapi:generate": "npm run openapi:generate --workspace @fortuneness/api-contracts",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,cjs,json,md,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,cjs,json,md,yml,yaml}\"",

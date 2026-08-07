@@ -9,6 +9,11 @@ import {
 } from 'react';
 import * as Crypto from 'expo-crypto';
 import { getCalendars, getLocales } from 'expo-localization';
+import type {
+  DeletionManagement,
+  GameCenterAuthResponse,
+  MeResponse,
+} from '@fortuneness/api-contracts';
 
 import {
   addGameCenterAuthenticationListener,
@@ -30,8 +35,12 @@ import {
 import { clearAllLocalAccountData } from '../local-data/account-cleanup';
 
 interface AuthenticationContextValue extends AuthenticationState {
-  disconnect(): Promise<void>;
-  retry(): Promise<void>;
+  applyAccountUpdate: (user: MeResponse['user']) => void;
+  disconnect: () => Promise<void>;
+  enterDeletionPending: (deletionManagement?: DeletionManagement) => Promise<void>;
+  reauthenticate: () => Promise<boolean>;
+  resumeAfterDeletionCancelled: (response: GameCenterAuthResponse) => Promise<void>;
+  retry: () => Promise<void>;
 }
 
 const AuthenticationContext = createContext<AuthenticationContextValue | undefined>(undefined);
@@ -83,7 +92,42 @@ export function AuthenticationProvider({ children }: { children: ReactNode }) {
 
   const retry = useCallback(() => coordinator.retry(), [coordinator]);
   const disconnect = useCallback(() => coordinator.disconnect(), [coordinator]);
-  const value = useMemo(() => ({ ...state, retry, disconnect }), [disconnect, retry, state]);
+  const applyAccountUpdate = useCallback(
+    (user: MeResponse['user']) => {
+      coordinator.applyAccountUpdate(user);
+    },
+    [coordinator],
+  );
+  const enterDeletionPending = useCallback(
+    (deletionManagement?: DeletionManagement) =>
+      coordinator.enterDeletionPending(deletionManagement),
+    [coordinator],
+  );
+  const reauthenticate = useCallback(() => coordinator.reauthenticate(), [coordinator]);
+  const resumeAfterDeletionCancelled = useCallback(
+    (response: GameCenterAuthResponse) => coordinator.resumeAfterDeletionCancelled(response),
+    [coordinator],
+  );
+  const value = useMemo(
+    () => ({
+      ...state,
+      applyAccountUpdate,
+      disconnect,
+      enterDeletionPending,
+      reauthenticate,
+      resumeAfterDeletionCancelled,
+      retry,
+    }),
+    [
+      applyAccountUpdate,
+      disconnect,
+      enterDeletionPending,
+      reauthenticate,
+      resumeAfterDeletionCancelled,
+      retry,
+      state,
+    ],
+  );
 
   return <AuthenticationContext.Provider value={value}>{children}</AuthenticationContext.Provider>;
 }

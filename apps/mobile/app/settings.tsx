@@ -1,27 +1,35 @@
-import { StyleSheet, Switch, View } from 'react-native';
+import { useState } from 'react';
+import { Linking, StyleSheet, Switch, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import Constants from 'expo-constants';
 import type { IapCallerState } from '@fortuneness/api-contracts';
 
 import { useAuthentication } from '@/auth/authentication';
+import { useConsumptionConsent } from '@/account/consumption-consent';
 import { useCommerce } from '@/iap/commerce';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
 import { PageHeader } from '@/components/page-header';
 import { Screen } from '@/components/screen';
 import { Surface } from '@/components/surface';
+import { publicEnvironment } from '@/config/public-environment';
+import { useCollectionSummary } from '@/fortune/archive-data';
 import { useQaLocale } from '@/i18n/qa-locale';
 import { useMotionPreference } from '@/motion/motion-preference';
+import { useReminders } from '@/reminders/reminders';
+import { formatReminderTime } from '@/reminders/reminder-schedule';
 import { colors, spacing } from '@/theme/tokens';
 import { useExperienceFeedback } from '@/feedback/experience-feedback';
 
 interface SettingRowProps {
   description: string;
+  disabled?: boolean;
   label: string;
   onValueChange: (value: boolean) => void;
   value: boolean;
 }
 
-function SettingRow({ description, label, onValueChange, value }: SettingRowProps) {
+function SettingRow({ description, disabled, label, onValueChange, value }: SettingRowProps) {
   return (
     <View style={styles.settingRow}>
       <View style={styles.settingCopy}>
@@ -32,6 +40,7 @@ function SettingRow({ description, label, onValueChange, value }: SettingRowProp
       </View>
       <Switch
         accessibilityLabel={label}
+        disabled={disabled ?? false}
         onValueChange={onValueChange}
         thumbColor={value ? colors.gold : colors.textMuted}
         trackColor={{ false: colors.surfaceRaised, true: colors.teal }}
@@ -61,13 +70,61 @@ function subscriptionLabel(callerState: IapCallerState | undefined): string {
   }
 }
 
+function formatInstant(value: string | null, timeZone: string): string {
+  if (value === null) {
+    return 'not scheduled';
+  }
+  return new Intl.DateTimeFormat('en-US', {
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    month: 'long',
+    timeZone,
+  }).format(new Date(value));
+}
+
+function openExternalUrl(url: string): void {
+  void Linking.openURL(url);
+}
+
 export default function SettingsScreen() {
   const router = useRouter();
   const authentication = useAuthentication();
   const commerce = useCommerce();
+  const reminders = useReminders();
+  const consent = useConsumptionConsent();
+  const collection = useCollectionSummary();
   const { locale, pseudoLocaleAvailable, setLocale } = useQaLocale();
   const { reduceMoreMotion, setReduceMoreMotion } = useMotionPreference();
   const feedback = useExperienceFeedback();
+  const [reminderNotice, setReminderNotice] = useState<string>();
+
+  const user = authentication.session?.user;
+  // The reminder is offered only once a reading exists, which is exactly what
+  // an unlocked card in the collection records.
+  const hasFirstReading = (collection.data?.response.unlockedCount ?? 0) > 0;
+  const buildNumber = Constants.expoConfig?.ios?.buildNumber ?? 'local';
+  const version = Constants.expoConfig?.version ?? '0.0.0';
+
+  const changeReminder = (enabled: boolean) => {
+    setReminderNotice(undefined);
+    void (async () => {
+      if (!enabled) {
+        await reminders.disableReminder();
+        return;
+      }
+      const result = await reminders.enableReminder();
+      if (result.kind === 'PERMISSION_DENIED') {
+        setReminderNotice(
+          'Notifications are turned off for Fortuneness. Turn them on in iOS Settings › Notifications › Fortuneness, then enable the reminder here.',
+        );
+      } else if (result.kind === 'UNAVAILABLE') {
+        setReminderNotice('Local notifications are not available in this build.');
+      } else if (result.kind === 'FAILED') {
+        setReminderNotice(result.message);
+      }
+    })();
+  };
 
   return (
     <Screen readingWidth>
@@ -111,10 +168,11 @@ export default function SettingsScreen() {
           <AppText color="gold" variant="caption">
             Account day
           </AppText>
-          <AppText variant="headline">Europe/Kyiv</AppText>
+          <AppText variant="headline">{user?.accountTimeZone ?? 'Loading'}</AppText>
           <AppText color="textMuted">
-            Next reset at 12:00 AM. Device time-zone changes require confirmation and cannot create
-            an extra allowance.
+            {user?.pendingTimeZone === null || user === undefined
+              ? 'Your daily allowance resets at midnight in this zone. Changing zones never creates an extra reading.'
+              : `Moving to ${user.pendingTimeZone} at ${formatInstant(user.timeZoneEffectiveAt, user.accountTimeZone)}. The change takes effect at the next reset so no extra reading is created.`}
           </AppText>
         </Surface>
 
@@ -140,16 +198,35 @@ export default function SettingsScreen() {
         </Surface>
 
         <Surface>
-          <AppText variant="label">Reminder</AppText>
-          <AppText color="textMuted">
-            Offered only after the first completed reading. Default: 9:00 AM account time.
+          <AppText color="gold" variant="caption">
+            Reminder
           </AppText>
-          <AppButton
-            disabled
-            label="Enable after first reading"
-            onPress={() => undefined}
-            variant="secondary"
-          />
+          {hasFirstReading ? (
+            <>
+              <SettingRow
+                description={`One quiet reminder at ${formatReminderTime(reminders.preferences.reminderLocalMinutes)} in your account time zone. No notifications are sent until you turn this on.`}
+                disabled={reminders.isBusy}
+                label="Daily reminder"
+                onValueChange={changeReminder}
+                value={reminders.preferences.reminderEnabled}
+              />
+              {reminders.preferences.reminderEnabled && reminders.nextReminderAt !== undefined ? (
+                <AppText color="textMuted" variant="caption">
+                  {`Next reminder ${formatInstant(reminders.nextReminderAt.toISOString(), user?.accountTimeZone ?? 'UTC')}. Fortuneness keeps the next ${String(reminders.scheduledCount)} days scheduled and refreshes them when you open the app.`}
+                </AppText>
+              ) : null}
+              {reminderNotice === undefined ? null : (
+                <AppText accessibilityLiveRegion="polite" color="textMuted" variant="caption">
+                  {reminderNotice}
+                </AppText>
+              )}
+            </>
+          ) : (
+            <AppText color="textMuted">
+              Available after your first reading. Fortuneness never asks for notification permission
+              before you turn this on.
+            </AppText>
+          )}
         </Surface>
 
         <Surface>
@@ -201,10 +278,65 @@ export default function SettingsScreen() {
           />
         </Surface>
 
+        {consent.consent?.available === true ? (
+          <Surface>
+            <AppText color="gold" variant="caption">
+              Refund information
+            </AppText>
+            <SettingRow
+              description="Let Fortuneness answer Apple's refund questions with how much of a purchase you had used. It is never required, never affects your access, and turning it off stops future sharing."
+              disabled={consent.isSaving}
+              label="Share consumption information with Apple"
+              onValueChange={consent.setGranted}
+              value={consent.consent.granted}
+            />
+            <AppText color="textMuted" variant="caption">
+              {consent.saveFailed
+                ? 'That choice could not be saved. Nothing changed; try again in a moment.'
+                : 'Turning this off stops future sharing. It cannot retract information already sent to Apple.'}
+            </AppText>
+          </Surface>
+        ) : null}
+
         <Surface>
-          <AppText variant="label">Privacy and account</AppText>
-          <AppText color="textMuted">
-            Privacy Policy · Terms of Use · Support · Restore Purchases · Delete account
+          <AppText color="gold" variant="caption">
+            Privacy and account
+          </AppText>
+          <View style={styles.links}>
+            <AppButton
+              compact
+              label="Privacy Policy"
+              onPress={() => {
+                openExternalUrl(publicEnvironment.privacyUrl);
+              }}
+              variant="quiet"
+            />
+            <AppButton
+              compact
+              label="Terms of Use"
+              onPress={() => {
+                openExternalUrl(publicEnvironment.termsUrl);
+              }}
+              variant="quiet"
+            />
+            <AppButton
+              compact
+              label="Support"
+              onPress={() => {
+                openExternalUrl(publicEnvironment.supportUrl);
+              }}
+              variant="quiet"
+            />
+          </View>
+          <AppButton
+            label="Delete account"
+            onPress={() => {
+              router.push('/delete-account');
+            }}
+            variant="secondary"
+          />
+          <AppText color="textMuted" variant="caption">
+            {`Fortuneness ${version} (${buildNumber})`}
           </AppText>
           <AppText color="textMuted" variant="caption">
             Fortuneness offers tarot-inspired reflections for entertainment and personal
@@ -258,6 +390,11 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   sections: {
     gap: spacing.lg,
+  },
+  links: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
   },
   settingRow: {
     flexDirection: 'row',

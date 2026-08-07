@@ -35,6 +35,62 @@ export function resolveBundleIdentifier(
   return profile === 'preview' ? 'app.fortuneness.preview' : 'app.fortuneness.dev';
 }
 
+/**
+ * Fortuneness collects no advertising identifier, runs no third-party
+ * analytics, and never tracks across apps or websites, so the manifest
+ * declares no tracking domains and no tracking purposes. The declared data
+ * types are the ones the app genuinely sends to its own backend, and the
+ * required-reason APIs are those the storage stack touches.
+ *
+ * The wording here is the source of truth for the App Store Connect App
+ * Privacy answers recorded in docs/app-privacy-worksheet.md.
+ */
+const privacyManifests: NonNullable<NonNullable<ExpoConfig['ios']>['privacyManifests']> = {
+  NSPrivacyTracking: false,
+  NSPrivacyTrackingDomains: [],
+  NSPrivacyCollectedDataTypes: [
+    {
+      // The Game Center scoped player identifier, stored only as a digest, is
+      // what ties readings to an account.
+      NSPrivacyCollectedDataType: 'NSPrivacyCollectedDataTypeUserID',
+      NSPrivacyCollectedDataTypeLinked: true,
+      NSPrivacyCollectedDataTypeTracking: false,
+      NSPrivacyCollectedDataTypePurposes: ['NSPrivacyCollectedDataTypePurposeAppFunctionality'],
+    },
+    {
+      // In-app purchase history is required to grant and audit entitlements.
+      NSPrivacyCollectedDataType: 'NSPrivacyCollectedDataTypePurchaseHistory',
+      NSPrivacyCollectedDataTypeLinked: true,
+      NSPrivacyCollectedDataTypeTracking: false,
+      NSPrivacyCollectedDataTypePurposes: ['NSPrivacyCollectedDataTypePurposeAppFunctionality'],
+    },
+    {
+      // The reading archive and collection are the player's own content.
+      NSPrivacyCollectedDataType: 'NSPrivacyCollectedDataTypeOtherUserContent',
+      NSPrivacyCollectedDataTypeLinked: true,
+      NSPrivacyCollectedDataTypeTracking: false,
+      NSPrivacyCollectedDataTypePurposes: ['NSPrivacyCollectedDataTypePurposeAppFunctionality'],
+    },
+  ],
+  NSPrivacyAccessedAPITypes: [
+    {
+      // expo-sqlite and the bundled card art read and write app-owned files.
+      NSPrivacyAccessedAPIType: 'NSPrivacyAccessedAPICategoryFileTimestamp',
+      NSPrivacyAccessedAPITypeReasons: ['C617.1'],
+    },
+    {
+      // React Native and Expo modules keep their own settings in UserDefaults.
+      NSPrivacyAccessedAPIType: 'NSPrivacyAccessedAPICategoryUserDefaults',
+      NSPrivacyAccessedAPITypeReasons: ['CA92.1'],
+    },
+    {
+      // The local reading cache checks free space before writing.
+      NSPrivacyAccessedAPIType: 'NSPrivacyAccessedAPICategoryDiskSpace',
+      NSPrivacyAccessedAPITypeReasons: ['E174.1'],
+    },
+  ],
+};
+
 export default ({ config }: ConfigContext): ExpoConfig => {
   const profile = resolveBuildProfile(process.env.EAS_BUILD_PROFILE);
   const supportedLocales = supportedLocalesForProfile(profile);
@@ -54,6 +110,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ios: {
       ...config.ios,
       bundleIdentifier,
+      buildNumber: process.env.APP_BUILD_NUMBER?.trim() ?? '1',
       supportsTablet: true,
       requireFullScreen: false,
       infoPlist: {
@@ -61,6 +118,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         CFBundleDevelopmentRegion: 'en',
         CFBundleLocalizations: supportedLocales,
       },
+      privacyManifests,
     },
     plugins: [
       'expo-router',

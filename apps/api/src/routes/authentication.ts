@@ -92,9 +92,14 @@ function mapLoginError(error: GameCenterLoginError): ApiHttpError | undefined {
         statusCode: 401,
       });
     case 'ACCOUNT_DELETION_PENDING':
+      // Authentication during the processing period hands back the scoped
+      // exchange instead of a session, so status and cancellation stay
+      // reachable without restoring application access.
       return new ApiHttpError({
         code: 'ACCOUNT_DELETION_PENDING',
-        message: 'The account is pending deletion.',
+        ...(error.deletionManagement === undefined ? {} : { details: error.deletionManagement }),
+        message:
+          'This account has a pending deletion request. Use the deletion-management token to view its status or cancel it.',
         statusCode: 423,
       });
     case 'ACCOUNT_PURGED':

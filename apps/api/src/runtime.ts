@@ -17,7 +17,13 @@ import { FortuneStateService } from './fortune/state.js';
 import { FortuneDrawService } from './fortune/draw.js';
 import { FortuneViewedService } from './fortune/viewed.js';
 import { type ApiLogger, createApiLogger } from './logging/logger.js';
+import { ConsumptionConsentService } from './account/consumption-consent.js';
+import { AccountDeletionService } from './account/deletion.js';
+import { DeletionManagementTokenService } from './account/deletion-management-token.js';
+import { PreferencesService } from './account/preferences.js';
+import { AccountPurgeWorker } from './account/purge.js';
 import { createAuthoritativeAuthentication } from './middleware/authentication.js';
+import { createDeletionManagementAuthentication } from './middleware/deletion-management.js';
 import { LoggerFortuneDrawTelemetry } from './observability/fortune-draw-telemetry.js';
 import { IapApplicationService } from './iap/application.js';
 import { AppleAppStoreServerClient } from './iap/app-store-server-client.js';
@@ -31,6 +37,8 @@ import {
 import { findBindingByToken } from './iap/purchase-token.js';
 import { AppStoreReconciliationJob } from './iap/reconciliation.js';
 import { AppleSignedDataVerifier } from './iap/verification.js';
+import { AccountTimeZoneService } from './fortune/time-zone-change.js';
+import { registerAccountRoutes } from './routes/account.js';
 import { registerAuthenticationRoutes } from './routes/authentication.js';
 import { registerCollectionRoutes } from './routes/collection.js';
 import { registerFortuneRoutes } from './routes/fortunes.js';
@@ -52,12 +60,14 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
   const database = createDatabaseRuntime(environment.databaseUrl);
   const readiness = new ApiReadiness(database.checkReadiness);
   const accessTokens = new AccessTokenService(environment.authentication);
+  const deletionManagementTokens = new DeletionManagementTokenService(environment.authentication);
   const gameCenterPublicKeys = new CachedGameCenterPublicKeyProvider(environment.authentication);
   const gameCenterProofs = new GameCenterProofVerifier(
     environment.authentication,
     gameCenterPublicKeys,
   );
   const gameCenterLogin = new GameCenterLoginService({
+    deletionManagementTokens,
     accessTokens,
     client: database.client,
     environment: environment.authentication,
@@ -83,6 +93,17 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
   );
   const fortuneDrawTelemetry = new LoggerFortuneDrawTelemetry(logger);
   const authenticate = createAuthoritativeAuthentication(database.client, accessTokens);
+  const authenticateDeletionManagement = createDeletionManagementAuthentication(
+    database.client,
+    deletionManagementTokens,
+  );
+  const accountTimeZones = new AccountTimeZoneService(database.client);
+  const preferences = new PreferencesService(database.client, accountTimeZones);
+  const accountDeletion = new AccountDeletionService({ client: database.client });
+  const accountPurge = new AccountPurgeWorker({
+    client: database.client,
+    workerId: `api-${process.pid.toString()}`,
+  });
   const purchaseTokenKeys = {
     encryptionKeys: environment.authentication.appAccountTokenEncryptionKeys,
     hmacKeys: environment.authentication.appAccountTokenHmacKeys,
@@ -122,6 +143,7 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
     commerce: environment.commerce,
     verifier: signedDataVerifier,
   });
+  const consumptionConsent = new ConsumptionConsentService(database.client, environment.commerce);
   const consumption = new ConsumptionService({
     client: database.client,
     commerce: environment.commerce,
@@ -148,6 +170,7 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
           verifier: signedDataVerifier,
         });
   const backgroundJobs = createCommerceBackgroundJobs({
+    accountPurge,
     logger,
     worker: notificationWorker,
     ...(reconciliation === undefined ? {} : { reconciliation }),
@@ -175,6 +198,24 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
       registerCollectionRoutes(configuredApp, { authenticate, collection });
       registerIapRoutes(configuredApp, { authenticate, commerce });
       registerWebhookRoutes(configuredApp, { appStoreNotifications: notificationIngest });
+      registerAccountRoutes(configuredApp, {
+        authenticate,
+        authenticateDeletionManagement,
+        consumptionConsent,
+        deletion: {
+          cancel: async (userId, authenticatedAt) => {
+            await accountDeletion.cancel(userId);
+            // The restored session inherits the proof time that produced the
+            // deletion-management token, so cancelling never manufactures a
+            // fresher Game Center proof than the player actually presented.
+            return gameCenterLogin.issueRestoredSession({ authenticatedAt, userId });
+          },
+          request: (authentication, confirmations) =>
+            accountDeletion.request(authentication, confirmations),
+          status: (userId) => accountDeletion.status(userId),
+        },
+        preferences,
+      });
     },
   });
 

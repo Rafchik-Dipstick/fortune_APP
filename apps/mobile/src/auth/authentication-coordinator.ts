@@ -1,6 +1,8 @@
 import {
+  deletionManagementSchema,
   gameCenterAuthRequestSchema,
   type AuthDevice,
+  type DeletionManagement,
   type GameCenterAuthRequest,
   type GameCenterAuthResponse,
   type MeResponse,
@@ -35,6 +37,8 @@ export interface AuthenticatedMobileSession {
 }
 
 export interface AuthenticationState {
+  /** Present only in `DELETION_PENDING`: the scoped status/cancel exchange. */
+  deletionManagement?: DeletionManagement;
   phase: AuthenticationPhase;
   session?: AuthenticatedMobileSession;
 }
@@ -143,6 +147,83 @@ export class AuthenticationCoordinator {
     await this.invalidateAccount();
     this.disconnectedPlayerFingerprint = disconnectedPlayerFingerprint;
     this.publish({ phase: 'GAME_CENTER_BLOCKED' });
+  }
+
+  /**
+   * Replaces the account snapshot after the player changes something the
+   * server owns, such as a preference or the account time zone, without
+   * disturbing the tokens or the refresh timer.
+   */
+  applyAccountUpdate(user: MeResponse['user']): void {
+    const session = this.currentState.session;
+    if (session === undefined || this.currentState.phase !== 'AUTHENTICATED') {
+      return;
+    }
+    this.publish({ phase: 'AUTHENTICATED', session: { ...session, user } });
+  }
+
+  /**
+   * Forces a fresh Game Center proof exchange. Deletion requires a proof from
+   * the last 300 seconds and an ordinary refresh deliberately preserves the
+   * original sign-in time, so the stored session cannot satisfy the gate.
+   */
+  async reauthenticate(): Promise<boolean> {
+    const nativeState = await this.dependencies.native.start();
+    if (
+      !nativeState.isAuthenticated ||
+      nativeState.teamPlayerId === undefined ||
+      !nativeState.scopedIdsPersistent
+    ) {
+      return false;
+    }
+    const playerFingerprint = await this.dependencies.fingerprint(nativeState.teamPlayerId);
+    if (this.activePlayerFingerprint !== playerFingerprint) {
+      return false;
+    }
+    const generation = ++this.activeGeneration;
+    try {
+      await this.exchangeProof(nativeState, playerFingerprint, generation);
+    } catch {
+      return false;
+    }
+    return this.currentState.phase === 'AUTHENTICATED';
+  }
+
+  /**
+   * Deletion revokes every session at the moment it commits, so the client
+   * drops local data immediately. The scoped status and cancellation exchange
+   * is issued by authenticating again, not by the request itself, so it is
+   * absent here until the player signs in during the processing period.
+   */
+  async enterDeletionPending(deletionManagement?: DeletionManagement): Promise<void> {
+    await this.invalidateAccount();
+    this.publish({
+      ...(deletionManagement === undefined ? {} : { deletionManagement }),
+      phase: 'DELETION_PENDING',
+    });
+  }
+
+  /**
+   * Adopts the session the cancellation endpoint hands back, so a restored
+   * account does not need a second Game Center proof exchange.
+   */
+  async resumeAfterDeletionCancelled(response: GameCenterAuthResponse): Promise<void> {
+    const nativeState = await this.dependencies.native.start();
+    if (!nativeState.isAuthenticated || nativeState.teamPlayerId === undefined) {
+      this.publish({ phase: 'GAME_CENTER_BLOCKED' });
+      return;
+    }
+    const playerFingerprint = await this.dependencies.fingerprint(nativeState.teamPlayerId);
+    this.activePlayerFingerprint = playerFingerprint;
+    this.disconnectedPlayerFingerprint = undefined;
+    const generation = ++this.activeGeneration;
+    await this.establishSession(
+      nativeState.alias ?? 'Game Center player',
+      playerFingerprint,
+      { session: response.session },
+      { user: response.user, bootstrap: response.bootstrap },
+      generation,
+    );
   }
 
   async handleNativeState(nativeState: GameCenterPlayerState): Promise<void> {
@@ -385,7 +466,13 @@ export class AuthenticationCoordinator {
       }
       await this.invalidateAccount();
       if (error.code === 'ACCOUNT_DELETION_PENDING') {
-        this.publish({ phase: 'DELETION_PENDING' });
+        // The scoped exchange rides on the authentication error, so status and
+        // cancellation stay reachable without restoring application access.
+        const management = deletionManagementSchema.safeParse(error.details);
+        this.publish({
+          ...(management.success ? { deletionManagement: management.data } : {}),
+          phase: 'DELETION_PENDING',
+        });
         return;
       }
       if (error.code === 'ACCOUNT_PURGED') {

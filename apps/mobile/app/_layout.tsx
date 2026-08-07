@@ -14,6 +14,7 @@ import { FortuneRitualProvider } from '@/fortune/fortune-ritual';
 import { ExperienceFeedbackProvider } from '@/feedback/experience-feedback';
 import { CommerceProvider } from '@/iap/commerce';
 import { MotionPreferenceProvider, useMotionPreference } from '@/motion/motion-preference';
+import { RemindersProvider } from '@/reminders/reminders';
 import { shouldReduceMotion } from '@/motion/reduce-motion';
 import { colors } from '@/theme/tokens';
 
@@ -28,9 +29,11 @@ export default function RootLayout() {
                 <ExperienceFeedbackProvider>
                   <FortuneRitualProvider>
                     <CommerceProvider>
-                      <MotionPreferenceProvider>
-                        <AppNavigation />
-                      </MotionPreferenceProvider>
+                      <RemindersProvider>
+                        <MotionPreferenceProvider>
+                          <AppNavigation />
+                        </MotionPreferenceProvider>
+                      </RemindersProvider>
                     </CommerceProvider>
                   </FortuneRitualProvider>
                 </ExperienceFeedbackProvider>

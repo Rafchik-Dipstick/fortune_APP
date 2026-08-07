@@ -1,9 +1,12 @@
 import {
+  accountDeletionResponseSchema,
+  accountDeletionStateSchema,
   apiErrorEnvelopeSchema,
   apiPaths,
   collectionCardDetailResponseSchema,
   collectionCardPath,
   collectionResponseSchema,
+  consumptionConsentSchema,
   fortuneDetailPath,
   fortuneDetailResponseSchema,
   fortuneDrawResponseSchema,
@@ -17,11 +20,17 @@ import {
   iapStatusResponseSchema,
   iapTransactionResponseSchema,
   meResponseSchema,
+  preferencesUpdateResponseSchema,
   refreshSessionResponseSchema,
+  type AccountDeletionRequest,
+  type AccountDeletionResponse,
+  type AccountDeletionState,
   type ApiErrorCode,
   type AuthDevice,
   type CollectionCardDetailResponse,
   type CollectionResponse,
+  type ConsumptionConsent,
+  type ConsumptionConsentUpdateRequest,
   type FortuneDetailResponse,
   type GameCenterAuthRequest,
   type GameCenterAuthResponse,
@@ -36,6 +45,8 @@ import {
   type IapStatusResponse,
   type IapTransactionResponse,
   type MeResponse,
+  type PreferencesUpdateRequest,
+  type PreferencesUpdateResponse,
   type RefreshSessionResponse,
 } from '@fortuneness/api-contracts';
 
@@ -208,6 +219,129 @@ export async function logoutSession(accessToken: string): Promise<void> {
     retryable: true,
     statusCode: response.status,
   });
+}
+
+export async function updatePreferences(
+  accessToken: string,
+  update: PreferencesUpdateRequest,
+): Promise<PreferencesUpdateResponse> {
+  const response = await request(apiPaths.mePreferences, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(update),
+  });
+  const parsed = preferencesUpdateResponseSchema.safeParse(await requireSuccessJson(response));
+  if (!parsed.success) {
+    throw new MobileApiError({
+      code: 'RESPONSE_INVALID',
+      message: 'The preferences response did not match the application contract.',
+      retryable: true,
+      statusCode: response.status,
+    });
+  }
+  return parsed.data;
+}
+
+export async function requestAccountDeletion(
+  accessToken: string,
+  confirmations: AccountDeletionRequest,
+): Promise<AccountDeletionResponse> {
+  const response = await request(apiPaths.me, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(confirmations),
+  });
+  const parsed = accountDeletionResponseSchema.safeParse(await requireSuccessJson(response));
+  if (!parsed.success) {
+    throw new MobileApiError({
+      code: 'RESPONSE_INVALID',
+      message: 'The deletion response did not match the application contract.',
+      retryable: true,
+      statusCode: response.status,
+    });
+  }
+  return parsed.data;
+}
+
+/**
+ * Both deletion-management calls carry the short-lived scoped token issued at
+ * reauthentication, never an access token: the processing period must not
+ * restore ordinary application access (spec section 6.3).
+ */
+export async function getAccountDeletionStatus(
+  deletionManagementToken: string,
+): Promise<AccountDeletionState> {
+  const response = await request(apiPaths.meDeletion, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${deletionManagementToken}` },
+  });
+  const parsed = accountDeletionStateSchema.safeParse(await requireSuccessJson(response));
+  if (!parsed.success) {
+    throw new MobileApiError({
+      code: 'RESPONSE_INVALID',
+      message: 'The deletion status did not match the application contract.',
+      retryable: true,
+      statusCode: response.status,
+    });
+  }
+  return parsed.data;
+}
+
+export async function cancelAccountDeletion(
+  deletionManagementToken: string,
+): Promise<GameCenterAuthResponse> {
+  const response = await request(apiPaths.meDeletionCancel, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${deletionManagementToken}` },
+  });
+  const parsed = gameCenterAuthResponseSchema.safeParse(await requireSuccessJson(response));
+  if (!parsed.success) {
+    throw new MobileApiError({
+      code: 'RESPONSE_INVALID',
+      message: 'The cancellation response did not match the application contract.',
+      retryable: true,
+      statusCode: response.status,
+    });
+  }
+  return parsed.data;
+}
+
+export async function getConsumptionConsent(accessToken: string): Promise<ConsumptionConsent> {
+  const response = await request(apiPaths.meConsumptionConsent, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const parsed = consumptionConsentSchema.safeParse(await requireSuccessJson(response));
+  if (!parsed.success) {
+    throw new MobileApiError({
+      code: 'RESPONSE_INVALID',
+      message: 'The consent state did not match the application contract.',
+      retryable: true,
+      statusCode: response.status,
+    });
+  }
+  return parsed.data;
+}
+
+export async function setConsumptionConsent(
+  accessToken: string,
+  decision: ConsumptionConsentUpdateRequest,
+): Promise<ConsumptionConsent> {
+  const response = await request(apiPaths.meConsumptionConsent, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(decision),
+  });
+  const parsed = consumptionConsentSchema.safeParse(await requireSuccessJson(response));
+  if (!parsed.success) {
+    throw new MobileApiError({
+      code: 'RESPONSE_INVALID',
+      message: 'The consent response did not match the application contract.',
+      retryable: true,
+      statusCode: response.status,
+    });
+  }
+  return parsed.data;
 }
 
 export async function getFortuneState(accessToken: string): Promise<FortuneStateResponse> {

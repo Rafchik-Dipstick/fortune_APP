@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react';
 import { Linking, StyleSheet, View } from 'react-native';
 
+import { DeletionPendingPanel } from '@/account/deletion-pending';
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
 import { LoadingSkeleton } from '@/components/loading-skeleton';
@@ -109,8 +110,8 @@ export function AuthenticationGate({ children }: { children: ReactNode }) {
         return {
           title: 'Account deletion is pending',
           message:
-            'Normal readings are paused while deletion is pending. Deletion status and cancellation controls will appear here when that phase is enabled.',
-          retry: true,
+            'Readings are paused while the deletion is processing. You can still keep this account until the deletion runs.',
+          retry: false,
         };
       case 'PURGED':
         return {
@@ -156,6 +157,7 @@ export function AuthenticationGate({ children }: { children: ReactNode }) {
         {authentication.phase === 'STARTING' || authentication.phase === 'AUTHENTICATING' ? (
           <LoadingSkeleton />
         ) : null}
+        {authentication.phase === 'DELETION_PENDING' ? <DeletionPendingPanel /> : null}
         {copy.retry ? (
           <AppButton
             label="Try Game Center again"

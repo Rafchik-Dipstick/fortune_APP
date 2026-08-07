@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { deletionManagementSchema, timeZoneChangeLimitedDetailsSchema } from './account.js';
 import { uuidSchema } from './base.js';
 import { noDrawsAvailableDetailsSchema, unviewedReadingPendingDetailsSchema } from './fortune.js';
 
@@ -22,6 +23,10 @@ export const apiPaths = {
   iapStatus: '/v1/iap/status',
   iapTransactions: '/v1/iap/transactions',
   me: '/v1/me',
+  mePreferences: '/v1/me/preferences',
+  meDeletion: '/v1/me/deletion',
+  meDeletionCancel: '/v1/me/deletion/cancel',
+  meConsumptionConsent: '/v1/me/consumption-consent',
   appStoreWebhook: '/v1/webhooks/app-store',
 } as const;
 
@@ -79,7 +84,6 @@ const apiErrorWithoutDetailsSchema = z
       'GAME_CENTER_ID_NOT_PERSISTENT',
       'GAME_CENTER_PROOF_INVALID',
       'GAME_CENTER_PROOF_EXPIRED',
-      'ACCOUNT_DELETION_PENDING',
       'ACCOUNT_PURGED',
       'NOT_FOUND',
       'CONTENT_UNAVAILABLE',
@@ -88,7 +92,6 @@ const apiErrorWithoutDetailsSchema = z
       'TRANSACTION_OWNER_UNKNOWN',
       'COMMERCE_REVIEW_REQUIRED',
       'IDEMPOTENCY_KEY_REUSED',
-      'TIME_ZONE_CHANGE_LIMITED',
       'RETRYABLE_CONFLICT',
       'RATE_LIMITED',
       'INTERNAL_ERROR',
@@ -99,6 +102,22 @@ const apiErrorWithoutDetailsSchema = z
 export const apiErrorSchema = z
   .discriminatedUnion('code', [
     apiErrorWithoutDetailsSchema,
+    z
+      .object({
+        ...apiErrorBase,
+        code: z.literal('ACCOUNT_DELETION_PENDING'),
+        // Present only on the authentication path, where the client needs the
+        // scoped exchange data to reach deletion status or cancellation.
+        details: deletionManagementSchema.optional(),
+      })
+      .strict(),
+    z
+      .object({
+        ...apiErrorBase,
+        code: z.literal('TIME_ZONE_CHANGE_LIMITED'),
+        details: timeZoneChangeLimitedDetailsSchema.optional(),
+      })
+      .strict(),
     z
       .object({
         ...apiErrorBase,
@@ -169,6 +188,7 @@ export type {
   RefreshSessionRequest,
   RefreshSessionResponse,
   SessionTokens,
+  UserPreferences,
 } from './auth.js';
 
 export {
@@ -196,6 +216,33 @@ export {
   collectionResponseSchema,
   unviewedReadingPendingDetailsSchema,
 } from './fortune.js';
+export {
+  accountDeletionRequestSchema,
+  accountDeletionResponseSchema,
+  accountDeletionStateSchema,
+  accountDeletionStatusSchema,
+  consumptionConsentSchema,
+  consumptionConsentUpdateRequestSchema,
+  deletionConfirmationVersionSchema,
+  deletionManagementSchema,
+  preferencesUpdateRequestSchema,
+  preferencesUpdateResponseSchema,
+  timeZoneChangeLimitedDetailsSchema,
+  timeZoneStateSchema,
+} from './account.js';
+export type {
+  AccountDeletionRequest,
+  AccountDeletionResponse,
+  AccountDeletionState,
+  AccountDeletionStatus,
+  ConsumptionConsent,
+  ConsumptionConsentUpdateRequest,
+  DeletionManagement,
+  PreferencesUpdateRequest,
+  PreferencesUpdateResponse,
+  TimeZoneChangeLimitedDetails,
+  TimeZoneState,
+} from './account.js';
 export {
   appleTransactionIdSchema,
   iapBenefitSchema,

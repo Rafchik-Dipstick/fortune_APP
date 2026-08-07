@@ -22,7 +22,7 @@ const reportedLocaleSchema = z
   .max(35)
   .regex(/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/u);
 
-const reportedTimeZoneSchema = z.string().trim().min(1).max(128);
+export const reportedTimeZoneSchema = z.string().trim().min(1).max(128);
 
 export const idempotencyKeySchema = uuidSchema;
 
@@ -166,3 +166,4 @@ export type MeResponse = z.infer<typeof meResponseSchema>;
 export type RefreshSessionRequest = z.infer<typeof refreshSessionRequestSchema>;
 export type RefreshSessionResponse = z.infer<typeof refreshSessionResponseSchema>;
 export type SessionTokens = z.infer<typeof sessionTokensSchema>;
+export type UserPreferences = z.infer<typeof userPreferencesSchema>;
