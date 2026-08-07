@@ -14,6 +14,9 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
+    "dev:setup": "npm run dev:setup --workspace @fortuneness/api && npm run dev:env --workspace @fortuneness/mobile",
+    "dev:api": "npm run dev --workspace @fortuneness/api",
+    "dev:mobile": "npm run start --workspace @fortuneness/mobile",
     "check": "npm run format:check && npm run lint && npm run config:check && npm run privacy:validate && npm run audit:dependencies && npm run db:schema:validate && npm run typecheck && npm run test && npm run openapi:check && npm run content:validate && npm run asset:validate && npm run asset:audio:validate && npm run brand:validate && npm run build && npm run asset:budget",
     "audit:dependencies": "npm audit --audit-level=high",
     "brand:validate": "node tools/brand-assets/validate.mjs",

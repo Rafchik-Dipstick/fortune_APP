@@ -177,6 +177,18 @@ const base64Pkcs8KeySchema = z
   .transform((value) => Buffer.from(value, 'base64').toString('utf8'));
 
 /**
+ * A blank environment variable means "not set" to every platform that injects
+ * configuration, which is how `optionalTrimmedSchema` already reads it. Without
+ * the same treatment here a blank key counted as *present*, so the committed
+ * `.env.example` tripped the all-or-nothing App Store credential rule and the
+ * API could not start from its own documented starting point.
+ */
+const optionalBase64Pkcs8KeySchema = z.preprocess(
+  (value) => (typeof value === 'string' && value.trim().length === 0 ? undefined : value),
+  base64Pkcs8KeySchema.optional(),
+);
+
+/**
  * Parses a Sentry-style DSN into the ingest coordinates the error reporter
  * needs. The secret half of a DSN is a *public* key by design, but it is still
  * treated as configuration: only the derived envelope URL is ever logged.
@@ -275,7 +287,7 @@ const rawApiEnvironmentSchema = z
       .transform((value) => (value.length === 0 ? null : Number(value))),
     APPLE_IAP_ISSUER_ID: optionalTrimmedSchema(64),
     APPLE_IAP_KEY_ID: optionalTrimmedSchema(32),
-    APPLE_IAP_PRIVATE_KEY_BASE64: base64Pkcs8KeySchema.optional(),
+    APPLE_IAP_PRIVATE_KEY_BASE64: optionalBase64Pkcs8KeySchema,
     APPLE_IAP_ENVIRONMENT: z.enum(['SANDBOX', 'PRODUCTION', 'XCODE']).default('SANDBOX'),
     APP_STORE_NOTIFICATION_ENCRYPTION_KEYS_JSON: keyRingSchema,
     APP_STORE_NOTIFICATION_CURRENT_KEY_VERSION: keyVersionSchema,

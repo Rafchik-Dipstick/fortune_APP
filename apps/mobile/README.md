@@ -4,7 +4,9 @@ This is the Expo SDK 57 iPhone/iPad workspace. It uses Expo Router and developme
 
 ## Local configuration
 
-Copy `.env.example` to `.env` and keep only public, non-secret mobile values there. Production and preview API URLs must come from their matching EAS environments. Never place API, Apple, database, or encryption secrets in an `EXPO_PUBLIC_` variable.
+`corepack npm run dev:setup` from the repository root writes this workspace's `.env` with `EXPO_PUBLIC_API_URL` pointed at the machine's LAN address, and brings the API and its database up alongside it. See [docs/local-development.md](../../docs/local-development.md) for the whole loop, including how to get a development build onto a device.
+
+Only public, non-secret mobile values belong in `.env`. Production and preview API URLs must come from their matching EAS environments. Never place API, Apple, database, or encryption secrets in an `EXPO_PUBLIC_` variable.
 
 ```sh
 corepack npm run config:check --workspace @fortuneness/mobile

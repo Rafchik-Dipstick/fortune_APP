@@ -8,6 +8,10 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "prisma generate && tsc -p tsconfig.build.json",
+    "dev": "tsx watch --env-file=.env src/main.ts",
+    "dev:env": "node scripts/create-dev-env.mjs",
+    "dev:setup": "npm run dev:env && node scripts/create-dev-database.mjs && npm run db:migrate:deploy && npm run db:seed",
+    "db:create": "node scripts/create-dev-database.mjs",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:migrate:status": "prisma migrate status",
     "db:invariants": "node scripts/check-database-invariants.mjs",

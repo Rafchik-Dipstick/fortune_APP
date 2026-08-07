@@ -196,6 +196,21 @@ describe('parseApiEnvironment', () => {
     expect(environment.commerce.appStoreServerApi?.privateKeyPem).toContain('PRIVATE KEY');
   });
 
+  it('reads blank App Store Server API credentials as absent', () => {
+    // Every platform that injects configuration expresses "not set" as an empty
+    // value, and the committed `.env.example` ships all three blank. Treating a
+    // blank key as *present* tripped the all-or-nothing rule above, so the API
+    // could not start from its own documented starting point.
+    const environment = parseApiEnvironment({
+      ...validAuthenticationEnvironment,
+      DATABASE_URL: databaseUrl,
+      APPLE_IAP_ISSUER_ID: '',
+      APPLE_IAP_KEY_ID: '',
+      APPLE_IAP_PRIVATE_KEY_BASE64: '',
+    });
+    expect(environment.commerce.appStoreServerApi).toBeNull();
+  });
+
   it('rejects the local-only Xcode commerce environment in production', () => {
     expect(() =>
       parseApiEnvironment({

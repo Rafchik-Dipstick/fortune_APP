@@ -7,6 +7,7 @@
   "scripts": {
     "build": "expo export --platform ios --output-dir dist",
     "config:check": "expo config --type public",
+    "dev:env": "node scripts/create-dev-env.mjs",
     "ios": "expo run:ios",
     "prebuild": "npm run build --workspace @fortuneness/api-contracts",
     "start": "expo start --dev-client",
