@@ -5,8 +5,12 @@ import { afterAll, describe, expect, it } from 'vitest';
 
 import { createTestApiEnvironment } from '../config/environment.fixture.js';
 import { runReadCommittedTransaction } from '../db/transactions.js';
+import { FortuneDrawService } from '../fortune/draw.js';
+import { FortuneViewedService } from '../fortune/viewed.js';
 import { PrismaClient } from '../generated/prisma/client.js';
-import { resolveCurrentPurchaseToken } from '../iap/purchase-token.js';
+import { IapApplicationService } from '../iap/application.js';
+import { findBindingByToken, resolveCurrentPurchaseToken } from '../iap/purchase-token.js';
+import { type VerifiedAppleTransaction } from '../iap/verification.js';
 import { type AuthenticationContext } from '../middleware/authentication.js';
 import { AccountDeletionError, AccountDeletionService } from './deletion.js';
 import { AccountPurgeWorker } from './purge.js';
@@ -33,10 +37,51 @@ const confirmations = {
   acknowledgedDataLoss: true,
 } as const;
 
+const draws = new FortuneDrawService({ client: prisma });
+const viewed = new FortuneViewedService(prisma);
+const application = new IapApplicationService({
+  client: prisma,
+  resolveTokenOwner: async (transaction, rawToken) =>
+    findBindingByToken(transaction, rawToken, tokenKeys.hmacKeys),
+});
+let transactionCounter = 9_100_000_000_000;
+
 interface DeletionFixture {
   authentication: AuthenticationContext;
   financialSubjectId: string;
+  purchaseToken: string;
   userId: string;
+}
+
+/** Grants ten pack credits the way production does: a verified transaction. */
+async function applyPack(purchaseToken: string, now: Date): Promise<void> {
+  transactionCounter += 1;
+  const transactionId = String(transactionCounter);
+  const verified: VerifiedAppleTransaction = {
+    appAccountToken: purchaseToken,
+    billingPlanType: null,
+    environment: 'SANDBOX',
+    expiresAt: null,
+    jwsHash: randomUUID().replaceAll('-', '').padEnd(64, '0'),
+    normalizedPayload: { bundleId: 'app.fortuneness.test' },
+    originalTransactionId: transactionId,
+    productId: 'app.fortuneness.fortunepack10',
+    productType: 'CONSUMABLE',
+    purchaseAt: now,
+    revocationAt: null,
+    revocationPercentage: null,
+    revocationReason: null,
+    signedAt: now,
+    transactionId,
+  };
+  const outcome = await application.apply(verified, {
+    authorityRank: 0,
+    sourceAt: now,
+    sourceId: `client:${transactionId}`,
+  });
+  if (!outcome.appliedNow) {
+    throw new Error('The fixture purchase was not applied.');
+  }
 }
 
 /** Builds an account whose Game Center proof is `proofAgeSeconds` old. */
@@ -71,12 +116,13 @@ async function createFixture(proofAgeSeconds = 10): Promise<DeletionFixture> {
       lastAuthenticatedAt: now,
     },
   });
-  await runReadCommittedTransaction(prisma, (transaction) =>
+  const purchaseToken = await runReadCommittedTransaction(prisma, (transaction) =>
     resolveCurrentPurchaseToken(transaction, financialSubject.id, tokenKeys, now),
   );
 
   return {
     financialSubjectId: financialSubject.id,
+    purchaseToken: purchaseToken.token,
     userId: user.id,
     authentication: {
       userId: user.id,
@@ -220,6 +266,111 @@ describe('account purge', () => {
     expect(await prisma.externalIdentity.count({ where: { userId: fixture.userId } })).toBe(0);
     expect(await prisma.sessionFamily.count({ where: { userId: fixture.userId } })).toBe(0);
     expect(await prisma.fortuneDraw.count({ where: { userId: fixture.userId } })).toBe(0);
+  });
+
+  it('completes for an account still holding and having spent pack credit', async () => {
+    const fixture = await createFixture();
+    await applyPack(fixture.purchaseToken, new Date());
+    // Spend the free daily reading first so the next one costs a pack credit,
+    // which is what writes a FORTUNE_DRAW ledger row pointing at a draw.
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const drawn = await draws.draw(
+        fixture.authentication,
+        { intention: 'GENERAL' },
+        randomUUID(),
+      );
+      await viewed.markViewed(fixture.authentication, drawn.response.draw.id);
+    }
+    const spent = await prisma.creditLedgerEntry.findFirstOrThrow({
+      where: { financialSubjectId: fixture.financialSubjectId, reason: 'FORTUNE_DRAW' },
+    });
+    expect(spent.drawId).not.toBeNull();
+
+    await deletion.request(fixture.authentication, confirmations);
+    const worker = new AccountPurgeWorker({
+      client: prisma,
+      now: () => new Date(Date.now() + 31 * 86_400_000),
+      workerId: 'test-purge-with-credit',
+    });
+    const result = await worker.run();
+
+    // Two database guards used to make this impossible: the cutoff trigger
+    // refuses to close a subject holding credit, and the append-only trigger
+    // refuses the `SET NULL` that deleting a draw performs on its ledger row.
+    expect(result.failed).toBe(0);
+    expect(result.purgedUserIds).toContain(fixture.userId);
+    expect(await prisma.fortuneDraw.count({ where: { userId: fixture.userId } })).toBe(0);
+
+    const subject = await prisma.financialSubject.findUniqueOrThrow({
+      where: { id: fixture.financialSubjectId },
+    });
+    expect(subject.benefitsDisabledAt).not.toBeNull();
+
+    // The forfeited credit is written off, never edited away: the ledger still
+    // shows the purchase, the spend, and the write-off that zeroed it.
+    const balance = await prisma.creditLedgerEntry.aggregate({
+      where: { financialSubjectId: fixture.financialSubjectId },
+      _sum: { delta: true },
+    });
+    expect(balance._sum.delta).toBe(0);
+    const writeOff = await prisma.creditLedgerEntry.findUniqueOrThrow({
+      where: { effectKey: `purge:${fixture.financialSubjectId}` },
+    });
+    expect(writeOff.reason).toBe('SUPPORT_ADJUSTMENT');
+    expect(writeOff.balanceAfter).toBe(0);
+    await expect(
+      prisma.creditLedgerEntry.findUniqueOrThrow({ where: { id: spent.id } }),
+    ).resolves.toMatchObject({ delta: -1, drawId: null, reason: 'FORTUNE_DRAW' });
+  });
+
+  it('lets the batch survive one request it cannot purge', async () => {
+    const first = await createFixture();
+    const second = await createFixture();
+    await deletion.request(first.authentication, confirmations);
+    await deletion.request(second.authentication, confirmations);
+
+    // Only `purge` opens a transaction, so failing the first `$transaction`
+    // poisons exactly one request and leaves the rest of the batch untouched.
+    let poisonNext = true;
+    const failures: string[] = [];
+    const flakyClient = new Proxy(prisma, {
+      get(target, property, receiver): unknown {
+        if (property !== '$transaction') {
+          return Reflect.get(target, property, receiver) as unknown;
+        }
+        return (...args: unknown[]): unknown => {
+          if (poisonNext) {
+            poisonNext = false;
+            return Promise.reject(new Error('poisoned request'));
+          }
+          return (Reflect.get(target, property, receiver) as (...rest: unknown[]) => unknown).apply(
+            target,
+            args,
+          );
+        };
+      },
+    });
+
+    const worker = new AccountPurgeWorker({
+      client: flakyClient,
+      now: () => new Date(Date.now() + 31 * 86_400_000),
+      onFailure: (_error, context) => failures.push(context.userId),
+      workerId: 'test-purge-isolation',
+    });
+    const result = await worker.run();
+
+    // The batch is ordered by `purgeAt`, so before per-request isolation the
+    // poisoned row at the head starved every deletion queued behind it.
+    expect(result.failed).toBe(1);
+    expect(failures).toHaveLength(1);
+    const survivor = [first.userId, second.userId].find((userId) => !failures.includes(userId));
+    if (survivor === undefined) {
+      throw new Error('Exactly one request should have failed.');
+    }
+    expect(result.purgedUserIds).toContain(survivor);
+    await expect(prisma.user.findUniqueOrThrow({ where: { id: survivor } })).resolves.toMatchObject(
+      { status: 'PURGED' },
+    );
   });
 
   it('cannot be cancelled once the purge has completed', async () => {

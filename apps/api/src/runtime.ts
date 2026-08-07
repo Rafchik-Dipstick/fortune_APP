@@ -110,6 +110,17 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
   const accountDeletion = new AccountDeletionService({ client: database.client });
   const accountPurge = new AccountPurgeWorker({
     client: database.client,
+    onFailure: (error, context) => {
+      logger.warn(
+        {
+          jobName: 'account-purge',
+          requestId: context.requestId,
+          errorName: error instanceof Error ? error.name : 'unknown',
+        },
+        'Scheduled account purge failed for one request',
+      );
+      errorReporter.capture(error, { operation: 'account-purge', source: 'job' });
+    },
     workerId: `api-${process.pid.toString()}`,
   });
   const purchaseTokenKeys = {

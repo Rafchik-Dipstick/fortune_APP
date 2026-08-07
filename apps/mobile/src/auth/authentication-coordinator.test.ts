@@ -188,6 +188,7 @@ describe('AuthenticationCoordinator', () => {
     expect(fixture.save).toHaveBeenCalledWith({
       appAccountToken: 'one',
       playerFingerprint: 'fingerprint:player-one',
+      refreshIdempotencyKey: expect.any(String),
       refreshToken: expect.any(String),
       userId: '11111111-1111-4111-8111-111111111111',
     });
@@ -254,6 +255,7 @@ describe('AuthenticationCoordinator', () => {
     expect(fixture.save).toHaveBeenCalledWith({
       appAccountToken: '55555555-5555-4555-8555-555555555555',
       playerFingerprint: 'fingerprint:player-one',
+      refreshIdempotencyKey: expect.any(String),
       refreshToken: tokens('restored').session.refreshToken,
       userId: '11111111-1111-4111-8111-111111111111',
     });
@@ -290,6 +292,85 @@ describe('AuthenticationCoordinator', () => {
     fixture.setProofPlayer('player-two');
     await fixture.coordinator.handleNativeState(playerState('player-two'));
     expect(fixture.coordinator.state.phase).toBe('AUTHENTICATED');
+    fixture.coordinator.stop();
+  });
+
+  it.each([
+    ['a failed server', 'RETRYABLE_CONFLICT', 503, true],
+    ['an unparseable response', 'RESPONSE_INVALID', 200, true],
+    ['a rate limit', 'RATE_LIMITED', 429, false],
+  ] as const)(
+    'keeps the stored account through %s',
+    async (_label, code, statusCode, retryable) => {
+      const fixture = createFixture({
+        initialStored: {
+          appAccountToken: '55555555-5555-4555-8555-555555555555',
+          playerFingerprint: 'fingerprint:player-one',
+          refreshToken: 'stored-refresh-token'.padEnd(32, 'r'),
+          userId: '11111111-1111-4111-8111-111111111111',
+        },
+        refreshFailure: new MobileApiError({ code, message: 'transient', retryable, statusCode }),
+      });
+      await fixture.coordinator.handleNativeState(playerState('player-one'));
+
+      // Erasing the keychain here also purges the local reading archive, and
+      // none of these errors is evidence that the stored session is gone.
+      expect(fixture.clearAccountData).not.toHaveBeenCalled();
+      expect(fixture.coordinator.state.phase).toBe('ERROR');
+      fixture.coordinator.stop();
+    },
+  );
+
+  it('spends one refresh token under one idempotency key across attempts', async () => {
+    const storedKey = '66666666-6666-4666-8666-666666666666';
+    const fixture = createFixture({
+      initialStored: {
+        appAccountToken: '55555555-5555-4555-8555-555555555555',
+        playerFingerprint: 'fingerprint:player-one',
+        refreshIdempotencyKey: storedKey,
+        refreshToken: 'stored-refresh-token'.padEnd(32, 'r'),
+        userId: '11111111-1111-4111-8111-111111111111',
+      },
+      refreshFailure: new MobileApiError({
+        code: 'RETRYABLE_CONFLICT',
+        message: 'transient',
+        retryable: true,
+        statusCode: 503,
+      }),
+    });
+    await fixture.coordinator.handleNativeState(playerState('player-one'));
+    await fixture.coordinator.retry();
+
+    // A fresh key on an already-consumed token reads as reuse and revokes the
+    // whole session family, so every attempt must present the stored one.
+    for (const call of fixture.refresh.mock.calls) {
+      expect(call[2]).toBe(storedKey);
+    }
+    expect(fixture.refresh.mock.calls.length).toBeGreaterThan(1);
+    fixture.coordinator.stop();
+  });
+
+  it('mints a new idempotency key once the token it belongs to is rotated', async () => {
+    const storedKey = '66666666-6666-4666-8666-666666666666';
+    const fixture = createFixture({
+      initialStored: {
+        appAccountToken: '55555555-5555-4555-8555-555555555555',
+        playerFingerprint: 'fingerprint:player-one',
+        refreshIdempotencyKey: storedKey,
+        refreshToken: 'stored-refresh-token'.padEnd(32, 'r'),
+        userId: '11111111-1111-4111-8111-111111111111',
+      },
+    });
+    await fixture.coordinator.handleNativeState(playerState('player-one'));
+
+    expect(fixture.refresh).toHaveBeenCalledWith(
+      'stored-refresh-token'.padEnd(32, 'r'),
+      expect.anything(),
+      storedKey,
+    );
+    for (const [credentials] of fixture.save.mock.calls) {
+      expect(credentials.refreshIdempotencyKey).not.toBe(storedKey);
+    }
     fixture.coordinator.stop();
   });
 

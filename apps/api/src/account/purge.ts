@@ -6,8 +6,15 @@ import {
 import { type Prisma, type PrismaClient } from '../generated/prisma/client.js';
 
 export interface PurgeResult {
+  /** Requests whose transaction threw; each is retried on a later tick. */
+  failed: number;
   purgedUserIds: string[];
   skipped: number;
+}
+
+export interface PurgeFailureContext {
+  requestId: string;
+  userId: string;
 }
 
 export interface AccountPurgeWorkerOptions {
@@ -15,6 +22,8 @@ export interface AccountPurgeWorkerOptions {
   client: PrismaClient;
   leaseSeconds?: number;
   now?: () => Date;
+  /** Reports a single failed request; the batch continues regardless. */
+  onFailure?: (error: unknown, context: PurgeFailureContext) => void;
   workerId: string;
 }
 
@@ -37,6 +46,7 @@ export class AccountPurgeWorker {
   private readonly client: PrismaClient;
   private readonly leaseSeconds: number;
   private readonly now: () => Date;
+  private readonly onFailure: (error: unknown, context: PurgeFailureContext) => void;
   private readonly workerId: string;
 
   constructor(options: AccountPurgeWorkerOptions) {
@@ -44,6 +54,7 @@ export class AccountPurgeWorker {
     this.client = options.client;
     this.leaseSeconds = options.leaseSeconds ?? 300;
     this.now = options.now ?? (() => new Date());
+    this.onFailure = options.onFailure ?? ((): void => undefined);
     this.workerId = options.workerId;
   }
 
@@ -61,6 +72,7 @@ export class AccountPurgeWorker {
     });
 
     const purgedUserIds: string[] = [];
+    let failed = 0;
     let skipped = 0;
     for (const request of due) {
       const claimed = await this.claim(request.id, now);
@@ -68,14 +80,25 @@ export class AccountPurgeWorker {
         skipped += 1;
         continue;
       }
-      const purged = await this.purge(request.id, request.userId);
+      // The batch is ordered by `purgeAt`, so an unhandled failure here would
+      // put one poisoned request in front of every other pending deletion.
+      // Each request therefore fails alone and is retried once its lease
+      // lapses; the reporter is what makes a permanently stuck one visible.
+      let purged: boolean;
+      try {
+        purged = await this.purge(request.id, request.userId);
+      } catch (error) {
+        failed += 1;
+        this.onFailure(error, { requestId: request.id, userId: request.userId });
+        continue;
+      }
       if (purged) {
         purgedUserIds.push(request.userId);
       } else {
         skipped += 1;
       }
     }
-    return { purgedUserIds, skipped };
+    return { failed, purgedUserIds, skipped };
   }
 
   /** Lease claim; only one worker may hold a request at a time. */
@@ -113,6 +136,11 @@ export class AccountPurgeWorker {
         );
         // Irreversible benefit cutoff, applied before anything is deleted.
         if (subject.benefitsDisabledAt === null) {
+          // `FinancialSubject_irreversible_cutoff` refuses to close a subject
+          // that still holds credit, and the closed-subject trigger refuses
+          // any ledger row afterwards, so the forfeit has to be written while
+          // the subject is still open — otherwise the purge can never commit.
+          await this.writeOffRemainingCredit(transaction, subject.id);
           await transaction.financialSubject.update({
             where: { id: subject.id },
             data: { benefitsDisabledAt: now },
@@ -159,9 +187,43 @@ export class AccountPurgeWorker {
   }
 
   /**
+   * Writes off whatever credit the subject still holds so the irreversible
+   * cutoff can be applied. The ledger is append-only, so the forfeit is a new
+   * terminal entry rather than an edit: it is the audit record of what the
+   * account gave up, and it leaves `SUM(delta)` at zero for the cutoff trigger.
+   */
+  private async writeOffRemainingCredit(
+    transaction: Prisma.TransactionClient,
+    financialSubjectId: string,
+  ): Promise<void> {
+    const aggregate = await transaction.creditLedgerEntry.aggregate({
+      where: { financialSubjectId },
+      _sum: { delta: true },
+    });
+    const balance = aggregate._sum.delta ?? 0;
+    if (balance === 0) {
+      return;
+    }
+    await transaction.creditLedgerEntry.create({
+      data: {
+        // One cutoff per subject is possible, so the effect key is the subject.
+        effectKey: `purge:${financialSubjectId}`,
+        balanceAfter: 0,
+        delta: -balance,
+        financialSubjectId,
+        reason: 'SUPPORT_ADJUSTMENT',
+      },
+    });
+  }
+
+  /**
    * Personal application data. Draws are removed last among the content rows
    * because credit ledger entries reference them with SET NULL, and the
    * external identity goes with them so the Game Center player is unlinked.
+   *
+   * That SET NULL is an UPDATE on an append-only table; the
+   * `20260807120000_purgeable_ledger_detach` migration is what narrowly permits
+   * it, so a spent pack credit no longer pins a deleted account's readings.
    */
   private async deletePersonalData(
     transaction: Prisma.TransactionClient,

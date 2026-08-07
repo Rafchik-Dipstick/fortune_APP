@@ -11,7 +11,7 @@ import { PageHeader } from '@/components/page-header';
 import { RevealCardSequence } from '@/components/reveal-card-sequence';
 import { Screen } from '@/components/screen';
 import { Surface } from '@/components/surface';
-import { verticalSliceCards } from '@/fixtures/vertical-slice';
+import { deckIllustrations, suitSymbol } from '@/fortune/deck-art';
 import { useFortuneRitual } from '@/fortune/fortune-ritual';
 import type { PendingReveal } from '@/local-data/reading-store';
 import { usePerformance } from '@/observability/performance-provider';
@@ -29,14 +29,6 @@ const allowanceLabels = {
   SUBSCRIPTION_DAILY: 'Oracle+ daily reading',
   PACK_CREDIT: 'Fortune Pack reading',
 } as const;
-
-function suitSymbol(cardKey: string): string {
-  if (cardKey.startsWith('cups-')) return '◇';
-  if (cardKey.startsWith('wands-')) return '│';
-  if (cardKey.startsWith('swords-')) return '†';
-  if (cardKey.startsWith('pentacles-')) return '⬟';
-  return '✦';
-}
 
 function formatReadingDate(draw: FortuneDraw): string {
   try {
@@ -89,7 +81,6 @@ export default function RevealScreen() {
   }
 
   const draw = reading.draw;
-  const activeCard = verticalSliceCards.find((card) => card.key === draw.cardKey);
   const acknowledgementAccepted = ritual.acknowledgementAcceptedDrawId === draw.id;
   const acknowledgementCopy = acknowledgementAccepted
     ? 'Added to Collection · Presentation confirmed'
@@ -122,10 +113,12 @@ export default function RevealScreen() {
         faceUp={{
           artAltText: draw.artAltText,
           cardName: draw.cardName,
-          ...(activeCard?.illustration ? { illustration: activeCard.illustration } : {}),
+          ...(deckIllustrations[draw.cardKey] === undefined
+            ? {}
+            : { illustration: deckIllustrations[draw.cardKey] }),
           number: draw.cardDisplayNumber,
           orientation: draw.orientation,
-          suitSymbol: activeCard?.suitSymbol ?? suitSymbol(draw.cardKey),
+          suitSymbol: suitSymbol(draw.cardKey),
         }}
         initialStep={reading.step}
         onCardRevealed={() => {

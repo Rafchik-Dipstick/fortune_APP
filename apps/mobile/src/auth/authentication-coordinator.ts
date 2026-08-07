@@ -16,6 +16,23 @@ import type {
 import { MobileApiError } from './api-client';
 import type { StoredCredentials } from './session-storage';
 
+/**
+ * The only failures that prove the stored identity is dead. Everything else --
+ * a 5xx, a rate limit, a timeout, an unparseable body, a bug in this file --
+ * is the server or the app having a bad moment, and must never be answered by
+ * deleting the keychain credentials and the local reading archive behind them.
+ */
+const accountInvalidatingErrorCodes = new Set<MobileApiError['code']>([
+  'ACCOUNT_DELETION_PENDING',
+  'ACCOUNT_PURGED',
+  'AUTH_REQUIRED',
+  'GAME_CENTER_ID_NOT_PERSISTENT',
+]);
+
+function invalidatesStoredAccount(error: unknown): boolean {
+  return error instanceof MobileApiError && accountInvalidatingErrorCodes.has(error.code);
+}
+
 export type AuthenticationPhase =
   | 'AUTHENTICATED'
   | 'AUTHENTICATING'
@@ -313,10 +330,11 @@ export class AuthenticationCoordinator {
       const refreshed = await this.dependencies.api.refresh(
         stored.refreshToken,
         device,
-        this.dependencies.createUuid(),
+        await this.refreshIdempotencyKey(stored),
       );
       await this.dependencies.storage.save({
         ...stored,
+        refreshIdempotencyKey: this.dependencies.createUuid(),
         refreshToken: refreshed.session.refreshToken,
       });
       const bootstrap = await this.dependencies.api.bootstrap(refreshed.session.accessToken);
@@ -327,7 +345,10 @@ export class AuthenticationCoordinator {
       await this.establishSession(alias, playerFingerprint, refreshed, bootstrap, generation);
       return true;
     } catch (error) {
-      if (error instanceof MobileApiError && error.code === 'NETWORK_UNAVAILABLE') {
+      if (!invalidatesStoredAccount(error)) {
+        // Not proof that the stored session is gone. Surface it and let the
+        // player retry with their archive intact rather than trading a
+        // transient server failure for permanent local data loss.
         throw error;
       }
       await this.dependencies.clearAccountData();
@@ -383,6 +404,9 @@ export class AuthenticationCoordinator {
     await this.dependencies.storage.save({
       appAccountToken: account.bootstrap.appAccountToken,
       playerFingerprint,
+      // A rotation retires the old token, so the next attempt spends a new one
+      // and needs its own key.
+      refreshIdempotencyKey: this.dependencies.createUuid(),
       refreshToken: tokens.session.refreshToken,
       userId: account.user.id,
     });
@@ -435,7 +459,7 @@ export class AuthenticationCoordinator {
       const refreshed = await this.dependencies.api.refresh(
         stored.refreshToken,
         await this.device(),
-        this.dependencies.createUuid(),
+        await this.refreshIdempotencyKey(stored),
       );
       await this.establishSession(
         session.alias,
@@ -451,6 +475,21 @@ export class AuthenticationCoordinator {
     }
   }
 
+  /**
+   * The key presented for `stored.refreshToken`. It is persisted before it is
+   * ever sent, so an attempt that dies mid-flight -- a crash, a timeout, a
+   * backgrounded app -- retries under the same key and is answered from the
+   * server's replay receipt instead of revoking the session family.
+   */
+  private async refreshIdempotencyKey(stored: StoredCredentials): Promise<string> {
+    if (stored.refreshIdempotencyKey !== undefined) {
+      return stored.refreshIdempotencyKey;
+    }
+    const minted = this.dependencies.createUuid();
+    await this.dependencies.storage.save({ ...stored, refreshIdempotencyKey: minted });
+    return minted;
+  }
+
   private async device(): Promise<AuthDevice> {
     return {
       id: await this.dependencies.storage.getDeviceId(() => this.dependencies.createUuid()),
@@ -458,13 +497,18 @@ export class AuthenticationCoordinator {
   }
 
   private async handleAuthenticationFailure(error: unknown): Promise<void> {
-    if (error instanceof MobileApiError) {
-      if (error.code === 'NETWORK_UNAVAILABLE') {
-        this.cancelRefreshTimer();
-        this.publish({ phase: 'ERROR' });
-        return;
-      }
+    if (error instanceof MobileApiError && error.code === 'NETWORK_UNAVAILABLE') {
+      this.cancelRefreshTimer();
+      this.publish({ phase: 'ERROR' });
+      return;
+    }
+    if (invalidatesStoredAccount(error)) {
       await this.invalidateAccount();
+    } else {
+      // The live session is dropped either way, but the stored account stays.
+      this.discardActiveSession();
+    }
+    if (error instanceof MobileApiError) {
       if (error.code === 'ACCOUNT_DELETION_PENDING') {
         // The scoped exchange rides on the authentication error, so status and
         // cancellation stay reachable without restoring application access.
@@ -483,16 +527,19 @@ export class AuthenticationCoordinator {
         this.publish({ phase: 'NONPERSISTENT_ID' });
         return;
       }
-    } else {
-      await this.invalidateAccount();
     }
     this.publish({ phase: 'ERROR' });
   }
 
-  private async invalidateAccount(): Promise<void> {
+  /** Drops the live session without touching anything stored on the device. */
+  private discardActiveSession(): void {
     this.activeGeneration += 1;
     this.activePlayerFingerprint = undefined;
     this.cancelRefreshTimer();
+  }
+
+  private async invalidateAccount(): Promise<void> {
+    this.discardActiveSession();
     await this.dependencies.clearAccountData();
   }
 

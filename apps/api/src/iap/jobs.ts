@@ -96,6 +96,14 @@ export function createCommerceBackgroundJobs(
               'Completed scheduled account purges',
             );
           }
+          if (result.failed > 0) {
+            // The batch survived, but an account the user asked us to erase
+            // is still here. That is a deletion-compliance failure, not noise.
+            options.logger.warn(
+              { jobName: 'account-purge', failed: result.failed },
+              'Scheduled account purges failed and will be retried',
+            );
+          }
         });
         timers.push(setInterval(purgeTick, accountPurgeIntervalMs));
       }

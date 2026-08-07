@@ -72,6 +72,18 @@ function LocalDataRuntime({ children }: { children: ReactNode }) {
     setAccountTransitionFailed(false);
     queryClient.clear();
 
+    // Leaving AUTHENTICATED is not leaving the account. A refresh in flight, a
+    // dropped connection, or a re-authentication all land here with no user id,
+    // and purging on that would delete the archive of the account about to come
+    // back. Only a *different* signed-in account displaces the stored one;
+    // sign-out and deletion clear it explicitly through
+    // `clearAllLocalAccountData` -> the clearer registered above.
+    if (authenticatedUserId === undefined) {
+      return () => {
+        controller.abort();
+      };
+    }
+
     void (async () => {
       try {
         if (previous !== undefined && previous !== authenticatedUserId) {

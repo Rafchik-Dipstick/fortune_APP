@@ -3,11 +3,12 @@ import { randomUUID } from 'node:crypto';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { afterAll, describe, expect, it } from 'vitest';
 import {
-  developmentContentManifest,
-  validateDevelopmentSlice,
+  createCanonicalDeck,
+  createReleaseContentManifest,
   type ContentManifest,
 } from '@fortuneness/fortune-content';
 
+import { fullDeckCards } from '../../../../tools/card-assets/full-deck-catalog.mjs';
 import { PrismaClient } from '../generated/prisma/client.js';
 import { type AuthenticationContext } from '../middleware/authentication.js';
 import { FortuneDrawService } from '../fortune/draw.js';
@@ -20,11 +21,16 @@ if (databaseUrl === undefined || databaseUrl.trim().length === 0) {
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl }) });
 const draws = new FortuneDrawService({ client: prisma });
-const baseManifest = validateDevelopmentSlice(developmentContentManifest);
+/**
+ * The catalog `prisma/seed.ts` installs. It has to be the seeded one, not a
+ * hand-picked slice: these tests retire whatever is active, and the integration
+ * files that run after this one need the full deck back.
+ */
+const baseManifest = createReleaseContentManifest(createCanonicalDeck(fullDeckCards).cards);
 
 afterAll(async () => {
-  // Restore the shipped development slice so the shared test database is left
-  // exactly as the seeding step created it.
+  // Restore the shipped catalog so the shared test database is left exactly as
+  // the seeding step created it.
   await seedContent(prisma, { deckCards: baseManifest.cards, manifest: baseManifest });
   await prisma.$disconnect();
 });
