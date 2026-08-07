@@ -11,6 +11,7 @@
     "dev": "tsx watch --env-file=.env src/main.ts",
     "dev:env": "node scripts/create-dev-env.mjs",
     "dev:setup": "npm run dev:env && node scripts/create-dev-database.mjs && npm run db:migrate:deploy && npm run db:seed",
+    "dev:grant": "tsx --env-file=.env scripts/grant-dev-draws.ts",
     "db:create": "node scripts/create-dev-database.mjs",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:migrate:status": "prisma migrate status",
@@ -24,7 +25,7 @@
     "test": "vitest run --exclude \"**/*.integration.test.ts\"",
     "test:db": "node scripts/run-database-tests.mjs",
     "test:db:integration": "vitest run --no-file-parallelism src/account/deletion.integration.test.ts src/content/content-seed.integration.test.ts src/db/database.integration.test.ts src/fortune/archive.integration.test.ts src/fortune/monetized-allowance.integration.test.ts src/iap/application.integration.test.ts src/iap/notifications.integration.test.ts",
-    "typecheck": "prisma generate && tsc -p tsconfig.json && tsc -p prisma/tsconfig.json"
+    "typecheck": "prisma generate && tsc -p tsconfig.json && tsc -p prisma/tsconfig.json && tsc -p scripts/tsconfig.json"
   },
   "dependencies": {
     "@apple/app-store-server-library": "3.1.0",
