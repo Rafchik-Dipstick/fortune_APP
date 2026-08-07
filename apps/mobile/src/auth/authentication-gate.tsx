@@ -176,7 +176,7 @@ export function AuthenticationGate({ children }: { children: ReactNode }) {
           <Surface>
             <AppText variant="label">Development diagnostics</AppText>
             <AppText color="textMuted" variant="caption">
-              {`phase ${authentication.phase}\nenv ${publicEnvironment.appEnvironment}\napi ${publicEnvironment.apiUrl}`}
+              {`phase ${authentication.phase}\nenv ${publicEnvironment.appEnvironment}\napi ${publicEnvironment.apiUrl}\nwhy ${authentication.failureDetail ?? '(no failure recorded)'}`}
             </AppText>
           </Surface>
         ) : null}

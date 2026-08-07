@@ -56,8 +56,25 @@ export interface AuthenticatedMobileSession {
 export interface AuthenticationState {
   /** Present only in `DELETION_PENDING`: the scoped status/cancel exchange. */
   deletionManagement?: DeletionManagement;
+  /**
+   * Why the last attempt failed, for the development diagnostics panel only.
+   * A blocked gate otherwise reports a single generic phase no matter whether
+   * the native proof, the network, or the server refused, which is unreadable
+   * from the device.
+   */
+  failureDetail?: string;
   phase: AuthenticationPhase;
   session?: AuthenticatedMobileSession;
+}
+
+function describeFailure(error: unknown): string {
+  if (error instanceof MobileApiError) {
+    return `${error.code}${error.statusCode === undefined ? '' : ` ${String(error.statusCode)}`}: ${error.message}`;
+  }
+  if (error instanceof Error) {
+    return `${error.name}: ${error.message}`;
+  }
+  return String(error);
 }
 
 interface RemovableSubscription {
@@ -505,9 +522,10 @@ export class AuthenticationCoordinator {
   }
 
   private async handleAuthenticationFailure(error: unknown): Promise<void> {
+    const failureDetail = describeFailure(error);
     if (error instanceof MobileApiError && error.code === 'NETWORK_UNAVAILABLE') {
       this.cancelRefreshTimer();
-      this.publish({ phase: 'ERROR' });
+      this.publish({ failureDetail, phase: 'ERROR' });
       return;
     }
     if (invalidatesStoredAccount(error)) {
@@ -532,11 +550,11 @@ export class AuthenticationCoordinator {
         return;
       }
       if (error.code === 'GAME_CENTER_ID_NOT_PERSISTENT') {
-        this.publish({ phase: 'NONPERSISTENT_ID' });
+        this.publish({ failureDetail, phase: 'NONPERSISTENT_ID' });
         return;
       }
     }
-    this.publish({ phase: 'ERROR' });
+    this.publish({ failureDetail, phase: 'ERROR' });
   }
 
   /** Drops the live session without touching anything stored on the device. */

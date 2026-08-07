@@ -140,8 +140,15 @@ public final class FortunenessGameCenterModule: Module {
     }
 
     player.fetchItems(forIdentityVerificationSignature: { publicKeyURL, signature, salt, timestamp, error in
-      if error != nil {
-        promise.reject("E_GAME_CENTER_PROOF_UNAVAILABLE", "Game Center could not produce an identity proof.")
+      if let error {
+        // Apple's own reason is the only thing that distinguishes a network
+        // failure from an app that Game Center does not recognise. Discarding
+        // it left "undefined reason" as the sole symptom of every cause.
+        let details = error as NSError
+        promise.reject(
+          "E_GAME_CENTER_PROOF_UNAVAILABLE",
+          "Game Center could not produce an identity proof: \(details.localizedDescription) [\(details.domain) \(details.code)]"
+        )
         return
       }
       guard let publicKeyURL, let signature, let salt else {
