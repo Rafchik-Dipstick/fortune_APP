@@ -128,10 +128,12 @@ public final class FortunenessGameCenterModule: Module {
       promise.reject("E_GAME_CENTER_AUTH_REQUIRED", "Game Center authentication is required.")
       return
     }
-    guard player.scopedIDsArePersistent() else {
-      promise.reject("E_GAME_CENTER_ID_NOT_PERSISTENT", "Game Center identifiers are temporary.")
-      return
-    }
+    // Persistence is reported, never decided here. This module's job is to say
+    // truthfully what Game Center returned; whether a temporary identifier is
+    // acceptable is a policy question, and the server owns it -- it refuses one
+    // unless its own deployment is local. Rejecting here instead made the
+    // policy unreachable, because no proof could be produced to carry the fact.
+    let scopedIdsPersistent = player.scopedIDsArePersistent()
     guard let bundleIdentifier = Bundle.main.bundleIdentifier else {
       promise.reject("E_GAME_CENTER_BUNDLE_UNAVAILABLE", "The application bundle identifier is unavailable.")
       return
@@ -155,7 +157,7 @@ public final class FortunenessGameCenterModule: Module {
         "saltBase64": salt.base64EncodedString(),
         "timestamp": String(timestamp),
         "alias": player.alias,
-        "scopedIdsPersistent": true,
+        "scopedIdsPersistent": scopedIdsPersistent,
         "restrictions": [
           "isUnderage": player.isUnderage,
           "isMultiplayerGamingRestricted": player.isMultiplayerGamingRestricted,

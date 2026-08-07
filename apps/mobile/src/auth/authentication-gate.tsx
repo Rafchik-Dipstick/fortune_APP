@@ -166,6 +166,20 @@ export function AuthenticationGate({ children }: { children: ReactNode }) {
             }}
           />
         ) : null}
+        {/*
+          A blocked gate is the one screen with no way to see why. Development
+          builds show what the application actually resolved, so a wrong API
+          address or an unexpected build profile is readable from the device
+          instead of inferred from an empty server log.
+        */}
+        {publicEnvironment.appEnvironment === 'development' ? (
+          <Surface>
+            <AppText variant="label">Development diagnostics</AppText>
+            <AppText color="textMuted" variant="caption">
+              {`phase ${authentication.phase}\nenv ${publicEnvironment.appEnvironment}\napi ${publicEnvironment.apiUrl}`}
+            </AppText>
+          </Surface>
+        ) : null}
         <Surface>
           <AppText variant="label">A gentle reflection, never a certainty</AppText>
           <AppText color="textMuted" variant="caption">

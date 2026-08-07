@@ -94,6 +94,7 @@ function loginResponse(userId: string, marker: string): GameCenterAuthResponse {
 
 function createFixture(
   options: {
+    allowNonPersistentIds?: boolean;
     authenticateFailure?: MobileApiError;
     bootstrapFailure?: MobileApiError;
     initialStored?: StoredCredentials;
@@ -137,6 +138,9 @@ function createFixture(
     return Promise.resolve();
   });
   const dependencies: AuthenticationCoordinatorDependencies = {
+    ...(options.allowNonPersistentIds === undefined
+      ? {}
+      : { allowNonPersistentIds: options.allowNonPersistentIds }),
     api: {
       authenticate,
       bootstrap,
@@ -371,6 +375,33 @@ describe('AuthenticationCoordinator', () => {
     for (const [credentials] of fixture.save.mock.calls) {
       expect(credentials.refreshIdempotencyKey).not.toBe(storedKey);
     }
+    fixture.coordinator.stop();
+  });
+
+  it('blocks a temporary Game Center identifier by default', async () => {
+    const fixture = createFixture();
+    await fixture.coordinator.handleNativeState({
+      ...playerState('player-one'),
+      scopedIdsPersistent: false,
+    });
+
+    expect(fixture.coordinator.state.phase).toBe('NONPERSISTENT_ID');
+    expect(fixture.authenticate).not.toHaveBeenCalled();
+    fixture.coordinator.stop();
+  });
+
+  it('signs in on a temporary identifier when the allowance is set', async () => {
+    // Game Center only issues persistent identifiers to TestFlight and App
+    // Store builds, so without this a development build stops here and never
+    // reaches the server at all.
+    const fixture = createFixture({ allowNonPersistentIds: true });
+    await fixture.coordinator.handleNativeState({
+      ...playerState('player-one'),
+      scopedIdsPersistent: false,
+    });
+
+    expect(fixture.coordinator.state.phase).toBe('AUTHENTICATED');
+    expect(fixture.authenticate).toHaveBeenCalledOnce();
     fixture.coordinator.stop();
   });
 

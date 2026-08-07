@@ -48,10 +48,13 @@ const AuthenticationContext = createContext<AuthenticationContextValue | undefin
 
 function createCoordinator(): AuthenticationCoordinator {
   return new AuthenticationCoordinator({
-    // Both halves must hold: a release binary has __DEV__ false, and preview
-    // and production builds resolve a different app environment. Neither can
-    // reach this on its own.
-    allowNonPersistentIds: __DEV__ && publicEnvironment.appEnvironment === 'development',
+    // Deliberately not gated on `__DEV__`: an EAS build embeds a
+    // production-mode bundle, so `__DEV__` is false whenever the application
+    // runs from its own binary rather than from Metro, which silently disabled
+    // this on the very builds that need it. The real fence is the server, which
+    // refuses the same allowance unless its deployment is `local`; preview and
+    // production builds also resolve a different app environment here.
+    allowNonPersistentIds: publicEnvironment.appEnvironment === 'development',
     api: {
       authenticate: authenticateGameCenter,
       bootstrap: getAccountBootstrap,
