@@ -3,6 +3,8 @@ import { apiErrorEnvelopeSchema, type ApiErrorCode } from '@fortuneness/api-cont
 
 import { DatabaseError } from '../db/errors.js';
 import { type ApiLogger } from '../logging/logger.js';
+import { type ErrorReporter, NoopErrorReporter } from '../observability/error-reporter.js';
+import { matchedRoutePattern } from './route-name.js';
 
 interface ApiErrorBody {
   code: ApiErrorCode;
@@ -72,7 +74,7 @@ const hasHttpMetadata = (error: unknown): error is ErrorWithHttpMetadata =>
   typeof error === 'object' && error !== null;
 
 export const createErrorHandler =
-  (logger: ApiLogger): ErrorRequestHandler =>
+  (logger: ApiLogger, reporter: ErrorReporter = new NoopErrorReporter()): ErrorRequestHandler =>
   (error: unknown, request, response, _next) => {
     if (error instanceof ApiHttpError) {
       sendApiError(response, error.statusCode, request.requestId, {
@@ -120,6 +122,8 @@ export const createErrorHandler =
       return;
     }
 
+    // Only genuinely unexpected failures are reported. Every branch above is
+    // a normal, contract-defined outcome and would be noise in the issue feed.
     logger.error(
       {
         errorName: error instanceof Error ? error.name : 'UnknownError',
@@ -127,6 +131,11 @@ export const createErrorHandler =
       },
       'unhandled request error',
     );
+    reporter.capture(error, {
+      operation: `${request.method} ${matchedRoutePattern(request)}`,
+      requestId: request.requestId,
+      source: 'request',
+    });
     sendApiError(response, 500, request.requestId, {
       code: 'INTERNAL_ERROR',
       message: 'The request could not be completed.',

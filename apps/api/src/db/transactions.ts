@@ -1,4 +1,7 @@
+import { performance } from 'node:perf_hooks';
+
 import { Prisma, type PrismaClient } from '../generated/prisma/client.js';
+import { recordDatabaseLatency } from '../observability/metrics.js';
 
 import { DatabaseError, isRetryableTransactionError, mapDatabaseError } from './errors.js';
 
@@ -7,6 +10,8 @@ const maximumBackoffMs = 200;
 
 export interface TransactionRetryOptions {
   attempts?: number;
+  /** Metric label for this unit of database work. Never account-scoped. */
+  name?: string;
   random?: () => number;
   sleep?: (milliseconds: number) => Promise<void>;
 }
@@ -65,20 +70,35 @@ export async function runReadCommittedTransaction<T>(
 
   const random = options.random ?? Math.random;
   const sleep = options.sleep ?? defaultSleep;
+  const operationName = options.name ?? 'transaction';
+  const startedAt = performance.now();
 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
-      return await client.$transaction(operation, {
+      const result = await client.$transaction(operation, {
         isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
         maxWait: 2_000,
         timeout: 10_000,
       });
+      recordDatabaseLatency({
+        attempts: attempt,
+        durationMs: performance.now() - startedAt,
+        operation: operationName,
+        outcome: 'committed',
+      });
+      return result;
     } catch (error) {
       if (isRetryableTransactionError(error) && attempt < attempts) {
         await sleep(getBackoffMs(attempt, random));
         continue;
       }
 
+      recordDatabaseLatency({
+        attempts: attempt,
+        durationMs: performance.now() - startedAt,
+        operation: operationName,
+        outcome: 'failed',
+      });
       throw mapDatabaseError(error) ?? error;
     }
   }

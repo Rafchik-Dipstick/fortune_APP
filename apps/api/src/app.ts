@@ -1,6 +1,5 @@
 import cors from 'cors';
 import express, { type Express } from 'express';
-import { rateLimit } from 'express-rate-limit';
 import helmet from 'helmet';
 import { apiPaths } from '@fortuneness/api-contracts';
 
@@ -8,13 +7,12 @@ import { type ApiEnvironment } from './config/environment.js';
 import { type ApiReadiness } from './health/readiness.js';
 import { registerHealthRoute } from './health/route.js';
 import { type ApiLogger, createApiLogger } from './logging/logger.js';
-import {
-  ApiHttpError,
-  createErrorHandler,
-  notFoundHandler,
-  sendApiError,
-} from './middleware/errors.js';
+import { ApiHttpError, createErrorHandler, notFoundHandler } from './middleware/errors.js';
+import { createTieredRateLimit } from './middleware/rate-limits.js';
 import { createRequestContext, type RequestIdFactory } from './middleware/request-context.js';
+import { createRequestTimeout } from './middleware/request-timeout.js';
+import { type ErrorReporter } from './observability/error-reporter.js';
+import { type RouteLatencyRecorder } from './observability/metrics.js';
 
 export interface ApiRateLimitOptions {
   max: number;
@@ -24,16 +22,14 @@ export interface ApiRateLimitOptions {
 export interface CreateApiAppOptions {
   configureRoutes?: (app: Express) => void;
   environment: ApiEnvironment;
+  errorReporter?: ErrorReporter;
   logger?: ApiLogger;
+  metrics?: RouteLatencyRecorder;
+  /** Overrides every tier with one budget. Tests use this; deployments use the environment. */
   rateLimit?: ApiRateLimitOptions;
   readiness: ApiReadiness;
   requestIdFactory?: RequestIdFactory;
 }
-
-const defaultRateLimit: ApiRateLimitOptions = {
-  max: 120,
-  windowMs: 60_000,
-};
 
 /**
  * Creates an isolated HTTP application without opening a network listener.
@@ -44,11 +40,25 @@ const defaultRateLimit: ApiRateLimitOptions = {
 export const createApiApp = (options: CreateApiAppOptions): Express => {
   const app = express();
   const logger = options.logger ?? createApiLogger(options.environment);
-  const rateLimitOptions = options.rateLimit ?? defaultRateLimit;
+  const rateLimits =
+    options.rateLimit === undefined
+      ? options.environment.rateLimits
+      : {
+          authenticationMax: options.rateLimit.max,
+          defaultMax: options.rateLimit.max,
+          drawMax: options.rateLimit.max,
+          webhookMax: options.rateLimit.max,
+          windowMs: options.rateLimit.windowMs,
+        };
 
   app.disable('x-powered-by');
   app.set('trust proxy', options.environment.trustProxyHops);
-  app.use(createRequestContext(logger, options.requestIdFactory));
+  app.use(
+    createRequestContext(logger, options.requestIdFactory, {
+      ...(options.metrics === undefined ? {} : { metrics: options.metrics }),
+    }),
+  );
+  app.use(createRequestTimeout(options.environment.requestTimeoutMs, logger));
   app.use(helmet());
   app.use(
     cors({
@@ -79,23 +89,7 @@ export const createApiApp = (options: CreateApiAppOptions): Express => {
       },
     }),
   );
-  app.use(
-    rateLimit({
-      handler: (request, response) => {
-        sendApiError(response, 429, request.requestId, {
-          code: 'RATE_LIMITED',
-          message: 'Too many requests. Try again later.',
-          retryable: true,
-          sameKeyRetrySafe: true,
-        });
-      },
-      legacyHeaders: false,
-      limit: rateLimitOptions.max,
-      skip: (request) => request.path === apiPaths.health,
-      standardHeaders: 'draft-8',
-      windowMs: rateLimitOptions.windowMs,
-    }),
-  );
+  app.use(createTieredRateLimit(rateLimits));
   const defaultJsonParser = express.json({
     limit: '32kb',
     strict: true,
@@ -119,7 +113,7 @@ export const createApiApp = (options: CreateApiAppOptions): Express => {
   registerHealthRoute(app, options.readiness);
   options.configureRoutes?.(app);
   app.use(notFoundHandler);
-  app.use(createErrorHandler(logger));
+  app.use(createErrorHandler(logger, options.errorReporter));
 
   return app;
 };

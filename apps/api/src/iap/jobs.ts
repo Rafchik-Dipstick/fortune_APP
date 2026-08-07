@@ -1,5 +1,7 @@
 import { type AccountPurgeWorker } from '../account/purge.js';
 import { type ApiLogger } from '../logging/logger.js';
+import { type ErrorReporter, NoopErrorReporter } from '../observability/error-reporter.js';
+import { type MetricsRegistry } from '../observability/metrics.js';
 import { type AppStoreNotificationWorker } from './notifications.js';
 import { type AppStoreReconciliationJob } from './reconciliation.js';
 
@@ -11,7 +13,10 @@ export interface CommerceBackgroundJobs {
 interface CommerceBackgroundJobOptions {
   accountPurge?: AccountPurgeWorker;
   accountPurgeIntervalMs?: number;
+  errorReporter?: ErrorReporter;
   logger: ApiLogger;
+  metrics?: MetricsRegistry;
+  metricsFlushIntervalMs?: number;
   notificationIntervalMs?: number;
   reconciliation?: AppStoreReconciliationJob;
   reconciliationIntervalMs?: number;
@@ -29,6 +34,7 @@ export function createCommerceBackgroundJobs(
   const notificationIntervalMs = options.notificationIntervalMs ?? 5_000;
   const reconciliationIntervalMs = options.reconciliationIntervalMs ?? 6 * 3_600_000;
   const accountPurgeIntervalMs = options.accountPurgeIntervalMs ?? 3_600_000;
+  const errorReporter = options.errorReporter ?? new NoopErrorReporter();
   const timers: NodeJS.Timeout[] = [];
   let running = false;
   let activeTick: Promise<void> = Promise.resolve();
@@ -47,6 +53,9 @@ export function createCommerceBackgroundJobs(
             { jobName: name, errorName: error instanceof Error ? error.name : 'unknown' },
             'Commerce background job tick failed',
           );
+          // A silently failing worker is how exactly-once delivery quietly
+          // stops being exactly-once, so every failed tick is reportable.
+          errorReporter.capture(error, { operation: name, source: 'job' });
         }
       });
     };
@@ -64,9 +73,17 @@ export function createCommerceBackgroundJobs(
       timers.push(setInterval(notificationTick, notificationIntervalMs));
       if (options.reconciliation !== undefined) {
         const reconciliation = options.reconciliation;
-        const reconciliationTick = guard('app-store-reconciliation', () =>
-          reconciliation.runOnce(),
-        );
+        const reconciliationTick = guard('app-store-reconciliation', async () => {
+          const startedAt = Date.now();
+          const outcome = await reconciliation.runOnce();
+          options.metrics?.recordReconciliation({
+            completedAt: new Date().toISOString(),
+            durationMs: Date.now() - startedAt,
+            ran: outcome.ran,
+            reconciled: outcome.reconciled ?? 0,
+          });
+          return outcome;
+        });
         timers.push(setInterval(reconciliationTick, reconciliationIntervalMs));
       }
       if (options.accountPurge !== undefined) {
@@ -81,6 +98,14 @@ export function createCommerceBackgroundJobs(
           }
         });
         timers.push(setInterval(purgeTick, accountPurgeIntervalMs));
+      }
+      if (options.metrics !== undefined) {
+        const metrics = options.metrics;
+        timers.push(
+          setInterval(() => {
+            metrics.flush(options.logger);
+          }, options.metricsFlushIntervalMs ?? 60_000),
+        );
       }
       for (const timer of timers) {
         timer.unref();

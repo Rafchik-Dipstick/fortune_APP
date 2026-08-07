@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 const nodeEnvironments = ['development', 'test', 'production'] as const;
+const deploymentEnvironments = ['local', 'staging', 'production'] as const;
 const logLevels = ['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'] as const;
 const keyVersionSchema = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$/u);
 
@@ -175,14 +176,73 @@ const base64Pkcs8KeySchema = z
   )
   .transform((value) => Buffer.from(value, 'base64').toString('utf8'));
 
+/**
+ * Parses a Sentry-style DSN into the ingest coordinates the error reporter
+ * needs. The secret half of a DSN is a *public* key by design, but it is still
+ * treated as configuration: only the derived envelope URL is ever logged.
+ */
+const errorReportingDsnSchema = z
+  .string()
+  .trim()
+  .default('')
+  .transform((rawValue, context): ErrorReportingTarget | null => {
+    if (rawValue.length === 0) {
+      return null;
+    }
+
+    let url: URL;
+    try {
+      url = new URL(rawValue);
+    } catch {
+      context.addIssue({ code: 'custom', message: 'must be a DSN URL' });
+      return z.NEVER;
+    }
+
+    const projectId = url.pathname.replace(/^\//u, '');
+    if (
+      url.protocol !== 'https:' ||
+      url.username.length === 0 ||
+      url.password.length !== 0 ||
+      url.hostname.length === 0 ||
+      !/^\d+$/u.test(projectId)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'must be an HTTPS DSN shaped https://<key>@<host>/<projectId>',
+      });
+      return z.NEVER;
+    }
+
+    return {
+      envelopeUrl: `https://${url.hostname}/api/${projectId}/envelope/`,
+      host: url.hostname.toLowerCase(),
+      projectId,
+      publicKey: url.username,
+    };
+  });
+
 const rawApiEnvironmentSchema = z
   .object({
     NODE_ENV: z.enum(nodeEnvironments).default('development'),
+    DEPLOYMENT_ENVIRONMENT: z.enum(deploymentEnvironments).default('local'),
     PORT: environmentInteger(3000, 1, 65_535),
     DATABASE_URL: databaseUrlSchema,
     TRUST_PROXY: environmentInteger(0, 0, 10),
     CORS_ORIGINS: corsOriginsSchema,
     LOG_LEVEL: z.enum(logLevels).default('info'),
+    DATABASE_POOL_MAX: environmentInteger(10, 1, 50),
+    DATABASE_STATEMENT_TIMEOUT_MS: environmentInteger(10_000, 1_000, 60_000),
+    DATABASE_LOCK_TIMEOUT_MS: environmentInteger(5_000, 250, 30_000),
+    REQUEST_TIMEOUT_MS: environmentInteger(15_000, 1_000, 120_000),
+    OUTBOUND_REQUEST_TIMEOUT_MS: environmentInteger(5_000, 500, 30_000),
+    RATE_LIMIT_WINDOW_MS: environmentInteger(60_000, 1_000, 3_600_000),
+    RATE_LIMIT_MAX: environmentInteger(120, 1, 1_000_000),
+    RATE_LIMIT_AUTHENTICATION_MAX: environmentInteger(20, 1, 1_000_000),
+    RATE_LIMIT_DRAW_MAX: environmentInteger(30, 1, 1_000_000),
+    RATE_LIMIT_WEBHOOK_MAX: environmentInteger(600, 1, 1_000_000),
+    ERROR_REPORTING_DSN: errorReportingDsnSchema,
+    ERROR_REPORTING_RELEASE: optionalTrimmedSchema(128),
+    METRICS_FLUSH_INTERVAL_MS: environmentInteger(60_000, 5_000, 3_600_000),
     APP_BUNDLE_ID: bundleIdentifierSchema,
     GAME_CENTER_ALLOWED_PUBLIC_KEY_HOSTS: hostAllowlistSchema.default(['static.gc.apple.com']),
     GAME_CENTER_ALLOWED_CERTIFICATE_HOSTS: hostAllowlistSchema.default(['cacerts.digicert.com']),
@@ -230,6 +290,59 @@ const rawApiEnvironmentSchema = z
     IAP_ORACLE_PLUS_MONTHLY_EXPECTED_BILLING_PLAN_TYPE: optionalTrimmedSchema(64),
   })
   .superRefine((environment, context) => {
+    // Deployment separation is a commerce-trust control as much as an
+    // observability one: staging may only ever hold Sandbox trust and
+    // production may only ever hold Production trust (AC-13). Declaring the
+    // deployment explicitly also keeps staging error reports out of the
+    // production issue stream.
+    const requiredCommerceEnvironment = {
+      local: ['XCODE', 'SANDBOX'],
+      production: ['PRODUCTION'],
+      staging: ['SANDBOX'],
+    }[environment.DEPLOYMENT_ENVIRONMENT];
+    if (!requiredCommerceEnvironment.includes(environment.APPLE_IAP_ENVIRONMENT)) {
+      context.addIssue({
+        code: 'custom',
+        path: ['APPLE_IAP_ENVIRONMENT'],
+        message: `must be ${requiredCommerceEnvironment.join(' or ')} in the ${environment.DEPLOYMENT_ENVIRONMENT} deployment`,
+      });
+    }
+
+    if (environment.NODE_ENV === 'production' && environment.DEPLOYMENT_ENVIRONMENT === 'local') {
+      context.addIssue({
+        code: 'custom',
+        path: ['DEPLOYMENT_ENVIRONMENT'],
+        message: 'must name the deployed environment when NODE_ENV is production',
+      });
+    }
+
+    if (
+      environment.DEPLOYMENT_ENVIRONMENT === 'production' &&
+      environment.ERROR_REPORTING_DSN === null
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['ERROR_REPORTING_DSN'],
+        message: 'must be configured before the production deployment starts',
+      });
+    }
+
+    if (environment.DATABASE_LOCK_TIMEOUT_MS >= environment.DATABASE_STATEMENT_TIMEOUT_MS) {
+      context.addIssue({
+        code: 'custom',
+        path: ['DATABASE_LOCK_TIMEOUT_MS'],
+        message: 'must be shorter than DATABASE_STATEMENT_TIMEOUT_MS so lock waits fail first',
+      });
+    }
+
+    if (environment.REQUEST_TIMEOUT_MS <= environment.DATABASE_STATEMENT_TIMEOUT_MS) {
+      context.addIssue({
+        code: 'custom',
+        path: ['REQUEST_TIMEOUT_MS'],
+        message: 'must exceed DATABASE_STATEMENT_TIMEOUT_MS so the database aborts first',
+      });
+    }
+
     if (environment.NODE_ENV === 'production' && environment.TRUST_PROXY === 0) {
       context.addIssue({
         code: 'custom',
@@ -367,15 +480,49 @@ export interface CommerceEnvironment {
   oraclePlusMonthlyProductId: string;
 }
 
+export interface ErrorReportingTarget {
+  envelopeUrl: string;
+  host: string;
+  projectId: string;
+  publicKey: string;
+}
+
+export interface DatabaseEnvironment {
+  lockTimeoutMs: number;
+  poolMax: number;
+  statementTimeoutMs: number;
+  url: string;
+}
+
+export interface RateLimitEnvironment {
+  authenticationMax: number;
+  defaultMax: number;
+  drawMax: number;
+  webhookMax: number;
+  windowMs: number;
+}
+
+export interface ObservabilityEnvironment {
+  errorReporting: ErrorReportingTarget | null;
+  metricsFlushIntervalMs: number;
+  release: string | null;
+}
+
 export interface ApiEnvironment {
   archive: ArchiveEnvironment;
   authentication: AuthenticationEnvironment;
   commerce: CommerceEnvironment;
   corsOrigins: string[];
+  database: DatabaseEnvironment;
   databaseUrl: string;
+  deploymentEnvironment: (typeof deploymentEnvironments)[number];
   logLevel: (typeof logLevels)[number];
   nodeEnvironment: (typeof nodeEnvironments)[number];
+  observability: ObservabilityEnvironment;
+  outboundRequestTimeoutMs: number;
   port: number;
+  rateLimits: RateLimitEnvironment;
+  requestTimeoutMs: number;
   trustProxyHops: number;
 }
 
@@ -468,10 +615,31 @@ export const parseApiEnvironment = (source: NodeJS.ProcessEnv): ApiEnvironment =
       refreshTokenTtlDays: result.data.REFRESH_TOKEN_TTL_DAYS,
     },
     corsOrigins: result.data.CORS_ORIGINS,
+    database: {
+      lockTimeoutMs: result.data.DATABASE_LOCK_TIMEOUT_MS,
+      poolMax: result.data.DATABASE_POOL_MAX,
+      statementTimeoutMs: result.data.DATABASE_STATEMENT_TIMEOUT_MS,
+      url: result.data.DATABASE_URL,
+    },
     databaseUrl: result.data.DATABASE_URL,
+    deploymentEnvironment: result.data.DEPLOYMENT_ENVIRONMENT,
     logLevel: result.data.LOG_LEVEL,
     nodeEnvironment: result.data.NODE_ENV,
+    observability: {
+      errorReporting: result.data.ERROR_REPORTING_DSN,
+      metricsFlushIntervalMs: result.data.METRICS_FLUSH_INTERVAL_MS,
+      release: result.data.ERROR_REPORTING_RELEASE,
+    },
+    outboundRequestTimeoutMs: result.data.OUTBOUND_REQUEST_TIMEOUT_MS,
     port: result.data.PORT,
+    rateLimits: {
+      authenticationMax: result.data.RATE_LIMIT_AUTHENTICATION_MAX,
+      defaultMax: result.data.RATE_LIMIT_MAX,
+      drawMax: result.data.RATE_LIMIT_DRAW_MAX,
+      webhookMax: result.data.RATE_LIMIT_WEBHOOK_MAX,
+      windowMs: result.data.RATE_LIMIT_WINDOW_MS,
+    },
+    requestTimeoutMs: result.data.REQUEST_TIMEOUT_MS,
     trustProxyHops: result.data.TRUST_PROXY,
   };
 };

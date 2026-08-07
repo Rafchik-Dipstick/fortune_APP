@@ -221,4 +221,153 @@ describe('parseApiEnvironment', () => {
       }),
     ).toThrow(/APPLE_IAP_ISSUER_ID/);
   });
+
+  it('applies the documented hardening defaults', () => {
+    const environment = parseApiEnvironment({
+      ...validAuthenticationEnvironment,
+      DATABASE_URL: databaseUrl,
+    });
+
+    expect(environment.deploymentEnvironment).toBe('local');
+    expect(environment.requestTimeoutMs).toBe(15_000);
+    expect(environment.outboundRequestTimeoutMs).toBe(5_000);
+    expect(environment.database).toMatchObject({
+      lockTimeoutMs: 5_000,
+      poolMax: 10,
+      statementTimeoutMs: 10_000,
+    });
+    expect(environment.rateLimits).toEqual({
+      authenticationMax: 20,
+      defaultMax: 120,
+      drawMax: 30,
+      webhookMax: 600,
+      windowMs: 60_000,
+    });
+    expect(environment.observability).toEqual({
+      errorReporting: null,
+      metricsFlushIntervalMs: 60_000,
+      release: null,
+    });
+  });
+
+  it.each([
+    ['staging', 'PRODUCTION'],
+    ['staging', 'XCODE'],
+    ['production', 'SANDBOX'],
+    ['production', 'XCODE'],
+    ['local', 'PRODUCTION'],
+  ])('refuses %s commerce trust from the %s App Store environment', (deployment, commerce) => {
+    expect(() =>
+      parseApiEnvironment({
+        ...validAuthenticationEnvironment,
+        DATABASE_URL: databaseUrl,
+        DEPLOYMENT_ENVIRONMENT: deployment,
+        APPLE_IAP_ENVIRONMENT: commerce,
+      }),
+    ).toThrow(/APPLE_IAP_ENVIRONMENT/);
+  });
+
+  it('requires a named deployment when NODE_ENV is production', () => {
+    expect(() =>
+      parseApiEnvironment({
+        ...validAuthenticationEnvironment,
+        DATABASE_URL: databaseUrl,
+        NODE_ENV: 'production',
+        TRUST_PROXY: '1',
+        APPLE_IAP_ISSUER_ID: '57246542-96fe-1a63-e053-0824d011072a',
+        APPLE_IAP_KEY_ID: '2X9R4HXF34',
+        APPLE_IAP_PRIVATE_KEY_BASE64: appStorePrivateKey,
+      }),
+    ).toThrow(/DEPLOYMENT_ENVIRONMENT/);
+  });
+
+  it('requires error reporting before a production deployment starts', () => {
+    expect(() =>
+      parseApiEnvironment({
+        ...validAuthenticationEnvironment,
+        DATABASE_URL: databaseUrl,
+        NODE_ENV: 'production',
+        DEPLOYMENT_ENVIRONMENT: 'production',
+        TRUST_PROXY: '1',
+        APPLE_IAP_ENVIRONMENT: 'PRODUCTION',
+        APPLE_IAP_ISSUER_ID: '57246542-96fe-1a63-e053-0824d011072a',
+        APPLE_IAP_KEY_ID: '2X9R4HXF34',
+        APPLE_IAP_PRIVATE_KEY_BASE64: appStorePrivateKey,
+      }),
+    ).toThrow(/ERROR_REPORTING_DSN/);
+  });
+
+  it('parses a DSN into ingest coordinates without keeping the raw value', () => {
+    const environment = parseApiEnvironment({
+      ...validAuthenticationEnvironment,
+      DATABASE_URL: databaseUrl,
+      DEPLOYMENT_ENVIRONMENT: 'staging',
+      ERROR_REPORTING_DSN: 'https://abc123@o1.ingest.example.com/42',
+      ERROR_REPORTING_RELEASE: 'fortuneness-api@1.2.3',
+    });
+
+    expect(environment.observability.errorReporting).toEqual({
+      envelopeUrl: 'https://o1.ingest.example.com/api/42/envelope/',
+      host: 'o1.ingest.example.com',
+      projectId: '42',
+      publicKey: 'abc123',
+    });
+    expect(environment.observability.release).toBe('fortuneness-api@1.2.3');
+  });
+
+  it.each([
+    'http://abc123@o1.ingest.example.com/42',
+    'https://o1.ingest.example.com/42',
+    'https://abc123@o1.ingest.example.com/',
+    'https://abc123@o1.ingest.example.com/not-a-project',
+    'not-a-url',
+  ])('rejects the malformed DSN %s', (dsn) => {
+    expect(() =>
+      parseApiEnvironment({
+        ...validAuthenticationEnvironment,
+        DATABASE_URL: databaseUrl,
+        ERROR_REPORTING_DSN: dsn,
+      }),
+    ).toThrow(/ERROR_REPORTING_DSN/);
+  });
+
+  it('orders the database, statement, and request deadlines so the innermost fails first', () => {
+    expect(() =>
+      parseApiEnvironment({
+        ...validAuthenticationEnvironment,
+        DATABASE_URL: databaseUrl,
+        DATABASE_LOCK_TIMEOUT_MS: '10000',
+        DATABASE_STATEMENT_TIMEOUT_MS: '10000',
+      }),
+    ).toThrow(/DATABASE_LOCK_TIMEOUT_MS/);
+
+    expect(() =>
+      parseApiEnvironment({
+        ...validAuthenticationEnvironment,
+        DATABASE_URL: databaseUrl,
+        DATABASE_STATEMENT_TIMEOUT_MS: '20000',
+        REQUEST_TIMEOUT_MS: '15000',
+      }),
+    ).toThrow(/REQUEST_TIMEOUT_MS/);
+  });
+
+  it('rejects an out-of-range timeout, pool size, or rate limit', () => {
+    for (const invalid of [
+      { DATABASE_POOL_MAX: '0' },
+      { DATABASE_POOL_MAX: '500' },
+      { REQUEST_TIMEOUT_MS: '999' },
+      { OUTBOUND_REQUEST_TIMEOUT_MS: '60000' },
+      { RATE_LIMIT_WINDOW_MS: '0' },
+      { RATE_LIMIT_MAX: '0' },
+      { METRICS_FLUSH_INTERVAL_MS: '1000' },
+    ]) {
+      expect(() =>
+        parseApiEnvironment({
+          ...validAuthenticationEnvironment,
+          DATABASE_URL: databaseUrl,
+          ...invalid,
+        }),
+      ).toThrow(InvalidApiEnvironmentError);
+    }
+  });
 });

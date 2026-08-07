@@ -24,7 +24,10 @@ import { PreferencesService } from './account/preferences.js';
 import { AccountPurgeWorker } from './account/purge.js';
 import { createAuthoritativeAuthentication } from './middleware/authentication.js';
 import { createDeletionManagementAuthentication } from './middleware/deletion-management.js';
+import { createErrorReporter, type ErrorReporter } from './observability/error-reporter.js';
 import { LoggerFortuneDrawTelemetry } from './observability/fortune-draw-telemetry.js';
+import { installDatabaseMetricsRecorder, MetricsRegistry } from './observability/metrics.js';
+import { describeOutboundDestinations } from './security/egress-inventory.js';
 import { IapApplicationService } from './iap/application.js';
 import { AppleAppStoreServerClient } from './iap/app-store-server-client.js';
 import { CommerceService } from './iap/commerce.js';
@@ -50,14 +53,19 @@ export interface ApiRuntime {
   backgroundJobs: CommerceBackgroundJobs;
   database: DatabaseRuntime;
   environment: ApiEnvironment;
+  errorReporter: ErrorReporter;
   logger: ApiLogger;
+  metrics: MetricsRegistry;
   readiness: ApiReadiness;
 }
 
 export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
   const environment = parseApiEnvironment(source);
   const logger = createApiLogger(environment);
-  const database = createDatabaseRuntime(environment.databaseUrl);
+  const errorReporter = createErrorReporter(environment, logger);
+  const metrics = new MetricsRegistry();
+  installDatabaseMetricsRecorder(metrics);
+  const database = createDatabaseRuntime(environment.database);
   const readiness = new ApiReadiness(database.checkReadiness);
   const accessTokens = new AccessTokenService(environment.authentication);
   const deletionManagementTokens = new DeletionManagementTokenService(environment.authentication);
@@ -137,6 +145,7 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
           environment.commerce.appStoreServerApi,
           environment.authentication.bundleId,
           environment.commerce.environment,
+          { timeoutMs: environment.outboundRequestTimeoutMs },
         );
   const notificationIngest = new AppStoreNotificationIngestService({
     client: database.client,
@@ -171,13 +180,18 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
         });
   const backgroundJobs = createCommerceBackgroundJobs({
     accountPurge,
+    errorReporter,
     logger,
+    metrics,
+    metricsFlushIntervalMs: environment.observability.metricsFlushIntervalMs,
     worker: notificationWorker,
     ...(reconciliation === undefined ? {} : { reconciliation }),
   });
   const app = createApiApp({
     environment,
+    errorReporter,
     logger,
+    metrics,
     readiness,
     configureRoutes: (configuredApp) => {
       registerAuthenticationRoutes(configuredApp, {
@@ -219,5 +233,19 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
     },
   });
 
-  return { app, backgroundJobs, database, environment, logger, readiness };
+  // Recording the declared egress surface at startup makes the deployed
+  // reality diffable against the runbook without shell access to the instance.
+  logger.info(
+    {
+      destinations: describeOutboundDestinations(environment).map((entry) => ({
+        enforcement: entry.enforcement,
+        hosts: entry.hosts,
+        scheme: entry.scheme,
+      })),
+      event: 'egress_inventory',
+    },
+    'declared outbound destinations',
+  );
+
+  return { app, backgroundJobs, database, environment, errorReporter, logger, metrics, readiness };
 };
