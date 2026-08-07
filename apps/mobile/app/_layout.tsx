@@ -14,6 +14,7 @@ import { FortuneRitualProvider } from '@/fortune/fortune-ritual';
 import { ExperienceFeedbackProvider } from '@/feedback/experience-feedback';
 import { CommerceProvider } from '@/iap/commerce';
 import { MotionPreferenceProvider, useMotionPreference } from '@/motion/motion-preference';
+import { PerformanceProvider } from '@/observability/performance-provider';
 import { RemindersProvider } from '@/reminders/reminders';
 import { shouldReduceMotion } from '@/motion/reduce-motion';
 import { colors } from '@/theme/tokens';
@@ -22,25 +23,27 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <QaLocaleProvider>
-          <AuthenticationProvider>
-            <LocalDataProvider>
-              <AuthenticationGate>
-                <ExperienceFeedbackProvider>
-                  <FortuneRitualProvider>
-                    <CommerceProvider>
-                      <RemindersProvider>
-                        <MotionPreferenceProvider>
-                          <AppNavigation />
-                        </MotionPreferenceProvider>
-                      </RemindersProvider>
-                    </CommerceProvider>
-                  </FortuneRitualProvider>
-                </ExperienceFeedbackProvider>
-              </AuthenticationGate>
-            </LocalDataProvider>
-          </AuthenticationProvider>
-        </QaLocaleProvider>
+        <PerformanceProvider>
+          <QaLocaleProvider>
+            <AuthenticationProvider>
+              <LocalDataProvider>
+                <AuthenticationGate>
+                  <ExperienceFeedbackProvider>
+                    <FortuneRitualProvider>
+                      <CommerceProvider>
+                        <RemindersProvider>
+                          <MotionPreferenceProvider>
+                            <AppNavigation />
+                          </MotionPreferenceProvider>
+                        </RemindersProvider>
+                      </CommerceProvider>
+                    </FortuneRitualProvider>
+                  </ExperienceFeedbackProvider>
+                </AuthenticationGate>
+              </LocalDataProvider>
+            </AuthenticationProvider>
+          </QaLocaleProvider>
+        </PerformanceProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

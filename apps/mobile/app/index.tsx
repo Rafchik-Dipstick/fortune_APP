@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import type { FortuneAllowanceState, FortuneIntention } from '@fortuneness/api-contracts';
@@ -15,6 +15,7 @@ import { StatusBanner } from '@/components/status-banner';
 import { Surface } from '@/components/surface';
 import { TarotCard } from '@/components/tarot-card';
 import { useFortuneRitual } from '@/fortune/fortune-ritual';
+import { usePerformance } from '@/observability/performance-provider';
 import { useAdaptiveLayout } from '@/theme/adaptive';
 import { colors, spacing } from '@/theme/tokens';
 
@@ -68,8 +69,19 @@ function drawFailureMessage(error: Error, retainedIntention: FortuneIntention | 
 export default function OracleScreen() {
   const router = useRouter();
   const ritual = useFortuneRitual();
+  const performance = usePerformance();
   const { isRegular, oracleCardWidth } = useAdaptiveLayout();
   const [intention, setIntention] = useState<FortuneIntention>('GENERAL');
+  const startupRecorded = useRef(false);
+
+  useEffect(() => {
+    // Startup ends when the Oracle can actually be used, not when the first
+    // pixel lands, so this waits for authoritative allowance state.
+    if (!startupRecorded.current && !ritual.isStateLoading) {
+      startupRecorded.current = true;
+      performance.measure('startup.firstScreenReady', 'startup.launched');
+    }
+  }, [performance, ritual.isStateLoading]);
 
   const openReveal = () => {
     router.push('/reveal');

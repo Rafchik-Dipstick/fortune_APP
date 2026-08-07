@@ -14,6 +14,7 @@ import { Surface } from '@/components/surface';
 import { verticalSliceCards } from '@/fixtures/vertical-slice';
 import { useFortuneRitual } from '@/fortune/fortune-ritual';
 import type { PendingReveal } from '@/local-data/reading-store';
+import { usePerformance } from '@/observability/performance-provider';
 import { useAdaptiveLayout } from '@/theme/adaptive';
 
 const intentionLabels = {
@@ -50,6 +51,7 @@ function formatReadingDate(draw: FortuneDraw): string {
 export default function RevealScreen() {
   const router = useRouter();
   const ritual = useFortuneRitual();
+  const performance = usePerformance();
   const { oracleCardWidth } = useAdaptiveLayout();
   const [reading, setReading] = useState<PendingReveal>();
 
@@ -58,6 +60,15 @@ export default function RevealScreen() {
       setReading(ritual.pendingReveal);
     }
   }, [reading, ritual.pendingReveal]);
+
+  useEffect(() => {
+    // A resumed reveal starts past the flip, so only a fresh reveal opens the
+    // span. Measuring a resume as if it were a first draw would report a card
+    // that was already on screen as an instant one.
+    if (reading?.step === 'ISSUED') {
+      performance.mark('reveal.opened');
+    }
+  }, [performance, reading?.step]);
 
   if (reading === undefined) {
     return (
@@ -118,9 +129,12 @@ export default function RevealScreen() {
         }}
         initialStep={reading.step}
         onCardRevealed={() => {
+          performance.measure('reveal.cardReady', 'reveal.opened');
           void ritual.markCardRevealed(draw.id);
         }}
         onContentReachable={() => {
+          performance.measure('reveal.contentReachable', 'reveal.opened');
+          performance.clearMark('reveal.opened');
           ritual.acknowledgeContentReachable(draw.id);
         }}
         width={oracleCardWidth}

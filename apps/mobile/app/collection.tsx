@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -35,6 +35,7 @@ import {
   type ArchiveFilterSelection,
 } from '@/fortune/archive-filters';
 import { deckIllustrations, suitSymbol } from '@/fortune/deck-art';
+import { usePerformance } from '@/observability/performance-provider';
 import { useAdaptiveLayout } from '@/theme/adaptive';
 import { getCollectionGridLayout } from '@/theme/collection-layout';
 import { colors, layout, radii, spacing } from '@/theme/tokens';
@@ -69,6 +70,7 @@ function deckCardAccessibilityLabel(card: CollectionCard): string {
 
 export default function CollectionScreen() {
   const router = useRouter();
+  const performance = usePerformance();
   const { gutter, width } = useAdaptiveLayout();
   const [mode, setMode] = useState<CollectionMode>('deck');
   const [filterSheetVisible, setFilterSheetVisible] = useState(false);
@@ -90,6 +92,32 @@ export default function CollectionScreen() {
     () => (readingPages ?? []).flatMap((page) => page.items),
     [readingPages],
   );
+
+  const pageMarkedAt = useRef<number | undefined>(undefined);
+  const loadedPageCount = useRef(0);
+
+  useEffect(() => {
+    // Page one is the screen becoming usable; later pages are the scroll cost
+    // Phase 13 profiles. They have different budgets, so they are separate.
+    const pageCount = readingPages?.length ?? 0;
+    if (pageCount === 0 || pageCount === loadedPageCount.current) {
+      return;
+    }
+    if (pageMarkedAt.current !== undefined) {
+      performance.record(
+        loadedPageCount.current === 0 ? 'collection.firstPageReady' : 'collection.pageAppended',
+        Date.now() - pageMarkedAt.current,
+      );
+      pageMarkedAt.current = undefined;
+    }
+    loadedPageCount.current = pageCount;
+  }, [performance, readingPages]);
+
+  useEffect(() => {
+    if (readingsQuery.isFetching) {
+      pageMarkedAt.current ??= Date.now();
+    }
+  }, [readingsQuery.isFetching]);
   const firstPage = readingPages?.[0];
   const offlineReadings = firstPage?.source === 'cache';
   const offlineSummary = summaryQuery.data?.source === 'cache';
