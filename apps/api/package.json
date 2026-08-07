@@ -11,6 +11,7 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:migrate:status": "prisma migrate status",
     "db:invariants": "node scripts/check-database-invariants.mjs",
+    "load-test": "node scripts/load-test.mjs",
     "db:schema:format": "prisma format",
     "db:schema:validate": "prisma validate",
     "db:seed": "prisma generate && prisma db seed",
