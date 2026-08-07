@@ -1,11 +1,33 @@
 import { InvalidApiEnvironmentError } from './config/environment.js';
+import {
+  PurchaseTokenKeyMismatchError,
+  verifyPurchaseTokenEncryptionKeys,
+} from './iap/purchase-token-preflight.js';
 import { createApiRuntime } from './runtime.js';
 import { startApiServer } from './server.js';
 import { createGracefulShutdown, registerShutdownSignals } from './shutdown.js';
 
-const start = (): void => {
+const start = async (): Promise<void> => {
   try {
     const runtime = createApiRuntime(process.env);
+
+    // Checked before the listener opens: key material that cannot open stored
+    // purchase tokens is unrecoverable at request time, and serving traffic
+    // with it produces an unexplained 500 per affected player instead of a
+    // failure anyone can act on.
+    const preflight = await verifyPurchaseTokenEncryptionKeys(
+      runtime.database.client.appAccountTokenBinding,
+      runtime.environment.authentication.appAccountTokenEncryptionKeys,
+    );
+    runtime.logger.info(
+      {
+        event: 'purchase_token_key_preflight',
+        ...(preflight.status === 'verified' ? { checkedVersions: preflight.checkedVersions } : {}),
+        status: preflight.status,
+      },
+      'app-account-token encryption key preflight',
+    );
+
     const server = startApiServer(runtime.app, {
       host: '0.0.0.0',
       port: runtime.environment.port,
@@ -62,7 +84,8 @@ const start = (): void => {
     });
   } catch (error) {
     const message =
-      error instanceof InvalidApiEnvironmentError
+      error instanceof InvalidApiEnvironmentError ||
+      error instanceof PurchaseTokenKeyMismatchError
         ? error.message
         : 'The API failed during startup before logging was available.';
     process.stderr.write(`${message}\n`);
@@ -70,4 +93,4 @@ const start = (): void => {
   }
 };
 
-start();
+void start();

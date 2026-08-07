@@ -7,6 +7,7 @@ import {
   createHmacDigestCandidates,
   decryptBytes,
   encryptBytes,
+  resolveVersionedKey,
 } from '../security/crypto.js';
 
 export interface PurchaseTokenKeys {
@@ -26,7 +27,7 @@ export interface ResolvedTokenBinding {
   validTo: Date | null;
 }
 
-const tokenEncryptionContext = (financialSubjectId: string): string =>
+export const tokenEncryptionContext = (financialSubjectId: string): string =>
   `app-account-token:${financialSubjectId}`;
 
 function normalizeToken(rawToken: string): string {
@@ -52,13 +53,26 @@ export async function resolveCurrentPurchaseToken(
   });
 
   if (current?.encryptedToken != null && current.encryptionKeyVersion !== null) {
-    const token = decryptBytes(
-      Buffer.from(current.encryptedToken),
-      current.encryptionKeyVersion,
-      keys.encryptionKeys,
-      tokenEncryptionContext(financialSubjectId),
-    ).toString('utf8');
-    return { bindingId: current.id, token };
+    // A retired key version is a recoverability question, not an error: the
+    // ciphertext is simply no longer openable, so the binding falls through to
+    // the rotation below. Asking before decrypting is what makes that reachable
+    // -- `decryptBytes` throws on an absent version, which turned the very case
+    // the rotation comment names into a 500 on every catalog request.
+    if (resolveVersionedKey(keys.encryptionKeys, current.encryptionKeyVersion) !== undefined) {
+      // Reaching here with a decryption failure means the ring holds this
+      // version under different key material, so the ciphertext was written by
+      // another deployment. That is a misconfiguration rather than a
+      // retirement, and it must stay loud: rotating instead would mint a new
+      // appAccountToken for every player and silently break reconciliation of
+      // the transactions Apple still reports under the old one.
+      const token = decryptBytes(
+        Buffer.from(current.encryptedToken),
+        current.encryptionKeyVersion,
+        keys.encryptionKeys,
+        tokenEncryptionContext(financialSubjectId),
+      ).toString('utf8');
+      return { bindingId: current.id, token };
+    }
   }
 
   // A current binding without a recoverable raw value (for example after an
