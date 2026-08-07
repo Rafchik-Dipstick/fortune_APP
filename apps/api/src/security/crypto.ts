@@ -16,8 +16,28 @@ export interface VersionedCiphertext {
   keyVersion: string;
 }
 
+/**
+ * Resolves a versioned key by own property only.
+ *
+ * A key version can arrive from an untrusted source — a JWS `kid` header is
+ * chosen by whoever presents the token — and a plain index would let a version
+ * named `constructor`, `toString`, or `valueOf` resolve to an inherited
+ * `Object.prototype` member instead of returning nothing. No key confusion is
+ * reachable through that today because the resulting function fails the
+ * downstream cryptographic call, but relying on a later library to reject a
+ * value the lookup should never have produced is not a control. The
+ * environment parser already validates key versions this way; this closes the
+ * matching gap at every runtime lookup (Phase 13 penetration retest, AC-03).
+ */
+export function resolveVersionedKey(
+  keyRing: VersionedKeyRing,
+  keyVersion: string,
+): Buffer | undefined {
+  return Object.hasOwn(keyRing.keys, keyVersion) ? keyRing.keys[keyVersion] : undefined;
+}
+
 function getCurrentKey(keyRing: VersionedKeyRing): Buffer {
-  const key = keyRing.keys[keyRing.currentVersion];
+  const key = resolveVersionedKey(keyRing, keyRing.currentVersion);
   if (key === undefined) {
     throw new Error('Current cryptographic key is unavailable.');
   }
@@ -83,7 +103,7 @@ export function decryptBytes(
   keyRing: VersionedKeyRing,
   authenticatedContext: string,
 ): Buffer {
-  const key = keyRing.keys[keyVersion];
+  const key = resolveVersionedKey(keyRing, keyVersion);
   if (key === undefined) {
     throw new Error('Ciphertext key version is unavailable.');
   }

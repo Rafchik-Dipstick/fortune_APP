@@ -2,6 +2,7 @@ import { jwtVerify, SignJWT } from 'jose';
 import { z } from 'zod';
 
 import { type AuthenticationEnvironment } from '../config/environment.js';
+import { resolveVersionedKey } from '../security/crypto.js';
 
 /**
  * Deletion-management tokens carry their own audience so an ordinary access
@@ -52,7 +53,10 @@ export class DeletionManagementTokenService {
     const now = this.now();
     const issuedAt = numericDate(now);
     const expiresAt = new Date((issuedAt + deletionManagementTtlSeconds) * 1_000);
-    const key = this.environment.jwtAccessKeys.keys[this.environment.jwtAccessKeys.currentVersion];
+    const key = resolveVersionedKey(
+      this.environment.jwtAccessKeys,
+      this.environment.jwtAccessKeys.currentVersion,
+    );
     if (key === undefined) {
       throw new Error('Current access-token key is unavailable.');
     }
@@ -84,7 +88,7 @@ export class DeletionManagementTokenService {
           if (protectedHeader.alg !== 'HS256' || protectedHeader.kid === undefined) {
             throw new DeletionManagementTokenError();
           }
-          const key = this.environment.jwtAccessKeys.keys[protectedHeader.kid];
+          const key = resolveVersionedKey(this.environment.jwtAccessKeys, protectedHeader.kid);
           if (key === undefined) {
             throw new DeletionManagementTokenError();
           }

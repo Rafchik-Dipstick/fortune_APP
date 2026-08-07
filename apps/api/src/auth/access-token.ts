@@ -2,6 +2,7 @@ import { jwtVerify, SignJWT } from 'jose';
 import { z } from 'zod';
 
 import { type AuthenticationEnvironment } from '../config/environment.js';
+import { resolveVersionedKey } from '../security/crypto.js';
 
 const accessTokenClaimsSchema = z.looseObject({
   sub: z.uuid(),
@@ -47,7 +48,10 @@ export class AccessTokenService {
     const now = this.now();
     const issuedAt = numericDate(now);
     const expiresAt = new Date((issuedAt + this.environment.jwtAccessTtlSeconds) * 1_000);
-    const key = this.environment.jwtAccessKeys.keys[this.environment.jwtAccessKeys.currentVersion];
+    const key = resolveVersionedKey(
+      this.environment.jwtAccessKeys,
+      this.environment.jwtAccessKeys.currentVersion,
+    );
     if (key === undefined) {
       throw new Error('Current access-token key is unavailable.');
     }
@@ -80,7 +84,7 @@ export class AccessTokenService {
           if (protectedHeader.alg !== 'HS256' || protectedHeader.kid === undefined) {
             throw new AccessTokenError();
           }
-          const key = this.environment.jwtAccessKeys.keys[protectedHeader.kid];
+          const key = resolveVersionedKey(this.environment.jwtAccessKeys, protectedHeader.kid);
           if (key === undefined) {
             throw new AccessTokenError();
           }
