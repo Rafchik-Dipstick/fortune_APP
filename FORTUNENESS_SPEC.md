@@ -4,7 +4,7 @@ Status: **Implementation-ready draft**
 Product: **Fortuneness**  
 Launch platforms: **iPhone and iPad**  
 Backend: **Node.js API + PostgreSQL on Railway**  
-Primary identity: **Apple Game Center**  
+Primary identity: **Sign in with Apple**
 Last updated: **2026-08-05**
 
 This document is the canonical build specification for Fortuneness. It is ordered from the earliest product and account decisions through implementation, verification, TestFlight, and App Store launch.
@@ -28,7 +28,7 @@ The app is entertainment and a tool for reflection. It must never claim certaint
 ### 1.2 Launch requirements
 
 1. **[required]** Every authenticated player receives one free fortune per day.
-2. **[required]** Authentication uses the player's Game Center account.
+2. **[required]** Authentication uses the player's Apple Account through Sign in with Apple.
 3. **[required]** Every fortune is represented by a tarot card and revealed through a card-focused interface.
 4. **[required]** The app includes a repeatable StoreKit consumable called **10 Fortune Pack**. Each verified non-subscription purchase grants 10 draw credits.
 5. **[required]** The app includes a subscription that adds 10 fortunes per day on top of the one free daily fortune.
@@ -65,8 +65,8 @@ These decisions are part of V1 unless the owner explicitly changes them before t
 
 V1 is ready to ship only when all of the following are true:
 
-- A new player can authenticate with Game Center and draw a fortune without creating a password or entering personal information.
-- A second device signed into the same Game Center player sees the same collection, quota, subscription state, and pack-credit balance.
+- A new player can use Sign in with Apple and draw a fortune without creating a password or entering personal information.
+- A second device using the same Apple Account sees the same collection, quota, subscription state, and pack-credit balance.
 - Concurrent taps, retries, process termination, or switching devices cannot grant an extra free/subscriber draw or charge pack credits twice.
 - Outside a verified refund/revocation or completed player-confirmed account deletion, a completed purchase benefit is never lost after the App Store succeeds, including when the app is killed during delivery.
 - A refund, revocation, expiration, renewal, grace period, or account switch is eventually reflected by the backend.
@@ -95,8 +95,8 @@ V1 is ready to ship only when all of the following are true:
 
 1. Show the native splash, then a short in-app loading scene using the same background and mark.
 2. Initialize `GKLocalPlayer` immediately.
-3. If Game Center needs player action, present the view controller supplied by GameKit.
-4. When Game Center authenticates, request identity-verification items and exchange them with the Fortuneness API.
+3. Restore a valid Fortuneness refresh session silently when one exists.
+4. When a session is absent or sensitive reauthentication is required, present the native Sign in with Apple sheet and exchange its identity token with the Fortuneness API.
 5. The backend verifies the Apple signature, creates or finds the player, and returns the app session and current state.
 6. Show at most three concise onboarding pages:
    - one free reading every day;
@@ -106,7 +106,7 @@ V1 is ready to ship only when all of the following are true:
 8. Land on Oracle with the free card ready to draw.
 9. Do not show a subscription interstitial before the player has experienced the free reading.
 
-If Game Center is unavailable or declined, show a purposeful blocked state with a retry button and instructions to enable/sign into Game Center in Settings. Do not silently create an unrelated anonymous account. Launch, authentication, deletion-management, and blocked screens always expose Privacy Policy, Terms of Use, the entertainment disclaimer, and support without requiring a Fortuneness session.
+If Sign in with Apple is unavailable or cancelled, show a purposeful sign-in state with an Apple-approved button. Do not silently create an unrelated anonymous account. Launch, authentication, deletion-management, and blocked screens always expose Privacy Policy, Terms of Use, the entertainment disclaimer, and support without requiring a Fortuneness session.
 
 ### 2.2 Daily draw ritual
 
@@ -184,7 +184,7 @@ Collection has two modes inside one page:
 
 An unlocked card is never removed when a subscription ends. Deleting an account removes the personal collection according to the deletion policy.
 
-The offline archive shows its saved-reading count and last successful sync time. Filters operate only on saved readings while offline and never imply that a partial cache is complete. On reconnect, refresh the discovery summary and newest page before merging older cached pages. Clear all account-scoped cache data on Game Center player change, logout, deletion request, or ownership mismatch.
+The offline archive shows its saved-reading count and last successful sync time. Filters operate only on saved readings while offline and never imply that a partial cache is complete. On reconnect, refresh the discovery summary and newest page before merging older cached pages. Clear all account-scoped cache data on logout, deletion request, Apple identity mismatch, or ownership mismatch.
 
 ### 2.7 Notifications
 
@@ -205,7 +205,7 @@ After the first completed reading, offer an optional local daily reminder. Do no
 
 ```text
 App root
-├── Launch / Game Center authentication
+├── Launch / Sign in with Apple
 │   ├── Privacy Policy
 │   ├── Terms of Use
 │   ├── Entertainment disclaimer
@@ -234,7 +234,7 @@ On iPhone, pages push on a navigation stack and Shop may use a full-height sheet
 Required elements:
 
 - App mark and compact page actions for Collection, Shop, and Settings.
-- Greeting or ritual prompt, not the Game Center identifier.
+- Greeting or ritual prompt, not the Apple identity identifier.
 - Intention selector with four accessible options.
 - Dominant face-down tarot card surface.
 - Available-draw summary and next reset.
@@ -290,22 +290,22 @@ Rules:
 - Show pending/Ask to Buy state without granting content early.
 - Finish a consumable transaction only after the backend durably accepts delivery and returns `safeToFinish: true`, including when the unique grant was already applied or was routed to its known owner.
 - **Restore Purchases** is an explicit user action that calls `AppStore.sync()`, then reconciles StoreKit and the server. Normal launch never calls `AppStore.sync()`. Consumable pack credits come from the Fortuneness server ledger for the same active account, not from `currentEntitlements`.
-- Family Sharing is off for V1 to avoid ambiguous ownership between an App Store account and a different Game Center player.
+- Family Sharing is off for V1 to avoid ambiguous purchase ownership across Apple Accounts.
 
 ### 3.6 Settings and account pages
 
 Required controls:
 
-- Game Center display alias and sync state.
+- Apple Account connection and sync state.
 - Account time zone and reset explanation.
 - Reminder on/off and time.
 - Sound on/off, haptics on/off, and motion preference: **Follow System** by default or **Reduce More**. Fortuneness never re-enables motion disabled by iOS.
 - **Restore Purchases** with the supporting copy from section 3.5, and Manage Subscription.
 - When the consumption-information deployment flag is enabled, **Share purchase-use information with Apple** is an optional post-purchase control, off by default: “If Apple reviews a refund request, allow Fortuneness to share limited information about how the eligible pack or subscription was used. This never affects purchases, draws, or refund eligibility. Turning it off stops future sharing but cannot retract information already sent.” Never make consent a purchase prerequisite or interrupt purchase success with it.
 - Privacy Policy, Terms of Use, support email, version/build number, and entertainment disclaimer.
-- Delete account flow with clear consequence, recent Game Center reauthentication, explicit confirmation, immediate normal-session revocation, and deletion-request status.
+- Delete account flow with clear consequence, recent Apple reauthentication, explicit confirmation, immediate normal-session revocation, and deletion-request status.
 
-Game Center itself cannot be signed out programmatically. “Disconnect on this device” clears Fortuneness tokens; the page explains that switching the Game Center player happens in Apple Settings.
+“Disconnect on this device” clears Fortuneness tokens and local account data; it does not sign the device out of its Apple Account.
 
 Before deletion confirmation, show a plain-language summary that:
 
@@ -315,7 +315,7 @@ Before deletion confirmation, show a plain-language summary that:
 - when Apple reports an active, grace/retry, or paid-through-cancelled subscription, request that the player cancel it through **Manage Subscription** before continuing, but keep **Request account deletion** enabled whether or not cancellation occurs; access ends when the request commits and purge is scheduled for the displayed date;
 - late renewals, refunds, or unfinished transactions may be retained only as minimized financial records and grant no benefit to a purged account;
 - if Oracle+ remains active after deletion, Apple may continue billing while the deleted or recreated Fortuneness account receives no Oracle+ benefit; cancelling through Apple before deletion avoids future charges; and
-- after purge, the same Game Center player creates a new empty Fortuneness account. Deleted readings and credits and the old subscription benefit cannot be restored or transferred to it.
+- after purge, the same Apple subject creates a new empty Fortuneness account. Deleted readings and credits and the old subscription benefit cannot be restored or transferred to it.
 
 Always require a second confirmation acknowledging that access ends on commit and data/credit loss becomes permanent if scheduled purge completes without cancellation. Require a separate Apple-billing acknowledgment only when the subscription is active, in grace/billing retry, or cancelled but still paid through; if status cannot be verified, disclose that uncertainty and show **Manage Subscription**. Reauthentication during the 30-day processing period returns a deletion-management state that can show status or cancel the request; it never silently issues a normal session.
 
@@ -439,7 +439,6 @@ fortune_APP/
 │       ├── app/                 # Expo Router stack routes
 │       ├── assets/
 │       ├── modules/
-│       │   ├── game-center/     # local Expo module, Swift/GameKit
 │       │   └── fortuneness-iap/ # local Expo module, Swift/StoreKit 2
 │       └── src/
 │           ├── components/
@@ -478,7 +477,7 @@ fortune_APP/
 | CI/CD | GitHub Actions for static checks/tests; Railway for API; EAS Build/Submit/Update for mobile |
 | Monitoring | Sentry or equivalent crash/error reporting with no advertising identifier |
 
-The exact Expo SDK and its bundled React Native versions are locked together in Phase 1 and committed. Do not independently upgrade React Native. Game Center and StoreKit require native code, so Expo Go is not a supported development environment.
+The exact Expo SDK and its bundled React Native versions are locked together in Phase 1 and committed. Do not independently upgrade React Native. StoreKit requires the local native module, so Expo Go is not a supported end-to-end development environment.
 
 ### 5.3 Environments
 
@@ -512,29 +511,26 @@ An EAS cloud-built development client and every TestFlight build use App Store S
 
 ## 6. Identity, session, and account security
 
-### 6.1 Game Center authentication flow
+### 6.1 Sign in with Apple authentication flow
 
-1. The local Swift module sets `GKLocalPlayer.local.authenticateHandler` once during app startup.
-2. It presents any GameKit-provided view controller and observes authentication changes.
-3. Continue only when `isAuthenticated == true` and `scopedIDsArePersistent() == true`. A temporary/nonpersistent ID produces a retryable blocked state and can never create or select a Fortuneness account.
-4. Call `fetchItems(forIdentityVerificationSignature:)` and return `teamPlayerID`, `gamePlayerID`, bundle ID, public-key URL, signature, salt, timestamp, display alias, and restriction flags to TypeScript.
-5. The client posts the verification bundle plus `reportedDeviceLocale` and `reportedDeviceTimeZone` to `/v1/auth/game-center` over TLS. Those context values are unsigned advisory input, separately allowlisted/canonicalized, and never identity evidence.
-6. The backend enforces a configured freshness/skew window and rejects a replay fingerprint derived from the signed proof fields. Game Center supplies no application nonce; do not describe salt or signature as one.
-7. The backend retrieves and caches the public key according to its cache headers, validates Apple's signing chain, constructs Apple's prescribed byte sequence with `teamPlayerID` for this non-Arcade app, and verifies the RSASSA-PKCS1-v1_5 signature.
-8. The backend verifies that the bundle ID is exactly the configured Fortuneness bundle ID. Alias, restriction flags, `gamePlayerID`, reported locale, and reported time zone are advisory values and are not treated as separately signed identity claims.
-9. HMAC `teamPlayerID` with a versioned server key and use `{ provider: GAME_CENTER, keyVersion, subjectDigest }` as the unique authenticating identity. Also store a versioned HMAC of `gamePlayerID` as an app-transfer migration aid, but never accept it alone to authenticate or link an account. Raw identifiers and raw proof fields are discarded after verification.
-10. Identity lookup/create is one database transaction/upsert so concurrent first logins return the same winning user without an orphan row.
-11. During key rotation, compute digests with the current and supported previous keys, match any version, and backfill the current digest after successful authentication. Losing or replacing a pepper without this dual-read migration is a release blocker.
-12. On success, issue a 15-minute access token plus a rotated 30-day refresh-token family.
+1. At startup, restore an existing Fortuneness refresh-token session without presenting an Apple sheet. If no valid session exists, render the native `AppleAuthenticationButton`.
+2. For sign-in or sensitive reauthentication, generate a fresh UUID nonce and pass it to `AppleAuthentication.signInAsync` without requesting name or email scopes.
+3. Require a nonempty Apple identity token. Post it, the exact nonce, and allowlisted advisory device locale/time-zone fields to `/v1/auth/apple` over TLS.
+4. The backend verifies the JWT with the key whose `kid` matches Apple's fixed `https://appleid.apple.com/auth/keys` JWKS, accepting only `RS256`.
+5. Require issuer `https://appleid.apple.com`, audience exactly equal to configured `APP_BUNDLE_ID`, the matching nonce claim, valid `exp`/`iat`, and the configured freshness/skew window.
+6. Reject a bounded SHA-256 replay fingerprint for every previously accepted identity token. Raw identity tokens and Apple subject identifiers are discarded after verification and never logged.
+7. HMAC the domain-separated Apple `sub` with the current and supported previous server keys. Use `{ provider: SIGN_IN_WITH_APPLE, keyVersion, subjectDigest }` as the unique authenticating identity and backfill the current digest after a successful old-key match.
+8. Identity lookup/create is one database transaction so concurrent first logins return the same winning user without an orphan row.
+9. On success, issue a 15-minute access token plus a rotating 30-day refresh-token family. The Apple identity token is never used as an application session.
 
-The public-key URL is untrusted client input until validated. Require HTTPS, disallow redirects to nonapproved hosts, block private/link-local IP ranges, cap response size/time, and validate the Apple certificate chain to prevent SSRF and key substitution.
+The Apple JWKS URL is a code constant rather than request input, eliminating the former identity-proof SSRF surface. The deployment still records `appleid.apple.com` in its outbound inventory and applies a bounded fetch timeout.
 
-The identity layer is provider-neutral even though Game Center is the V1 primary provider. Before Phase 5, the Phase 0 Apple-auth gate must either obtain a documented reviewer-access path for Game Center-only identity or add Sign in with Apple as a launch provider with explicit account linking. App transfer is blocked until the current Apple Game Center transfer procedure and old/new identifier migration have been rehearsed. Use of `teamPlayerID` is disclosed in App Privacy details.
+Apple's subject is stable for this app/developer scope, but it is not derivable from the former Game Center identity. A production migration with existing Game Center users therefore requires an explicit one-time account-linking ceremony that authenticates both identities; never guess or auto-merge them.
 
 ### 6.2 Session rules
 
 - Store refresh tokens in Keychain and only their hashes in PostgreSQL. Keep access tokens in memory when practical.
-- Access tokens expire after 15 minutes and contain `sub`, session-family ID, user `sessionVersion`, immutable Game Center `auth_time`, `iat`, `exp`, issuer, and audience. Refresh copies the original `auth_time`; only a newly verified Game Center proof advances it.
+- Access tokens expire after 15 minutes and contain `sub`, session-family ID, user `sessionVersion`, immutable identity `auth_time`, `iat`, `exp`, issuer, and audience. Refresh copies the original `auth_time`; only a newly verified Apple identity token advances it.
 - Every authenticated request checks authoritative `User.status`, matching `sessionVersion`, and an active session family. Deleted, blocked, logged-out, or superseded sessions therefore stop authorizing immediately rather than remaining valid until JWT expiry.
 - Increment `User.sessionVersion` whenever all sessions must be invalidated. Logout revokes the current family. User-scoped mutations recheck `User.status = ACTIVE`, `sessionVersion`, and session family inside their database transaction after acquiring the user lock.
 - Session writers use the global lock order `User → SessionFamily → RefreshToken`; a flow that also needs commerce state locks `FinancialSubject` last. Refresh, logout, and deletion recheck active user/session version and family state after those locks, so refresh cannot commit across deletion and lock inversion cannot deadlock them.
@@ -542,20 +538,20 @@ The identity layer is provider-neutral even though Game Center is the V1 primary
 - For 120 seconds, an exact same-key/same-hash retry may return the same encrypted replay receipt containing the already-issued replacement. The receipt is encrypted with a dedicated rotatable key, expires automatically, and is the only exception to hash-only refresh-token storage.
 - Reuse of a consumed refresh token with another key, another request hash, or after the replay window revokes the whole family. Concurrent refreshes follow the shared lock order; only one replacement references a predecessor.
 - A successful logout returns `204`. A repeated call with the now-revoked family fails normal authoritative authentication with `401`; the client still treats local token deletion as complete.
-- Reauthenticate through Game Center if refresh is unavailable, replay-revoked, or the local Game Center player changes.
-- On `GKPlayerAuthenticationDidChange`, pause mutations, cancel or drain account-scoped work, clear the prior account's persistent and memory caches, and establish a session for the new player.
+- Reauthenticate through Sign in with Apple if refresh is unavailable or replay-revoked. Sensitive reauthentication must resolve to the same local identity fingerprint as the active session.
+- A deliberate local disconnect pauses mutations and clears the prior account's Keychain material, memory, and SQLite partition before another Apple identity can establish a session.
 - Never merge external identities automatically. Rate-limit authentication by IP hash and identity hash without logging raw identifiers; retention for rate-limit hashes is documented and bounded.
 
 ### 6.3 Account deletion
 
-- `DELETE /v1/me` requires an active access token whose authoritative session family has `gameCenterAuthenticatedAt` no more than 300 seconds old and whose JWT `auth_time` matches it, plus the applicable confirmations in section 3.6. The client obtains that session by completing `POST /v1/auth/game-center` with a fresh proof immediately before deletion. An active subscription never disables **Request account deletion**.
-- In one transaction and the shared lock order, lock and recheck the active user/session, create the sole deletion request, set `DELETION_PENDING`, increment `sessionVersion`, and revoke every session family. Return `202` only after commit; normal application paths are unavailable immediately. A concurrent or post-commit access-token retry returns `423`, and a lost response is recovered through fresh Game Center authentication and deletion-management state. The unique active request makes the effect singular without promising response replay on a revoked session.
+- `DELETE /v1/me` requires an active access token whose authoritative session family has `identityAuthenticatedAt` no more than 300 seconds old and whose JWT `auth_time` matches it, plus the applicable confirmations in section 3.6. The client obtains that session by completing `POST /v1/auth/apple` with a fresh identity token immediately before deletion. An active subscription never disables **Request account deletion**.
+- In one transaction and the shared lock order, lock and recheck the active user/session, create the sole deletion request, set `DELETION_PENDING`, increment `sessionVersion`, and revoke every session family. Return `202` only after commit; normal application paths are unavailable immediately. A concurrent or post-commit access-token retry returns `423`, and a lost response is recovered through fresh Apple authentication and deletion-management state. The unique active request makes the effect singular without promising response replay on a revoked session.
 - Default purge processing deadline is 30 days and is disclosed. Reauthentication before purge issues no normal tokens; it returns `accountStatus: DELETION_PENDING`, dates, and a short-lived deletion-management token scoped only to `GET /v1/me/deletion` and cancellation.
 - Cancellation locks the same rows as the purge worker and succeeds only if it wins before purge. It restores `ACTIVE`, increments `sessionVersion`, issues a new session, and re-evaluates the still-linked financial subject's current entitlement/credits. A completed purge returns `410 ACCOUNT_PURGED`; the irreversible financial cutoff is never reopened.
 - Purge workers use row locks or leases so only one worker processes a request. In the global lock order, purge locks `User` then `FinancialSubject`, atomically sets `FinancialSubject.benefitsDisabledAt`, removes the active-user link, and only then deletes external identities, readings, preferences, account cache metadata, device/session data, and other personal application data.
 - Commerce rows reference a separate random internal `FinancialSubject`, not a deletion-sensitive user foreign key. Purge removes its login/profile linkage and the encrypted raw `appAccountToken`, retaining only minimized transactions, credit events, notifications, reconciliation facts, and a versioned one-way token digest where future Apple routing requires it. None can restore the deleted profile.
 - Unfinished deliveries, renewals, and refunds received after purge are retained as financial events and grant no benefit to the purged account. They are never silently transferred to a recreated player.
-- After purge, the same Game Center player creates a new user, financial subject, and purchase token. Old readings, credits, financial state, and subscription benefit never transfer or restore. Apple may continue billing the old subscription until separately cancelled even though the new account receives no Oracle+ benefit; the deletion UI states this and links to Manage Subscription.
+- After purge, the same Apple subject creates a new user, financial subject, and purchase token. Old readings, credits, financial state, and subscription benefit never transfer or restore. Apple may continue billing the old subscription until separately cancelled even though the new account receives no Oracle+ benefit; the deletion UI states this and links to Manage Subscription.
 - The base free experience is never conditioned on withdrawing a deletion request.
 
 ---
@@ -575,7 +571,7 @@ The owner chooses App Store price tiers before TestFlight commerce testing. UI a
 
 ### 7.2 Client transaction flow
 
-1. Start the `Transaction.updates` listener at application launch before Game Center/bootstrap work and keep it alive for the process lifetime. Buffer verified delivery work until an account/bootstrap decision is available.
+1. Start the `Transaction.updates` listener at application launch before authentication/bootstrap work and keep it alive for the process lifetime. Buffer verified delivery work until an account/bootstrap decision is available.
 2. Load products from StoreKit 2, render StoreKit-provided price/period data, and check `AppStore.canMakePayments`/equivalent before enabling purchase initiation.
 3. Purchase with the authenticated financial subject's current server-issued purchase token as `appAccountToken`; keep it only in account-scoped memory/Keychain, clear it on player change/logout/deletion, and never expose or reuse the internal financial-subject ID for this purpose.
 4. Accept only StoreKit-verified transactions on device and send the signed JWS representation to `/v1/iap/transactions`.
@@ -624,7 +620,7 @@ A crash cannot leave a transaction permanently “seen” without its benefit or
 - Handle explicit V2 types relevant to V1: `ONE_TIME_CHARGE`, `SUBSCRIBED`, `DID_RENEW`, `DID_FAIL_TO_RENEW`, `GRACE_PERIOD_EXPIRED`, `EXPIRED`, `REVOKE`, `DID_CHANGE_RENEWAL_PREF`, `DID_CHANGE_RENEWAL_STATUS`, `REFUND`, `REFUND_REVERSED`, `REFUND_DECLINED`, `CONSUMPTION_REQUEST`, and `TEST`.
 - `ONE_TIME_CHARGE` invokes atomic transaction application and can grant the pack even if the client never returns. Missing/unknown ownership is quarantined, not granted or discarded.
 - Route `REFUND` and `REFUND_REVERSED` by verified product and type. For a Fortune Pack, converge the grant's refunded-unit target using section 7.5. For Oracle+, record the refund or reversal and recompute entitlement from verified transaction, renewal, and Subscription Status facts; never apply pack-unit logic to a subscription. `REFUND_DECLINED` changes no benefit, and no refund event deletes archived readings.
-- The implementation supports explicit, versioned, revocable consent for sharing minimized consumption information for eligible Fortune Pack and Oracle+ refund requests. The deployment flag and player consent both default off and consent is never inferred from purchase; when the flag is disabled, the setting is hidden and no information is sent. On `CONSUMPTION_REQUEST`, persist immediately; only when the flag is enabled and valid consent exists, call **Send Consumption Information** within 12 hours with accurate `customerConsented`. Build the payload by product type, never send `consumptionPercentage` for an auto-renewable subscription because Apple calculates it, and never include fortune text, card history, or raw Game Center identity. Otherwise send nothing and safely acknowledge/store the request. Reflect this processing in App Privacy disclosures.
+- The implementation supports explicit, versioned, revocable consent for sharing minimized consumption information for eligible Fortune Pack and Oracle+ refund requests. The deployment flag and player consent both default off and consent is never inferred from purchase; when the flag is disabled, the setting is hidden and no information is sent. On `CONSUMPTION_REQUEST`, persist immediately; only when the flag is enabled and valid consent exists, call **Send Consumption Information** within 12 hours with accurate `customerConsented`. Build the payload by product type, never send `consumptionPercentage` for an auto-renewable subscription because Apple calculates it, and never include fortune text, card history, or raw Apple identity. Otherwise send nothing and safely acknowledge/store the request. Reflect this processing in App Privacy disclosures.
 - Unknown future types retain encrypted payload for the bounded replay period and are acknowledged safely rather than crashing. Adding support replays the stored envelope through the same reducer.
 - Scheduled reconciliation uses App Store Server API Transaction History V2 and Subscription Status. It uses the same application/reduction paths and a distributed job lock.
 
@@ -656,7 +652,7 @@ Ledger reasons are `PACK_PURCHASE`, `FORTUNE_DRAW`, `REFUND_DEBIT`, `REFUND_REIN
 
 ### 7.6 Account mismatch
 
-The App Store account and Game Center account can differ. `appAccountToken` is optional in Apple data; retain its binding history. A transaction belongs immutably to the financial subject identified by its known token.
+Sign in with Apple identity and App Store purchase identity remain separate trust domains. `appAccountToken` is optional in Apple data; retain its binding history. A transaction belongs immutably to the financial subject identified by its known token.
 
 - For every immediate or delayed client delivery, `updates`, `unfinished`, or `ONE_TIME_CHARGE`, route a known owner correctly. If that owner is the active player, return the normal disposition with optional `callerState`; otherwise return privacy-safe `DELIVERED_TO_OTHER_ACCOUNT`, `deliveryAccepted: true`, and `safeToFinish: true`, omitting owner state and all owner data.
 - A nil/unknown token is quarantined only when transaction/original-transaction business keys also have no recorded owner. Do not discard, grant, or finish that unowned transaction until a documented claim/support process verifies ownership; nil-token renewals and duplicates with known business-key ownership continue normally.
@@ -675,7 +671,7 @@ The Prisma schema is canonical at `apps/api/prisma/schema.prisma`. Migrations ar
 | --- | --- |
 | `User` | UUID ID, status, `sessionVersion`, resolved locale, current/pending IANA zones and effective/change-eligible timestamps, onboarding/settings, optional active financial-subject link, created/updated/deleted timestamps. |
 | `ExternalIdentity` | Provider, user, key version, unique subject digest, optional secondary migration digest, last-authenticated time; no raw identifier. Supports the Phase 0 provider decision without changing account ownership tables. |
-| `SessionFamily` | User, `gameCenterAuthenticatedAt`, issued/expiry/revocation times and reason. Every access token names one active family and carries matching immutable `auth_time`. |
+| `SessionFamily` | User, `identityAuthenticatedAt`, issued/expiry/revocation times and reason. Every access token names one active family and carries matching immutable `auth_time`. |
 | `RefreshToken` | Hashed rotating token, family, unique predecessor/replacement links, consumed/expiry times, request hash, idempotency key, device metadata. |
 | `RefreshReplayReceipt` | Refresh idempotency key, encrypted replacement response, key version, and expiry no later than 120 seconds. |
 | `IdempotencyRecord` | Mutation actor, method, normalized route, UUID key, request hash, terminal outcome/status, result reference or bounded response snapshot, and created/retention timestamps. Draw records live for the account lifetime; personal records cascade on purge. |
@@ -698,7 +694,7 @@ The Prisma schema is canonical at `apps/api/prisma/schema.prisma`. Migrations ar
 ### 8.2 Important enums
 
 - `UserStatus`: `ACTIVE`, `DELETION_PENDING`, `PURGED`, `BLOCKED`.
-- `ExternalIdentityProvider`: `GAME_CENTER`, plus `SIGN_IN_WITH_APPLE` only if the Phase 0 gate selects it.
+- `ExternalIdentityProvider`: `SIGN_IN_WITH_APPLE`; `GAME_CENTER` remains only as a legacy database enum value during migration.
 - `Arcana`: `MAJOR`, `MINOR`.
 - `TarotSuit`: `WANDS`, `CUPS`, `SWORDS`, `PENTACLES`.
 - `Orientation`: `UPRIGHT`, `REVERSED`.
@@ -757,7 +753,7 @@ Wrap lock/deadlock failures in at most five retries with jittered exponential ba
 | Method and route | Auth | Purpose |
 | --- | --- | --- |
 | `GET /health` | No | Process and database readiness. No secrets or dependency internals. |
-| `POST /v1/auth/game-center` | Game Center proof | Verify identity; create/find user or perform recent reauthentication; return a session with authoritative `auth_time` and bootstrap state. |
+| `POST /v1/auth/apple` | Apple identity token plus nonce | Verify identity; create/find user or perform recent reauthentication; return a session with authoritative `auth_time` and bootstrap state. |
 | `POST /v1/auth/refresh` | Refresh token + `Idempotency-Key` | Rotate token family and return one replacement session. |
 | `POST /v1/auth/logout` | Session | Revoke current refresh family. |
 | `GET /v1/me` | Access token | Profile, settings, account status, server time. |
@@ -830,11 +826,10 @@ Content-Type: application/json
 | --- | --- | --- | --- | --- |
 | `VALIDATION_FAILED` | `400` | No | No | Typed field issues; correct the request. |
 | `AUTH_REQUIRED` | `401` | Yes | Yes on keyed route | Reauthenticate; no idempotency record was reserved. |
-| `GAME_CENTER_REAUTH_REQUIRED` | `401` | Yes | No | Obtain a new Game Center proof/session; deletion requires `auth_time` ≤ 300 seconds. |
-| `GAME_CENTER_UNAVAILABLE` | Client-local or `503` | Yes | No | Retry after GameKit/service recovery. |
-| `GAME_CENTER_ID_NOT_PERSISTENT` | `409` | Yes | No | Wait for a persistent scoped ID; never create an account from the temporary ID. |
-| `GAME_CENTER_PROOF_INVALID` | `401` | No | No | Obtain a new proof; alert on repeated server-side failures. |
-| `GAME_CENTER_PROOF_EXPIRED` | `401` | Yes | No | Obtain a fresh proof. |
+| `APPLE_ID_REAUTH_REQUIRED` | `401` | Yes | No | Complete a new Apple sign-in; deletion requires `auth_time` ≤ 300 seconds. |
+| `APPLE_ID_UNAVAILABLE` | Client-local or `503` | Yes | No | Retry after Apple authentication/JWKS recovery. |
+| `APPLE_ID_TOKEN_INVALID` | `401` | No | No | Obtain a new token; alert on repeated server-side failures. |
+| `APPLE_ID_TOKEN_EXPIRED` | `401` | Yes | No | Obtain a fresh identity token. |
 | `ACCOUNT_DELETION_PENDING` | `423` | No | No | Deletion status/cancellation path only. |
 | `ACCOUNT_PURGED` | `410` | No | No | Create a new empty account through normal authentication. |
 | `NOT_FOUND` | `404` | No | No | Includes unauthorized owned-resource lookup. |
@@ -862,7 +857,7 @@ The Zod schemas in `packages/api-contracts` and generated OpenAPI document are r
 | Route | Canonical request/query | Success contract |
 | --- | --- | --- |
 | `GET /health` | None | `200 { status, database, requestId }`; no version or dependency secrets. |
-| `POST /v1/auth/game-center` | Proof fields plus allowlisted/canonicalized reported device locale/time zone from section 6.1 | `200 { user, session, bootstrap }`; pending deletion returns `423` plus deletion-management exchange data, never a normal session. |
+| `POST /v1/auth/apple` | Identity token, nonce, and allowlisted/canonicalized reported device locale/time zone from section 6.1 | `200 { user, session, bootstrap }`; pending deletion returns `423` plus deletion-management exchange data, never a normal session. |
 | `POST /v1/auth/refresh` | Refresh token plus header key | `200 { accessToken, refreshToken, expiresAt }`; exact retry returns the same replacement during the replay window. |
 | `POST /v1/auth/logout` | Current active family | `204`; a repeated call with the revoked family is `401`. |
 | `GET /v1/me` | None | `200 { user, preferences, accountStatus, timeZoneState, serverTime }`. |
@@ -956,8 +951,7 @@ Content guidance:
 
 Collect only what V1 uses:
 
-- Versioned pseudonymized Game Center identity digests and bounded proof-replay fingerprints.
-- Optional current Game Center alias for display; it is not an identity key.
+- Versioned pseudonymized Apple subject digests and bounded identity-token replay fingerprints.
 - Time zone, locale, preferences, sessions/devices, readings, purchase/entitlement metadata, optional versioned consumption-consent state, and operational logs.
 - A random internal financial subject plus an encrypted raw purchase token and versioned lookup digest while the account is active; after personal-account purge, erase the raw token and retain only the closed subject and minimized digest where future Apple reconciliation requires them.
 
@@ -969,7 +963,7 @@ Retention defaults are explicit: proof-replay fingerprints expire 10 minutes aft
 
 The About page and store listing include: “Fortuneness offers tarot-inspired reflections for entertainment and personal contemplation. It does not predict certain outcomes or provide medical, legal, financial, or mental-health advice.”
 
-Fortune content must pass automated banned-pattern checks and editorial review. Underage Game Center restriction flags are respected; V1 content remains suitable without personalized communication or social features.
+Fortune content must pass automated banned-pattern checks and editorial review. V1 content remains suitable without personalized communication or social features.
 
 ### 11.3 Operational visibility
 
@@ -992,7 +986,7 @@ Alerts:
 - State/history p95 above 750 ms, draw p95 above 1.5 seconds, five-minute API 5xx rate above 2%, or fifteen-minute verified purchase-delivery failure rate above 1%.
 - Any verified transaction not durably acknowledged within 60 seconds, after excluding an Apple/system pending purchase.
 
-Never log access/refresh tokens, raw Game Center proof fields, full signed transaction JWS, fortune private history, or Apple private keys. The bounded encrypted notification store is access-controlled application data, not log output.
+Never log access/refresh tokens, raw Apple identity tokens, full signed transaction JWS, fortune private history, or Apple private keys. The bounded encrypted notification store is access-controlled application data, not log output.
 
 ### 11.4 Backups and recovery
 
@@ -1013,24 +1007,24 @@ Later phases may be prepared in parallel, but their acceptance gates are not ski
 
 - [ ] Confirm public name **Fortuneness**, App Store subtitle direction, support email, privacy-policy host, and legal entity/developer account.
 - [ ] Reserve the final Apple bundle ID. Proposed: `app.fortuneness` if available.
-- [ ] Create App Store Connect app record and enable Game Center and In-App Purchase capabilities.
+- [ ] Create the App Store Connect app record and enable Sign in with Apple and In-App Purchase capabilities.
 - [ ] Create the two IAP records using the final product IDs in section 7.1; put Oracle+ in one subscription group, configure the standard month-to-month pay-as-you-go plan with no 12-month commitment, and record the exact `billingPlanType` expected by server validation.
 - [ ] Enable Billing Grace Period for Sandbox and Production, record its duration/scope, and configure separate V2 notification URLs.
 - [ ] Create Expo/EAS project and credentials.
 - [ ] Create Railway staging and production projects with separate PostgreSQL services.
 - [ ] Confirm Google ADC access for the illustration pipeline.
 - [ ] Assign an editorial owner and confirm capacity for 624 English templates and 78 reviewed illustration descriptions.
-- [ ] Produce an initial trust-boundary/abuse-case review covering Game Center proof and public-key SSRF, session replay, player switching, `appAccountToken`, StoreKit delivery, webhook verification, account caches, deletion, and credit/refund abuse. Assign every mitigation to a phase; no unresolved critical/high design finding may enter Phase 5 or 9.
+- [ ] Produce an initial trust-boundary/abuse-case review covering Apple identity-token forgery/replay, session replay, account switching, `appAccountToken`, StoreKit delivery, webhook verification, account caches, deletion, and credit/refund abuse. Assign every mitigation to a phase; no unresolved critical/high design finding may enter Phase 5 or 9.
 - [ ] Build a throwaway vertical spike in the real mobile workspace:
-  - configure the local Game Center entitlement and verify the signed IPA contains `com.apple.developer.game-center`;
+  - configure Sign in with Apple and verify the signed IPA contains `com.apple.developer.applesignin`;
   - authenticate `GKLocalPlayer` in an EAS development build and verify persistent scoped IDs;
   - obtain identity-verification items on a physical device;
   - on Mac/Xcode, load a local `.storekit` configuration and verify Xcode-environment JWS with the exported test certificate;
   - in an EAS development/TestFlight build, load App Store Sandbox products and receive an Apple-verified JWS with `appAccountToken`.
-- [ ] Close the Apple-auth go/no-go before Phase 5: obtain a documented reviewer-access path for Game Center-only identity, or implement Sign in with Apple as a launch provider using the provider-neutral identity/linking design. Do not wait for an App Review rejection.
-- [ ] Create the App Review access artifact: exact own-Game-Center auto-provisioning steps or an Apple-approved fully featured demo mode, plus free draw, Sandbox pack/subscription, **Restore Purchases**, and deletion instructions. Never share Apple Account credentials.
+- [ ] Verify Sign in with Apple account creation and reauthentication on a clean physical device before Phase 5 closes.
+- [ ] Create the App Review access artifact: Sign in with Apple steps, free draw, Sandbox pack/subscription, **Restore Purchases**, and deletion instructions. Never share Apple Account credentials.
 
-**Acceptance:** A physical iPhone build returns a verified persistent Game Center proof, the signed IPA contains the entitlement, local Xcode and App Store Sandbox commerce paths are distinguished and pass, the identity/reviewer-access gate is closed, no critical/high design threat remains unresolved, and bundle/product IDs are locked before production code depends on them.
+**Acceptance:** A physical iPhone build completes Sign in with Apple end to end, the signed IPA contains the entitlement, local Xcode and App Store Sandbox commerce paths are distinguished and pass, no critical/high design threat remains unresolved, and bundle/product IDs are locked before production code depends on them.
 
 ### Phase 1 — Repository and quality scaffold
 
@@ -1041,8 +1035,8 @@ Later phases may be prepared in parallel, but their acceptance gates are not ski
 - [ ] Scaffold `apps/api`, `packages/api-contracts`, `packages/shared-types`, and `packages/fortune-content` first.
 - [ ] Scaffold Expo mobile with SDK version locked to its compatible React Native version.
 - [ ] Configure Expo Router, iOS-only platform target, `supportsTablet: true`, all orientations, URL scheme, dark launch screen, Secure Store, `expo-sqlite`, English localization plus a debug/test-only length-expanded pseudo-locale unavailable in production builds, notifications, and EAS profiles.
-- [ ] Add local Game Center and IAP Expo modules established in the spike.
-- [ ] Add the Game Center capability through app config/config plugin, confirm the remote App ID capability, regenerate profiles, inspect `npx expo config --type introspect`, and verify the signed development IPA entitlement.
+- [ ] Add `expo-apple-authentication` and the local IAP Expo module established in the spike.
+- [ ] Add the Sign in with Apple capability through app config/config plugin, confirm the remote App ID capability, regenerate profiles, inspect `npx expo config --type introspect`, and verify the signed development IPA entitlement.
 - [ ] Add root scripts: `lint`, `format:check`, `typecheck`, `test`, and workspace builds.
 - [ ] Add CI for install-from-lockfile, lint, format, typecheck, unit tests, content validation, and asset validation.
 - [ ] Add `.env.example` files with placeholders only.
@@ -1095,18 +1089,18 @@ Later phases may be prepared in parallel, but their acceptance gates are not ski
 
 Full-deck art, alternative-text authoring, and fortune-template production proceed in parallel with Phases 5–10. Progress gates are 20 fully complete cards—art, alt text, and all eight intention/orientation templates, 160 templates total—by Phase 8, and 58 fully complete cards, 464 templates total, by Phase 10. These are phase acceptance gates; missing either triggers schedule/scope review without weakening the 624-template English launch minimum.
 
-### Phase 5 — Game Center identity and app sessions
+### Phase 5 — Sign in with Apple identity and app sessions
 
 **Goal:** A player can securely authenticate on device and remain signed in.
 
-- [ ] Finish the Swift Game Center module, presentation bridge, auth-change events, restriction flags, persistent-scoped-ID check, and proof retrieval.
+- [ ] Integrate the native Apple authentication button and identity-token exchange without requesting name or email scopes.
 - [ ] Implement hardened server verification, key caching, exact signed-byte construction, bounded proof fingerprint replay defense, versioned/dual-read HMAC identity storage, atomic first-login upsert, and bundle-ID validation.
-- [ ] Implement access tokens with authoritative session-version checks, hashed rotating refresh families, same-key refresh replay receipts, logout, and Game Center reauthentication.
+- [ ] Implement access tokens with authoritative session-version checks, hashed rotating refresh families, same-key refresh replay receipts, logout, and Apple reauthentication.
 - [ ] Implement account-switch handling and account bootstrap response.
 - [ ] Build launch/auth/unavailable/deletion-management UI states, including unauthenticated legal/support access.
 - [ ] Test invalid signature, nonpersistent ID, stale proof, wrong bundle, proof replay, key-fetch failure, pepper rotation, concurrent first login, lost refresh response, concurrent same-key refresh, malicious different-key replay, immediate session invalidation, and player switching.
 
-**Acceptance:** The same persistent Game Center player maps to one user across two devices and key rotation; another player never sees the first player's cache/data; invalid or temporary proofs cannot establish a session; logout/deletion invalidates already-issued access tokens immediately.
+**Acceptance:** The same Apple subject maps to one user across two devices and key rotation; another Apple subject never sees the first account's cache/data; invalid, stale, wrong-audience, wrong-nonce, or replayed tokens cannot establish a session; logout/deletion invalidates already-issued access tokens immediately.
 
 ### Phase 6 — Fortune engine and daily allowance
 
@@ -1194,7 +1188,7 @@ Full-deck art, alternative-text authoring, and fortune-template production proce
 - [ ] After the first draw, offer reminders; request notification permission only after explicit opt-in, then implement local scheduling, bounded old/new-zone one-shot transitions, time changes, and launch-time schedule refresh.
 - [ ] Finish sound/haptic/motion preferences.
 - [ ] Publish Privacy Policy, Terms of Use/EULA link, support path, and entertainment disclaimer.
-- [ ] Implement the 300-second Game Center `auth_time` deletion gate, applicable confirmations, immediate session invalidation, deletion-management token/status/cancel, global purge lock order, irreversible financial benefit cutoff, conditional subscription warning/manage link, and deterministic post-purge recreation behavior.
+- [ ] Implement the 300-second Apple `auth_time` deletion gate, applicable confirmations, immediate session invalidation, deletion-management token/status/cancel, global purge lock order, irreversible financial benefit cutoff, conditional subscription warning/manage link, and deterministic post-purge recreation behavior.
 - [ ] Implement the section 3.6 optional versioned pack/subscription consumption-information consent, deployment flag, default-off behavior, revocation, product-specific payload rules, and Privacy Policy/App Privacy disclosure.
 - [ ] Add privacy manifest and complete an initial App Privacy label worksheet.
 - [ ] Confirm the app requests only capabilities/permissions it uses.
@@ -1205,7 +1199,7 @@ Full-deck art, alternative-text authoring, and fortune-template production proce
 
 **Goal:** Make failure boring and recoverable.
 
-- [ ] Revalidate and penetration-test the Phase 0 trust/abuse model for Game Center proof URL, session replay, transaction forgery/replay, webhook spoofing, account switching, quota races, cache leaks, deletion races, and refund abuse.
+- [ ] Revalidate and penetration-test the Phase 0 trust/abuse model for Apple token forgery/replay, session replay, transaction forgery/replay, webhook spoofing, account switching, quota races, cache leaks, deletion races, and refund abuse.
 - [ ] Add rate limits, timeouts, outbound-request restrictions, secret rotation procedure, dependency audit, and production log redaction tests.
 - [ ] Add Sentry/error reporting with environment separation and PII scrubbing.
 - [ ] Add database query/route latency metrics, purchase alerts, and reconciliation dashboards.
@@ -1252,7 +1246,7 @@ Every zero-tolerance item above is release-blocking regardless of whether triage
 - [ ] After external beta begins, run a final seven-day measurement with at least 200 sessions and at least 99.5% crash-free sessions using actionable, PII-safe telemetry.
 - [ ] Verify production Railway service, database backups, secrets, domain/TLS, health, and notification URL separately.
 - [ ] Prepare App Store name, subtitle, description, keywords, screenshots for iPhone and iPad, privacy details, age-rating questionnaire, IAP screenshots, subscription terms, support URL, privacy URL, and review notes.
-- [ ] Attach the Phase 0 reviewer-access artifact. Review notes explain own-Game-Center auto-provisioning or the approved demo path, daily rules, exact free draw, Sandbox pack/subscription, **Restore Purchases**, account switching, and deletion steps. Never share Apple credentials; keep the backend live.
+- [ ] Attach the Phase 0 reviewer-access artifact. Review notes explain Sign in with Apple auto-provisioning, daily rules, exact free draw, Sandbox pack/subscription, **Restore Purchases**, local disconnect, and deletion steps. Never share Apple credentials; keep the backend live.
 - [ ] Submit IAP products with the app version if required.
 
 **Acceptance:** External TestFlight users complete free/paid/deletion flows; the final seven-day sample contains at least 200 sessions at 99.5% or better crash-free and the commerce SLOs pass; production smoke test succeeds without fabricated production purchases; reviewer access has been rehearsed on a clean device; App Review materials are complete.
@@ -1297,8 +1291,8 @@ Highest-risk logic must have the strongest tests:
 1. Draw same-key/same-input success and terminal-conflict replay, key/input conflicts, one-unviewed constraint, lock retries, and concurrent allowance consumption.
 2. Atomic IAP application and exactly-once grant/draw/refund/reinstatement effects across client, webhook, and reconciliation races.
 3. Monotonic StoreKit signature, ownership, notification-order, subscription, consent, and refund-state reduction.
-4. Game Center signature construction, persistent scoped IDs, proof replay, bundle validation, concurrent first login, and HMAC-key rotation.
-5. Session-version invalidation, shared lock ordering, recent Game Center `auth_time`, lost/concurrent refresh response handling, logout repetition, account switching, and memory/SQLite cache isolation.
+4. Apple JWT signature/issuer/audience/nonce/freshness validation, token replay, concurrent first login, and HMAC-key rotation.
+5. Session-version invalidation, shared lock ordering, recent Apple `auth_time`, lost/concurrent refresh response handling, logout repetition, account switching, and memory/SQLite cache isolation.
 6. Monotonic allowance periods and east/west/DST/time-zone-change behavior, including suppression of both candidate resets before one effective boundary.
 7. Account deletion races, lost request response, deletion-management access, locked terminal financial cutoff, purge minimization, and late Apple events.
 8. English content/asset/alt-text completeness and historical snapshot immutability.
@@ -1316,7 +1310,7 @@ Highest-risk logic must have the strongest tests:
 | Pack delivery response is lost | Transaction remains unfinished; retry returns accepted duplicate disposition; one 10-unit grant exists and `finish()` becomes safe. |
 | Client delivery, `ONE_TIME_CHARGE`, and reconciliation race | One transaction disposition and one 10-unit grant commit atomically. |
 | App dies during any reveal step | Relaunch continues the sole unviewed reading; no second allowance is consumed; acknowledgement eventually clears it. |
-| Game Center player switches | Mutations pause, old cache clears, new authenticated account sees only its data. |
+| A different Apple Account is selected during reauthentication | The mismatch is refused; a deliberate disconnect clears the old cache before another account can sign in. |
 | Player switches after purchase success but before acknowledgement | Business key/token routes the grant to the recorded old financial subject; response is `DELIVERED_TO_OTHER_ACCOUNT` with no old-owner state/data; transaction finishes exactly once. |
 | Known renewal or duplicate arrives with nil token | Existing transaction/original-transaction ownership wins; the event applies to that immutable owner and is not quarantined. |
 | Refresh response is lost | Same-key retry within 120 seconds returns the same replacement; different-key reuse revokes the family. |
@@ -1328,7 +1322,7 @@ Highest-risk logic must have the strongest tests:
 | Refund arrives before pack delivery, then reverses | The atomic grant plus refund target initially exposes only unrefunded units; reversal materializes the original grant exactly once if the owner remains open. |
 | Pack/subscription `CONSUMPTION_REQUEST` without/with consent | Without consent no data is sent; with valid consent an accurate product-specific minimized payload is sent within 12 hours, without subscription `consumptionPercentage`. |
 | Delete races draw/refresh and later renewal | Shared locks/session version prevent new personal mutation; purge closes the financial subject under lock; renewal is retained as a minimized terminal no-benefit event. |
-| Delete response is lost | The revoked-session retry is `423`; fresh Game Center authentication returns deletion-management state and cannot create a second request. |
+| Delete response is lost | The revoked-session retry is `423`; fresh Apple authentication returns deletion-management state and cannot create a second request. |
 | Offline launch with partial cache | Saved count and last sync are visible; filters cover only saved readings; Draw and commerce explain network requirement. |
 | Dynamic Type maximum | Essential copy reflows/scrolls; no control becomes unreachable. |
 
@@ -1359,10 +1353,10 @@ APP_BUNDLE_ID=app.fortuneness
 APP_APPLE_ID=
 SUPPORTED_LOCALES=en
 DEFAULT_LOCALE=en
-GAME_CENTER_IDENTITY_HMAC_KEYS_JSON={"v1":"base64-key"}
-GAME_CENTER_IDENTITY_CURRENT_KEY_VERSION=v1
-GAME_CENTER_PROOF_MAX_AGE_SECONDS=300
-GAME_CENTER_PROOF_CLOCK_SKEW_SECONDS=60
+APPLE_IDENTITY_HMAC_KEYS_JSON={"v1":"base64-key"}
+APPLE_IDENTITY_CURRENT_KEY_VERSION=v1
+APPLE_IDENTITY_TOKEN_MAX_AGE_SECONDS=300
+APPLE_IDENTITY_TOKEN_CLOCK_SKEW_SECONDS=60
 JWT_ACCESS_KEYS_JSON={"v1":"base64-key"}
 JWT_ACCESS_CURRENT_KEY_VERSION=v1
 JWT_ISSUER=fortuneness-api
@@ -1411,8 +1405,8 @@ Rules:
 
 | Risk | Mitigation |
 | --- | --- |
-| Game Center as primary auth in a nontraditional game receives App Review scrutiny | Phase 0 is a hard go/no-go: establish a documented reviewer path or add Sign in with Apple before identity implementation. Keep provider-neutral ownership and rehearse review access on a clean device. |
-| App Store account differs from Game Center account | Bind purchases to immutable financial-subject token history, route every known-owner delivery without disclosure, quarantine unknown tokens, forbid cross-account transfer, and provide an audited support path. |
+| Sign in with Apple capability or reviewer flow is misconfigured | Rehearse first sign-in and reauthentication on a clean physical device and include exact review notes. |
+| App Store purchase identity differs from the application identity | Bind purchases to immutable financial-subject token history, route every known-owner delivery without disclosure, quarantine unknown tokens, forbid cross-account transfer, and provide an audited support path. |
 | Consumables are absent from current entitlements or the client never returns | Unified atomic application from unfinished delivery, `ONE_TIME_CHARGE`, and reconciliation; one environment-scoped transaction disposition and grant. |
 | Refund arrives repeatedly, out of order, or after credits are consumed | Milliunit-correct, source-ordered per-grant reduction, nonnegative spendable balance, unrecovered-unit audit, and no old refund debt applied to a later pack. |
 | Daily quota race across devices | Server clock, stable per-user/financial locks in one order, request-hashed idempotency, unique constraints, and bounded retry behavior. |
@@ -1435,7 +1429,7 @@ These do not block writing the scaffold, but must be resolved by the named phase
 | --- | --- | --- |
 | Final bundle ID | Phase 0 | `app.fortuneness` if available |
 | Support/privacy domain and email | Phase 0 | A dedicated product domain and `support@…` |
-| Launch identity/reviewer path | Phase 0 hard gate | Game Center-only only with a documented reviewer-access path; otherwise add Sign in with Apple before Phase 5 |
+| Launch identity/reviewer path | Phase 0 hard gate | Sign in with Apple verified on a clean physical device before Phase 5 |
 | Monthly subscription billing model | Phase 0 | Standard month-to-month pay-as-you-go; explicitly reject a 12-month commitment plan and record the exact current Apple `billingPlanType` value |
 | Billing Grace Period duration/scope | Phase 0 | Enable for Sandbox and Production using the current Apple option selected for the monthly product; document the exact verified grace expiration behavior |
 | Railway backup plan | Phase 0 | A plan/configuration meeting 24-hour RPO, 4-hour RTO, and 30 recovery points |
@@ -1455,8 +1449,8 @@ Everything else in this document is considered the implementation default.
 
 Implementation must recheck current official documentation at the phase where platform code is written:
 
-- Apple, [Authenticating a player with Game Center](https://developer.apple.com/documentation/gamekit/authenticating-a-player)
-- Apple, [Game Center identity verification signature items](https://developer.apple.com/documentation/gamekit/gklocalplayer/fetchitems%28foridentityverificationsignature%3A%29)
+- Apple, [Implementing User Authentication with Sign in with Apple](https://developer.apple.com/documentation/authenticationservices/implementing-user-authentication-with-sign-in-with-apple)
+- Apple, [Fetch Apple’s public key for verifying token signature](https://developer.apple.com/documentation/signinwithapplerestapi/fetch-apple%27s-public-key-for-verifying-token-signature)
 - Apple, [Protecting player privacy with scoped identifiers](https://developer.apple.com/documentation/gamekit/protecting-the-player-s-privacy-using-scoped-identifiers)
 - Apple, [StoreKit 2](https://developer.apple.com/storekit/)
 - Apple, [`Transaction` and signed JWS verification](https://developer.apple.com/documentation/storekit/transaction)

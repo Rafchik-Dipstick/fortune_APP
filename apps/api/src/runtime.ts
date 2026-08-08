@@ -3,9 +3,8 @@ import { type Express } from 'express';
 import { createApiApp } from './app.js';
 import { AccountBootstrapService } from './auth/account-bootstrap.js';
 import { AccessTokenService } from './auth/access-token.js';
-import { GameCenterLoginService } from './auth/game-center-login.js';
-import { GameCenterProofVerifier } from './auth/game-center-proof.js';
-import { CachedGameCenterPublicKeyProvider } from './auth/game-center-public-key.js';
+import { AppleIdentityTokenVerifier } from './auth/apple-identity-token.js';
+import { AppleLoginService } from './auth/apple-login.js';
 import { LogoutSessionService } from './auth/logout-session.js';
 import { RefreshSessionService } from './auth/refresh-session.js';
 import { type ApiEnvironment, parseApiEnvironment } from './config/environment.js';
@@ -69,17 +68,13 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
   const readiness = new ApiReadiness(database.checkReadiness);
   const accessTokens = new AccessTokenService(environment.authentication);
   const deletionManagementTokens = new DeletionManagementTokenService(environment.authentication);
-  const gameCenterPublicKeys = new CachedGameCenterPublicKeyProvider(environment.authentication);
-  const gameCenterProofs = new GameCenterProofVerifier(
-    environment.authentication,
-    gameCenterPublicKeys,
-  );
-  const gameCenterLogin = new GameCenterLoginService({
+  const appleIdentityTokens = new AppleIdentityTokenVerifier(environment.authentication);
+  const appleLogin = new AppleLoginService({
     deletionManagementTokens,
     accessTokens,
     client: database.client,
     environment: environment.authentication,
-    proofVerifier: gameCenterProofs,
+    identityVerifier: appleIdentityTokens,
   });
   const refreshSessions = new RefreshSessionService({
     accessTokens,
@@ -208,7 +203,7 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
       registerAuthenticationRoutes(configuredApp, {
         authenticate,
         bootstrap: accountBootstrap,
-        login: gameCenterLogin,
+        login: appleLogin,
         logout: logoutSessions,
         refresh: refreshSessions,
       });
@@ -230,10 +225,10 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
         deletion: {
           cancel: async (userId, authenticatedAt) => {
             await accountDeletion.cancel(userId);
-            // The restored session inherits the proof time that produced the
+            // The restored session inherits the sign-in time that produced the
             // deletion-management token, so cancelling never manufactures a
-            // fresher Game Center proof than the player actually presented.
-            return gameCenterLogin.issueRestoredSession({ authenticatedAt, userId });
+            // fresher Apple sign-in than the account owner actually presented.
+            return appleLogin.issueRestoredSession({ authenticatedAt, userId });
           },
           request: (authentication, confirmations) =>
             accountDeletion.request(authentication, confirmations),

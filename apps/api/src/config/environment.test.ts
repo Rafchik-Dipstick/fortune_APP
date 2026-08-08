@@ -7,8 +7,8 @@ const encodedKey = Buffer.alloc(32, 7).toString('base64');
 const keyRing = JSON.stringify({ v1: encodedKey, v0: Buffer.alloc(32, 6).toString('base64') });
 const validAuthenticationEnvironment = {
   APP_BUNDLE_ID: 'app.fortuneness.dev',
-  GAME_CENTER_IDENTITY_HMAC_KEYS_JSON: keyRing,
-  GAME_CENTER_IDENTITY_CURRENT_KEY_VERSION: 'v1',
+  APPLE_IDENTITY_HMAC_KEYS_JSON: keyRing,
+  APPLE_IDENTITY_CURRENT_KEY_VERSION: 'v1',
   JWT_ACCESS_KEYS_JSON: keyRing,
   JWT_ACCESS_CURRENT_KEY_VERSION: 'v1',
   JWT_ISSUER: 'fortuneness-api',
@@ -49,18 +49,15 @@ describe('parseApiEnvironment', () => {
       trustProxyHops: 0,
     });
     expect(environment.authentication).toMatchObject({
+      appleIdentityJwksTimeoutMs: 5_000,
+      appleIdentityTokenClockSkewSeconds: 60,
+      appleIdentityTokenMaxAgeSeconds: 300,
       bundleId: 'app.fortuneness.dev',
-      gameCenterPublicKeyHosts: ['static.gc.apple.com'],
-      gameCenterCertificateHosts: ['cacerts.digicert.com'],
-      gameCenterProofMaxAgeSeconds: 300,
-      gameCenterProofClockSkewSeconds: 60,
       jwtAccessTtlSeconds: 900,
       refreshTokenTtlDays: 30,
     });
-    expect(environment.authentication.gameCenterIdentityKeys.currentVersion).toBe('v1');
-    expect(environment.authentication.gameCenterIdentityKeys.keys['v1']).toEqual(
-      Buffer.alloc(32, 7),
-    );
+    expect(environment.authentication.appleIdentityKeys.currentVersion).toBe('v1');
+    expect(environment.authentication.appleIdentityKeys.keys['v1']).toEqual(Buffer.alloc(32, 7));
     expect(environment.archive.historyCursorHmacKeys.currentVersion).toBe('v1');
     expect(environment.archive.historyCursorHmacKeys.keys['v1']).toEqual(Buffer.alloc(32, 7));
   });
@@ -310,49 +307,6 @@ describe('parseApiEnvironment', () => {
     });
 
     expect(environment.observability.errorReporting).toBeNull();
-  });
-
-  it.each(['staging', 'production'] as const)(
-    'refuses non-persistent Game Center identifiers in %s unless the operator allows them',
-    (deployment) => {
-      // Accepting a temporary identifier means accepting an identity that can
-      // change under the account that owns it, so the default stays closed.
-      const environment = parseApiEnvironment({
-        ...validAuthenticationEnvironment,
-        DATABASE_URL: databaseUrl,
-        DEPLOYMENT_ENVIRONMENT: deployment,
-        APPLE_IAP_ENVIRONMENT: deployment === 'production' ? 'PRODUCTION' : 'SANDBOX',
-      });
-
-      expect(environment.authentication.allowNonPersistentGameCenterIds).toBe(false);
-    },
-  );
-
-  it.each(['staging', 'production'] as const)(
-    'lets %s accept temporary identifiers so App Review can sign in',
-    (deployment) => {
-      // Game Center reports scoped identifiers as non-persistent for any app
-      // it has not seen published, which includes the build App Review runs.
-      // A deployment that could never accept one could never be approved.
-      const environment = parseApiEnvironment({
-        ...validAuthenticationEnvironment,
-        DATABASE_URL: databaseUrl,
-        DEPLOYMENT_ENVIRONMENT: deployment,
-        APPLE_IAP_ENVIRONMENT: deployment === 'production' ? 'PRODUCTION' : 'SANDBOX',
-        GAME_CENTER_ALLOW_NONPERSISTENT_IDS: 'true',
-      });
-
-      expect(environment.authentication.allowNonPersistentGameCenterIds).toBe(true);
-    },
-  );
-
-  it('defaults to refusing non-persistent Game Center identifiers', () => {
-    const environment = parseApiEnvironment({
-      ...validAuthenticationEnvironment,
-      DATABASE_URL: databaseUrl,
-    });
-
-    expect(environment.authentication.allowNonPersistentGameCenterIds).toBe(false);
   });
 
   it('parses a DSN into ingest coordinates without keeping the raw value', () => {

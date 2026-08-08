@@ -3,8 +3,8 @@ import request from 'supertest';
 import { describe, expect, it, vi } from 'vitest';
 import {
   apiPaths,
-  type GameCenterAuthRequest,
-  type GameCenterAuthResponse,
+  type AppleAuthRequest,
+  type AppleAuthResponse,
   type MeResponse,
   type RefreshSessionRequest,
   type RefreshSessionResponse,
@@ -12,43 +12,29 @@ import {
 
 import { createApiApp } from '../app.js';
 import { AccountBootstrapError } from '../auth/account-bootstrap.js';
-import { GameCenterVerificationError } from '../auth/game-center-errors.js';
-import { GameCenterLoginError } from '../auth/game-center-login.js';
+import { AppleIdentityVerificationError } from '../auth/apple-auth-errors.js';
+import { AppleLoginError } from '../auth/apple-login.js';
 import { LogoutSessionError } from '../auth/logout-session.js';
 import { RefreshSessionError } from '../auth/refresh-session.js';
 import { createTestApiEnvironment } from '../config/environment.fixture.js';
 import { ApiReadiness } from '../health/readiness.js';
 import {
-  type GameCenterLoginHandler,
+  type AppleLoginHandler,
   type AccountBootstrapHandler,
   type LogoutSessionHandler,
   type RefreshSessionHandler,
   registerAuthenticationRoutes,
 } from './authentication.js';
 
-const body: GameCenterAuthRequest = {
-  proof: {
-    teamPlayerId: 'team-player-id',
-    gamePlayerId: 'game-player-id',
-    bundleId: 'app.fortuneness.test',
-    publicKeyUrl: 'https://static.gc.apple.com/public-key.cer',
-    signatureBase64: Buffer.from('signature').toString('base64'),
-    saltBase64: Buffer.from('salt').toString('base64'),
-    timestamp: '1786000000000',
-  },
-  scopedIdsPersistent: true,
-  alias: 'Player',
-  restrictions: {
-    isUnderage: false,
-    isMultiplayerGamingRestricted: false,
-    isPersonalizedCommunicationRestricted: false,
-  },
+const body: AppleAuthRequest = {
+  identityToken: 'headerpayload.headerpayload.signaturepart',
+  nonce: '77777777-7777-4777-8777-777777777777',
   reportedDeviceLocale: 'en-US',
   reportedDeviceTimeZone: 'Europe/Kyiv',
   device: { id: '11111111-1111-4111-8111-111111111111', description: 'iPhone' },
 };
 
-const result: GameCenterAuthResponse = {
+const result: AppleAuthResponse = {
   user: {
     id: '22222222-2222-4222-8222-222222222222',
     status: 'ACTIVE',
@@ -81,7 +67,7 @@ const result: GameCenterAuthResponse = {
   },
 };
 
-const createLoginMock = () => vi.fn<GameCenterLoginHandler['login']>();
+const createLoginMock = () => vi.fn<AppleLoginHandler['login']>();
 const createRefreshMock = () => vi.fn<RefreshSessionHandler['refresh']>();
 const createLogoutMock = () => vi.fn<LogoutSessionHandler['logout']>();
 const createBootstrapMock = () => vi.fn<AccountBootstrapHandler['get']>();
@@ -98,7 +84,7 @@ const authenticate: RequestHandler = (authenticatedRequest, _response, next) => 
 };
 
 function createFixture(
-  login: GameCenterLoginHandler['login'] = createLoginMock(),
+  login: AppleLoginHandler['login'] = createLoginMock(),
   refresh: RefreshSessionHandler['refresh'] = createRefreshMock(),
   logout: LogoutSessionHandler['logout'] = createLogoutMock(),
   bootstrap: AccountBootstrapHandler['get'] = createBootstrapMock(),
@@ -118,11 +104,11 @@ function createFixture(
   });
 }
 
-describe('Game Center authentication route', () => {
+describe('Apple authentication route', () => {
   it('validates, delegates, and returns a non-cacheable bootstrap', async () => {
     const login = createLoginMock().mockResolvedValue(result);
     const response = await request(createFixture(login))
-      .post(apiPaths.authGameCenter)
+      .post(apiPaths.authApple)
       .send(body)
       .expect(200);
 
@@ -134,8 +120,8 @@ describe('Game Center authentication route', () => {
   it('rejects malformed input before the service', async () => {
     const login = createLoginMock();
     const response = await request(createFixture(login))
-      .post(apiPaths.authGameCenter)
-      .send({ ...body, proof: { ...body.proof, timestamp: 1 } })
+      .post(apiPaths.authApple)
+      .send({ ...body, identityToken: 'not-a-token' })
       .expect(400);
 
     expect(response.body.error.code).toBe('VALIDATION_FAILED');
@@ -144,17 +130,16 @@ describe('Game Center authentication route', () => {
   });
 
   it.each([
-    [new GameCenterVerificationError('NONPERSISTENT_ID'), 409, 'GAME_CENTER_ID_NOT_PERSISTENT'],
-    [new GameCenterVerificationError('PROOF_EXPIRED'), 401, 'GAME_CENTER_PROOF_EXPIRED'],
-    [new GameCenterVerificationError('INVALID_PROOF'), 401, 'GAME_CENTER_PROOF_INVALID'],
-    [new GameCenterVerificationError('KEY_UNAVAILABLE'), 503, 'GAME_CENTER_UNAVAILABLE'],
-    [new GameCenterLoginError('PROOF_REPLAY'), 401, 'GAME_CENTER_PROOF_INVALID'],
-    [new GameCenterLoginError('TIME_ZONE_INVALID'), 400, 'VALIDATION_FAILED'],
-    [new GameCenterLoginError('ACCOUNT_DELETION_PENDING'), 423, 'ACCOUNT_DELETION_PENDING'],
-    [new GameCenterLoginError('ACCOUNT_PURGED'), 410, 'ACCOUNT_PURGED'],
+    [new AppleIdentityVerificationError('TOKEN_EXPIRED'), 401, 'APPLE_ID_TOKEN_EXPIRED'],
+    [new AppleIdentityVerificationError('INVALID_TOKEN'), 401, 'APPLE_ID_TOKEN_INVALID'],
+    [new AppleIdentityVerificationError('KEY_UNAVAILABLE'), 503, 'APPLE_ID_UNAVAILABLE'],
+    [new AppleLoginError('PROOF_REPLAY'), 401, 'APPLE_ID_TOKEN_INVALID'],
+    [new AppleLoginError('TIME_ZONE_INVALID'), 400, 'VALIDATION_FAILED'],
+    [new AppleLoginError('ACCOUNT_DELETION_PENDING'), 423, 'ACCOUNT_DELETION_PENDING'],
+    [new AppleLoginError('ACCOUNT_PURGED'), 410, 'ACCOUNT_PURGED'],
   ] as const)('maps safe authentication failures', async (failure, status, code) => {
     const response = await request(createFixture(createLoginMock().mockRejectedValue(failure)))
-      .post(apiPaths.authGameCenter)
+      .post(apiPaths.authApple)
       .send(body)
       .expect(status);
 

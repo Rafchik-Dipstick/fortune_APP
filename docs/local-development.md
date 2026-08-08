@@ -41,7 +41,7 @@ curl http://localhost:3000/health
 
 ## Connecting a device
 
-Expo Go cannot run this app. Game Center and StoreKit 2 are local Swift Expo modules, so a **development build** is required, and building one needs macOS or EAS Build.
+Expo Go cannot exercise the complete app. StoreKit 2 uses a local Swift Expo module, so a **development build** is required for end-to-end testing, and building one needs macOS or EAS Build.
 
 From a Mac with Xcode:
 
@@ -84,7 +84,7 @@ It prefers private ranges and ignores VPN adapters. Pass `--host=<address>` when
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Purchases               | Needs a StoreKit configuration in Xcode or a sandbox Apple ID; `APPLE_IAP_*` in `.env` is deliberately blank, and the API reads blank as "not configured". |
 | App Store notifications | Apple must reach a public URL; the webhook cannot be delivered to a laptop.                                                                                |
-| Game Center sign-in     | Requires a real device signed into Game Center with the app's bundle identifier.                                                                           |
+| Sign in with Apple      | Requires the bundle identifier's Sign in with Apple capability and is best verified on a physical device.                                                  |
 
 Everything else — drawing, revealing, the archive, the collection, settings, reminders, account deletion — runs entirely against the local API.
 

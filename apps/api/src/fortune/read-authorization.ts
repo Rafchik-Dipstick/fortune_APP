@@ -26,7 +26,7 @@ export async function authorizeReadAccess(
       where: { id: authentication.sessionFamilyId },
       select: {
         expiresAt: true,
-        gameCenterAuthenticatedAt: true,
+        identityAuthenticatedAt: true,
         revokedAt: true,
         sessionVersion: true,
         userId: true,
@@ -49,8 +49,7 @@ export async function authorizeReadAccess(
     family.sessionVersion !== authentication.sessionVersion ||
     family.revokedAt !== null ||
     family.expiresAt <= now ||
-    Math.floor(family.gameCenterAuthenticatedAt.getTime() / 1_000) !==
-      authentication.authTimeSeconds
+    Math.floor(family.identityAuthenticatedAt.getTime() / 1_000) !== authentication.authTimeSeconds
   ) {
     return { authorized: false, code: 'AUTH_REQUIRED' };
   }

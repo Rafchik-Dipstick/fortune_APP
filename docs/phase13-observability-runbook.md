@@ -28,7 +28,7 @@ Every record passes the scrubber in `apps/api/src/security/redaction.ts`. Metric
 
 ## What is never collected
 
-No player identity, no session or refresh token, no Game Center proof, no Apple signed payload, no purchase token, no fortune text, alt text, or card identity, no request or response body, and no device or advertising identifier. This is what keeps the App Privacy answer for Diagnostics honest: the operational stream describes the service, not the player.
+No player identity, no session or refresh token, no Apple identity token or signed commerce payload, no purchase token, no fortune text, alt text, or card identity, no request or response body, and no device or advertising identifier. This is what keeps the App Privacy answer for Diagnostics honest: the operational stream describes the service, not the player.
 
 ## Dashboards to build
 
@@ -87,12 +87,12 @@ Alerts derived from a single flush interval are noisy by nature; require two con
 | `history`       | `GET /v1/fortunes`            | Keyset pagination over the archive                                           |
 | `collection`    | `GET /v1/collection`          | The 78-slot discovery summary                                                |
 | `me`            | `GET /v1/me`                  | Authoritative bootstrap                                                      |
-| `authReject`    | `POST /v1/auth/game-center`   | The cost of _refusing_ an invalid proof at volume                            |
+| `authReject`    | `POST /v1/auth/apple`         | The cost of _refusing_ an invalid identity token at volume                   |
 | `webhookReject` | `POST /v1/webhooks/app-store` | The cost of _refusing_ an unverifiable notification at volume                |
 
 ### Honest limits
 
-- Sessions are synthetic. A real Game Center login needs a physical device, so the harness mints access tokens with the deployment's own keyring. Every request still takes the identical verification path; what is not measured is the login handshake itself.
+- Sessions are synthetic. A real Sign in with Apple flow needs a signed app/device, so the harness mints access tokens with the deployment's own keyring. Every authenticated request still takes the identical verification path; what is not measured is the Apple login handshake itself.
 - The two unauthenticated scenarios drive input that must be rejected. Measuring successful login and successful notification processing needs a device and Apple respectively, and belongs to Phases 15 and 16.
 - The harness writes rows and consumes real allowance. Point it at staging only.
 

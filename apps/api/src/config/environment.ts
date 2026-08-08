@@ -69,27 +69,6 @@ const corsOriginsSchema = z
     return normalizedOrigins;
   });
 
-const hostAllowlistSchema = z.string().transform((rawHosts, context): string[] => {
-  const hosts: string[] = [];
-  for (const candidate of rawHosts.split(',').map((host) => host.trim().toLowerCase())) {
-    if (candidate.length === 0) {
-      continue;
-    }
-    if (!/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/u.test(candidate)) {
-      context.addIssue({ code: 'custom', message: 'must contain only DNS hostnames' });
-      return z.NEVER;
-    }
-    if (!hosts.includes(candidate)) {
-      hosts.push(candidate);
-    }
-  }
-  if (hosts.length === 0) {
-    context.addIssue({ code: 'custom', message: 'must contain at least one DNS hostname' });
-    return z.NEVER;
-  }
-  return hosts;
-});
-
 const keyRingSchema = z.string().transform((rawValue, context): Record<string, Buffer> => {
   let parsed: unknown;
   try {
@@ -260,23 +239,12 @@ const rawApiEnvironmentSchema = z
     // rather than a constant: changing where players write must not need a
     // redeploy of the mobile app.
     SUPPORT_EMAIL: z.email().trim().max(160).default('rafaelkras123@gmail.com'),
-    GAME_CENTER_ALLOWED_PUBLIC_KEY_HOSTS: hostAllowlistSchema.default(['static.gc.apple.com']),
-    GAME_CENTER_ALLOWED_CERTIFICATE_HOSTS: hostAllowlistSchema.default(['cacerts.digicert.com']),
-    GAME_CENTER_IDENTITY_HMAC_KEYS_JSON: keyRingSchema,
-    GAME_CENTER_IDENTITY_CURRENT_KEY_VERSION: keyVersionSchema,
-    // Game Center reports scoped identifiers as non-persistent for any app it
-    // has not yet seen published on the App Store — TestFlight and App Review
-    // included, not just development builds. Refusing them outright therefore
-    // locks the reviewer out of the app entirely, so this is an operator
-    // switch rather than a local-only one: turn it on to get through review,
-    // turn it off once the app is live and Game Center issues stable
-    // identifiers. It stays false by default, because the cost of accepting
-    // one is real — the identity can change under the account that owns it,
-    // and every account created under a temporary identifier is orphaned when
-    // the identifier settles.
-    GAME_CENTER_ALLOW_NONPERSISTENT_IDS: environmentBoolean(false),
-    GAME_CENTER_PROOF_MAX_AGE_SECONDS: environmentInteger(300, 30, 900),
-    GAME_CENTER_PROOF_CLOCK_SKEW_SECONDS: environmentInteger(60, 0, 300),
+    APPLE_IDENTITY_HMAC_KEYS_JSON: keyRingSchema,
+    APPLE_IDENTITY_CURRENT_KEY_VERSION: keyVersionSchema,
+    // A short maximum age keeps this token limited to interactive sign-in and
+    // sensitive reauthentication; application sessions use rotating tokens.
+    APPLE_IDENTITY_TOKEN_MAX_AGE_SECONDS: environmentInteger(300, 30, 900),
+    APPLE_IDENTITY_TOKEN_CLOCK_SKEW_SECONDS: environmentInteger(60, 0, 300),
     JWT_ACCESS_KEYS_JSON: keyRingSchema,
     JWT_ACCESS_CURRENT_KEY_VERSION: keyVersionSchema,
     JWT_ISSUER: z.string().trim().min(3).max(128),
@@ -379,7 +347,7 @@ const rawApiEnvironmentSchema = z
     }
 
     for (const [keysField, versionField] of [
-      ['GAME_CENTER_IDENTITY_HMAC_KEYS_JSON', 'GAME_CENTER_IDENTITY_CURRENT_KEY_VERSION'],
+      ['APPLE_IDENTITY_HMAC_KEYS_JSON', 'APPLE_IDENTITY_CURRENT_KEY_VERSION'],
       ['JWT_ACCESS_KEYS_JSON', 'JWT_ACCESS_CURRENT_KEY_VERSION'],
       ['REFRESH_TOKEN_HMAC_KEYS_JSON', 'REFRESH_TOKEN_CURRENT_KEY_VERSION'],
       ['REFRESH_REPLAY_ENCRYPTION_KEYS_JSON', 'REFRESH_REPLAY_CURRENT_KEY_VERSION'],
@@ -459,14 +427,11 @@ export interface AuthenticationEnvironment {
   accountDeletionReauthMaxAgeSeconds: number;
   appAccountTokenEncryptionKeys: VersionedKeyRing;
   appAccountTokenHmacKeys: VersionedKeyRing;
-  /** Local-only escape hatch; the schema refuses it anywhere else. */
-  allowNonPersistentGameCenterIds: boolean;
+  appleIdentityJwksTimeoutMs: number;
+  appleIdentityKeys: VersionedKeyRing;
+  appleIdentityTokenClockSkewSeconds: number;
+  appleIdentityTokenMaxAgeSeconds: number;
   bundleId: string;
-  gameCenterCertificateHosts: string[];
-  gameCenterIdentityKeys: VersionedKeyRing;
-  gameCenterProofClockSkewSeconds: number;
-  gameCenterProofMaxAgeSeconds: number;
-  gameCenterPublicKeyHosts: string[];
   jwtAccessKeys: VersionedKeyRing;
   jwtAccessTtlSeconds: number;
   jwtAudience: string;
@@ -629,16 +594,14 @@ export const parseApiEnvironment = (source: NodeJS.ProcessEnv): ApiEnvironment =
         currentVersion: result.data.APP_ACCOUNT_TOKEN_HMAC_CURRENT_KEY_VERSION,
         keys: result.data.APP_ACCOUNT_TOKEN_HMAC_KEYS_JSON,
       },
-      allowNonPersistentGameCenterIds: result.data.GAME_CENTER_ALLOW_NONPERSISTENT_IDS,
-      bundleId: result.data.APP_BUNDLE_ID,
-      gameCenterCertificateHosts: result.data.GAME_CENTER_ALLOWED_CERTIFICATE_HOSTS,
-      gameCenterIdentityKeys: {
-        currentVersion: result.data.GAME_CENTER_IDENTITY_CURRENT_KEY_VERSION,
-        keys: result.data.GAME_CENTER_IDENTITY_HMAC_KEYS_JSON,
+      appleIdentityJwksTimeoutMs: result.data.OUTBOUND_REQUEST_TIMEOUT_MS,
+      appleIdentityKeys: {
+        currentVersion: result.data.APPLE_IDENTITY_CURRENT_KEY_VERSION,
+        keys: result.data.APPLE_IDENTITY_HMAC_KEYS_JSON,
       },
-      gameCenterProofClockSkewSeconds: result.data.GAME_CENTER_PROOF_CLOCK_SKEW_SECONDS,
-      gameCenterProofMaxAgeSeconds: result.data.GAME_CENTER_PROOF_MAX_AGE_SECONDS,
-      gameCenterPublicKeyHosts: result.data.GAME_CENTER_ALLOWED_PUBLIC_KEY_HOSTS,
+      appleIdentityTokenClockSkewSeconds: result.data.APPLE_IDENTITY_TOKEN_CLOCK_SKEW_SECONDS,
+      appleIdentityTokenMaxAgeSeconds: result.data.APPLE_IDENTITY_TOKEN_MAX_AGE_SECONDS,
+      bundleId: result.data.APP_BUNDLE_ID,
       jwtAccessKeys: {
         currentVersion: result.data.JWT_ACCESS_CURRENT_KEY_VERSION,
         keys: result.data.JWT_ACCESS_KEYS_JSON,

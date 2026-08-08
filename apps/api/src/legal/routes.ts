@@ -93,7 +93,7 @@ function privacyBody(supportEmail: string): string {
 
 <h2>What we collect</h2>
 <ul>
-<li><strong>Your account identity.</strong> When you sign in with Game Center, Apple gives the app a player identifier scoped to Fortuneness. We never store it directly — we store only a salted cryptographic digest of it, together with an account identifier we generate. We cannot recover your Game Center identifier from what we store, and it cannot be used to identify you in any other app.</li>
+<li><strong>Your account identity.</strong> When you use Sign in with Apple, Apple gives the app an identifier scoped to our developer account. We never store it directly — we store only a keyed cryptographic digest of it, together with an account identifier we generate. We cannot recover your Apple identifier from what we store.</li>
 <li><strong>Purchase history.</strong> Apple transaction identifiers and your entitlement state, which are what let us grant the readings you paid for and audit them if something goes wrong.</li>
 <li><strong>Your readings.</strong> The reading archive and card collection you generate by using the app.</li>
 <li><strong>Time zone and language.</strong> An IANA time-zone name and a locale code, used only to decide when your day resets and which language to answer in.</li>
@@ -104,7 +104,7 @@ function privacyBody(supportEmail: string): string {
 <li>No advertising identifier (IDFA), and no App Tracking Transparency prompt, because there is nothing to track.</li>
 <li>No third-party analytics and no advertising SDK. None is installed.</li>
 <li>No crash reporter or performance SDK in the app.</li>
-<li>No name, email address, or postal address. Game Center does not give these to the app and we never ask for them.</li>
+<li>No name, email address, or postal address. Fortuneness requests no name or email scopes during Sign in with Apple.</li>
 <li>No location. A time-zone name is not a location.</li>
 <li>No contacts, photos, camera, microphone, or health data. The app links none of those frameworks.</li>
 </ul>
@@ -114,7 +114,7 @@ function privacyBody(supportEmail: string): string {
 
 <h2>Who else sees your data</h2>
 <ul>
-<li><strong>Apple</strong> handles sign-in through Game Center and all payments through the App Store. We never see your payment details. Apple's own privacy policy governs what Apple collects.</li>
+<li><strong>Apple</strong> handles Sign in with Apple and all payments through the App Store. We never see your payment details. Apple's own privacy policy governs what Apple collects.</li>
 <li><strong>Railway</strong> hosts the server and its database on our behalf.</li>
 </ul>
 <p>That is the complete list. We do not sell your data to anyone, and we never have.</p>
@@ -123,7 +123,7 @@ function privacyBody(supportEmail: string): string {
 <p>Your readings and account stay until you delete them. Raw records of App Store notifications are discarded automatically after 90 days.</p>
 
 <h2>Deleting your account</h2>
-<p>Open <strong>Settings → Delete account</strong> in the app. Deletion begins a 30-day processing period, during which you can cancel it. After that, your account, your readings, and the digest of your Game Center identifier are permanently destroyed. We keep only the minimum anonymous financial record Apple and tax law require, which cannot be linked back to you.</p>
+<p>Open <strong>Settings → Delete account</strong> in the app. Deletion begins a 30-day processing period, during which you can cancel it. After that, your account, your readings, and the digest of your Sign in with Apple identifier are permanently destroyed. We keep only the minimum anonymous financial record Apple and tax law require, which cannot be linked back to you.</p>
 
 <h2>Children</h2>
 <p>Fortuneness is not directed at children and does not knowingly collect data from them.</p>
@@ -143,7 +143,7 @@ function termsBody(supportEmail: string): string {
 <p><strong>Fortuneness is for entertainment and personal reflection.</strong> Readings are generated from a shuffled deck and written copy. They are not predictions, and they are not advice. Never use a reading as a substitute for professional medical, psychological, legal, or financial advice. If you are struggling, please speak to a qualified professional.</p>
 
 <h2>Using the app</h2>
-<p>You need a Game Center account to sign in. You are responsible for keeping access to that Apple Account secure. Do not attempt to disrupt the service, work around purchase verification, or access another person's readings.</p>
+<p>You need an Apple Account to sign in. You are responsible for keeping access to that Apple Account secure. Do not attempt to disrupt the service, work around purchase verification, or access another person's readings.</p>
 
 <h2>Free readings and purchases</h2>
 <ul>
@@ -188,8 +188,8 @@ function supportBody(supportEmail: string): string {
 <li><strong>I bought something and did not receive it.</strong> Open the shop and tap <strong>Restore Purchases</strong>. Purchases are tied to your Apple Account, so use the same one you bought with. If it still does not appear, email us.</li>
 <li><strong>I want to cancel Oracle+.</strong> On your device: <strong>Settings → Apple Account → Subscriptions → Fortuneness</strong>. Cancel at least 24 hours before the period ends. We cannot cancel it for you — only Apple can.</li>
 <li><strong>I want a refund.</strong> Apple handles all payments and refunds: <a href="https://reportaproblem.apple.com">reportaproblem.apple.com</a>.</li>
-<li><strong>I cannot sign in.</strong> Fortuneness signs in with Game Center. Check <strong>Settings → Game Center</strong> on your device and make sure you are signed in there first.</li>
-<li><strong>My readings disappeared.</strong> Readings belong to a Game Center account. Switching Apple Accounts shows a different archive. Switch back and they return.</li>
+<li><strong>I cannot sign in.</strong> Fortuneness uses Sign in with Apple. Check that your device is signed in to an Apple Account, then try the Apple sign-in button again.</li>
+<li><strong>My readings disappeared.</strong> Readings belong to the Apple Account used with Fortuneness. Sign in with the same Apple Account to restore that archive.</li>
 <li><strong>I want to delete my account.</strong> In the app: <strong>Settings → Delete account</strong>. You have 30 days to change your mind before it becomes permanent.</li>
 </ul>
 

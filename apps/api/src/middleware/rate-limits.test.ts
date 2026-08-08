@@ -43,7 +43,7 @@ const createTieredApp = () => {
 
 describe('tiered rate limits', () => {
   it.each([
-    [apiPaths.authGameCenter, 'authentication'],
+    [apiPaths.authApple, 'authentication'],
     [apiPaths.authRefresh, 'authentication'],
     [apiPaths.authLogout, 'authentication'],
     [apiPaths.fortuneDraw, 'draw'],

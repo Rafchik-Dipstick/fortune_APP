@@ -1,6 +1,6 @@
 # Production release checklist
 
-Status: **CODE READY — EXTERNAL GATES OPEN** — every value below that the repository can decide is decided and committed. What remains needs a Railway project, a public API domain, and App Store Connect.
+Status: **CODE VALIDATED — EXTERNAL CONFIGURATION BLOCKED**. The repository gates and an isolated PostgreSQL migration/IAP integration run pass. The 2026-08-08 live audit still found the Apple/Railway blockers listed below; do not merge this branch into the auto-deployed production branch until they are cleared.
 
 Owner: whoever holds the Railway project, the Expo account `infinityenglish`, and the Apple developer account.
 
@@ -19,7 +19,9 @@ These are immutable once a build ships. Do not configure Railway or EAS until ea
 | Marketing/legal domain       | `fortuneness.app` — must serve live privacy, terms, and support pages                       | [ ]        |
 | Marketing version            | `0.2.0`, declared in `app.config.ts`                                                        | [x]        |
 
-The bundle identifier is the hardest of these to change later: it is the Game Center audience, the StoreKit product namespace, and the App Store record. The API refuses a Game Center proof whose bundle ID disagrees with its own `APP_BUNDLE_ID`, so the two sides must be set from the same confirmed string.
+Confirmed external identifiers: Apple team `YGR53JLX36`, explicit App ID `fortuness.app`, App Store Connect Apple ID `6799167588`, EAS project `@infinityenglish/fortuneness` (`dd4a8f29-b320-4533-afb0-dd4aff873073`). The App ID screen still needs a human to confirm that **Sign in with Apple** is enabled and configured as the primary App ID; the identifier text alone does not prove the capability.
+
+The bundle identifier is the hardest of these to change later: it is the Sign in with Apple audience, the StoreKit product namespace, and the App Store record. The API refuses an Apple identity token whose audience disagrees with `APP_BUNDLE_ID`, so the two sides must use the same confirmed string.
 
 The API URL is compiled into the binary. A domain change after submission requires a new build and a new review.
 
@@ -41,7 +43,7 @@ Set `NODE_ENV=production` and `DEPLOYMENT_ENVIRONMENT=production` together. The 
 | `NODE_ENV`                                           | `production`                                       | —                                                                                                          |
 | `DEPLOYMENT_ENVIRONMENT`                             | `production`                                       | Forces Production-only App Store trust                                                                     |
 | `TRUST_PROXY`                                        | tested positive hop count, typically `1`           | Refused at `0` in production; the rate limiter would key every request alike                               |
-| `APP_BUNDLE_ID`                                      | the confirmed identifier from §0                   | A mismatch rejects every Game Center login                                                                 |
+| `APP_BUNDLE_ID`                                      | the confirmed identifier from §0                   | A mismatch rejects every Sign in with Apple login                                                          |
 | `APP_APPLE_ID`                                       | numeric App Apple ID from App Store Connect        | Needed for App Store Server API calls                                                                      |
 | `APPLE_IAP_ENVIRONMENT`                              | `PRODUCTION`                                       | Refused as anything else in the production deployment; sandbox transactions are still honoured — see below |
 | `APPLE_IAP_ISSUER_ID`                                | App Store Connect API issuer                       | Required in production; all three credentials or none                                                      |
@@ -54,7 +56,7 @@ Set `NODE_ENV=production` and `DEPLOYMENT_ENVIRONMENT=production` together. The 
 
 Eight independent rings, each a JSON object of version to 32 canonical base64 bytes, each paired with a `*_CURRENT_KEY_VERSION` naming a version present in that ring:
 
-`GAME_CENTER_IDENTITY_HMAC_KEYS_JSON`, `JWT_ACCESS_KEYS_JSON`, `REFRESH_TOKEN_HMAC_KEYS_JSON`, `REFRESH_REPLAY_ENCRYPTION_KEYS_JSON`, `APP_ACCOUNT_TOKEN_HMAC_KEYS_JSON`, `APP_ACCOUNT_TOKEN_ENCRYPTION_KEYS_JSON`, `HISTORY_CURSOR_HMAC_KEYS_JSON`, `APP_STORE_NOTIFICATION_ENCRYPTION_KEYS_JSON`.
+`APPLE_IDENTITY_HMAC_KEYS_JSON`, `JWT_ACCESS_KEYS_JSON`, `REFRESH_TOKEN_HMAC_KEYS_JSON`, `REFRESH_REPLAY_ENCRYPTION_KEYS_JSON`, `APP_ACCOUNT_TOKEN_HMAC_KEYS_JSON`, `APP_ACCOUNT_TOKEN_ENCRYPTION_KEYS_JSON`, `HISTORY_CURSOR_HMAC_KEYS_JSON`, `APP_STORE_NOTIFICATION_ENCRYPTION_KEYS_JSON`.
 
 Generate each with:
 
@@ -66,13 +68,19 @@ Start every ring at `v1`. Rotation procedure and per-ring wait periods are in `d
 
 Also set `JWT_ISSUER=fortuneness-api` and `JWT_AUDIENCE=fortuneness-mobile`, matching whatever the mobile client expects.
 
-### Must not be set in production
-
-| Variable                              | Reason                                                           |
-| ------------------------------------- | ---------------------------------------------------------------- |
-| `GAME_CENTER_ALLOW_NONPERSISTENT_IDS` | Local-only; the parser refuses it outside the `local` deployment |
-
 Everything not listed — the four deadlines, the four rate-limit budgets, pool size, TTLs, log level, metrics interval, and the two product IDs — has a production-appropriate default in `apps/api/src/config/environment.ts`. Set one only to deliberately depart from it.
+
+### Game Center to Apple ID Railway cutover
+
+The current production service still has `GAME_CENTER_IDENTITY_HMAC_KEYS_JSON` and `GAME_CENTER_IDENTITY_CURRENT_KEY_VERSION`. The new server intentionally refuses to boot until their Apple replacements exist. Before merging this branch:
+
+1. Add `APPLE_IDENTITY_HMAC_KEYS_JSON` as a fresh production-only 32-byte base64 key ring, for example `{"v1":"<generated-base64>"}`.
+2. Add `APPLE_IDENTITY_CURRENT_KEY_VERSION=v1`.
+3. Optionally pin the audited defaults explicitly with `APPLE_IDENTITY_TOKEN_MAX_AGE_SECONDS=300` and `APPLE_IDENTITY_TOKEN_CLOCK_SKEW_SECONDS=60`.
+4. Keep every `GAME_CENTER_*` variable through the first healthy Apple-ID deployment. The new code ignores them; removing them only after health verification keeps rollback possible.
+5. Explicitly set `IAP_FORTUNE_PACK_10_PRODUCT_ID` and `IAP_ORACLE_PLUS_MONTHLY_PRODUCT_ID` to the exact identifiers shown in App Store Connect. The current Railway service relies on code defaults, and those identifiers have not yet been confirmed in App Store Connect.
+
+The application field `identityAuthenticatedAt` deliberately maps to the existing PostgreSQL column `gameCenterAuthenticatedAt`. There is no auth-cutover database migration: retaining that physical name is what allows old and new Railway instances to overlap safely during deployment.
 
 A production deployment verifies **both** Production and Sandbox signed transactions. This is not a loosening: App Review tests in-app purchases in the sandbox, against the production binary and therefore against this service, and TestFlight is sandbox-only — a service that accepted Production alone would fail every purchase a reviewer attempted and could not be exercised before release. Each transaction is verified against Apple's trust chain for the environment it declares, and the verified environment is stored on the row, so a sandbox purchase is never recorded as a paid one. `APPLE_IAP_ENVIRONMENT` still governs which App Store Server API endpoint the service calls, and staging remains sandbox-only.
 
@@ -109,14 +117,14 @@ corepack npm run build --workspace @fortuneness/api-contracts --workspace @fortu
 
 ## 2. Apple configuration
 
-1. Register the confirmed bundle identifier with the Game Center capability enabled.
+1. Register the confirmed bundle identifier with Sign in with Apple enabled and configured as the primary App ID.
 2. Create the App Store Connect record; note the numeric App Apple ID for `APP_APPLE_ID`.
 3. Create both in-app purchases with the confirmed product IDs. Configure the subscription as standard month-to-month pay-as-you-go, **not** a 12-month commitment plan, and record the exact `billingPlanType` Apple reports.
 4. Enable Billing Grace Period for Sandbox and Production.
-5. Point the App Store Server Notifications V2 production URL at the deployed webhook, and set the sandbox URL at the staging deployment if one exists.
+5. Set App Store Server Notifications **V2** production and sandbox URLs. For a TestFlight build compiled against the production API, both must be `https://fortuneapp-production.up.railway.app/v1/webhooks/app-store`. Use a staging sandbox URL only when the beta binary itself targets staging.
 6. Create the App Store Connect API key for the App Store Server API; base64 the `.p8` for `APPLE_IAP_PRIVATE_KEY_BASE64`.
 7. Complete the App Privacy answers from `docs/app-privacy-worksheet.md`. The declared answers must stay true: no analytics SDK, no crash reporter, no tracking.
-8. Prepare the reviewer-access artifact. Game Center as the primary identity provider in a non-game draws review scrutiny — the review notes must explain auto-provisioning, the daily rules, the exact free draw, the Sandbox pack and subscription, **Restore Purchases**, account switching, and deletion.
+8. Prepare the reviewer-access artifact. The review notes must explain Sign in with Apple auto-provisioning, the daily rules, the exact free draw, the Sandbox pack and subscription, **Restore Purchases**, local disconnect, and deletion.
 
 Export compliance is already answered in the binary: `app.config.ts` declares `ITSAppUsesNonExemptEncryption: false`, so App Store Connect stops asking on every upload.
 
@@ -133,7 +141,7 @@ Export compliance is already answered in the binary: `app.config.ts` declares `I
 
 All four URLs are validated at startup and must use HTTPS outside development, so a missing or `http://` value crashes the app on launch rather than silently pointing a shipped binary at localhost. The three legal pages must actually resolve — App Review follows them.
 
-Before the first production build, confirm how the build number is resolved. `eas.json` sets `appVersionSource: "remote"` with `autoIncrement: true`, while `app.config.ts` reads `APP_BUILD_NUMBER` with a fallback of `1`. Decide which one owns the value and make the other stop claiming it.
+EAS owns the iOS build number: `eas.json` sets `appVersionSource: "remote"` with `autoIncrement: true`, and `app.config.ts` does not claim a second value. The 2026-08-08 inspection advanced the remote counter from 8 to 9; the next queued production build will auto-increment from the remote value.
 
 Then:
 
@@ -164,7 +172,7 @@ corepack npm run test:db
 
 Each of these needs a person, a Mac, or a deployed environment. None may be marked done from a local checkout.
 
-- [ ] Physical iPhone and iPad verification of Game Center login, the reveal, and both purchase paths against Sandbox.
+- [ ] Physical iPhone and iPad verification of Sign in with Apple, the reveal, and both purchase paths against Sandbox.
 - [ ] Restore Purchases verified on a second device and a second Apple ID.
 - [ ] Account deletion verified end to end, including the purge delay and the tombstone behavior.
 - [ ] Staging backup restore rehearsal with tombstone replay, per the database runbook.
@@ -173,3 +181,14 @@ Each of these needs a person, a Mac, or a deployed environment. None may be mark
 - [ ] Accessibility pass at maximum Dynamic Type with VoiceOver.
 - [ ] App Privacy answers confirmed by a person against the worksheet.
 - [ ] Reviewer-access path rehearsed on a clean device.
+
+## 6. 2026-08-08 live external audit
+
+- Railway production is healthy at `/health`, and its privacy, terms, and support pages return HTTPS 200.
+- The current Railway variables match bundle `fortuness.app`, App Apple ID `6799167588`, and `APPLE_IAP_ENVIRONMENT=PRODUCTION`, but the two required `APPLE_IDENTITY_*` key variables are missing.
+- With the new variables supplied in-memory, the complete production environment parser passes and accepts both signed Production and Sandbox transactions.
+- Apple's live identity JWKS endpoint returned six RSA/RS256 signing keys.
+- The latest signed production IPA uses application identifier `YGR53JLX36.fortuness.app` and team `YGR53JLX36`, but its embedded provisioning profile does **not** contain `com.apple.developer.applesignin`. Enable the capability and replace the production provisioning profile before building this branch.
+- An Apple App Store Server API test-notification request returned HTTP 401 in Production. Replace or repair the In-App Purchase key/issuer/key-ID combination before release.
+- The same request authenticated against Sandbox but returned Apple error `4040007` (`ServerNotificationURLNotFoundError`), proving the sandbox V2 notification URL is not configured.
+- The Railway service's latest deployment did not show the checked-in `apps/api/railway.json` as its active config file. Set the service's Railway Config File to `/apps/api/railway.json` before the next deploy so `/health`, overlap, draining, and restart policy come from source control.

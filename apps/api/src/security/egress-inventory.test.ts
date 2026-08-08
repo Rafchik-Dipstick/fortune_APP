@@ -18,11 +18,7 @@ describe('declared outbound destinations', () => {
   it('lists only Apple identity, Apple commerce, and revocation hosts by default', () => {
     const environment = createTestApiEnvironment();
 
-    expect(listAllowedEgressHosts(environment)).toEqual([
-      'cacerts.digicert.com',
-      'ocsp.apple.com',
-      'static.gc.apple.com',
-    ]);
+    expect(listAllowedEgressHosts(environment)).toEqual(['appleid.apple.com', 'ocsp.apple.com']);
   });
 
   it('adds the App Store Server API host only when credentials exist for a server environment', () => {
@@ -78,6 +74,12 @@ describe('declared outbound destinations', () => {
     const destinations = describeOutboundDestinations(createTestApiEnvironment());
 
     expect(destinations.every((entry) => entry.hosts.length > 0)).toBe(true);
+    expect(destinations).toContainEqual({
+      enforcement: 'FIXED_ORIGIN',
+      hosts: ['appleid.apple.com'],
+      purpose: 'Sign in with Apple JSON Web Key Set',
+      scheme: 'https',
+    });
     expect(destinations.filter((entry) => entry.enforcement === 'PINNED_TRUST')).toEqual([
       {
         enforcement: 'PINNED_TRUST',

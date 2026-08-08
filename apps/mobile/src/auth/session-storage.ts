@@ -3,7 +3,8 @@ import * as SecureStore from 'expo-secure-store';
 const storageKeys = {
   appAccountToken: 'fortuneness.session.app-account-token',
   deviceId: 'fortuneness.installation.device-id',
-  playerFingerprint: 'fortuneness.session.game-center-fingerprint',
+  identityFingerprint: 'fortuneness.session.apple-identity-fingerprint',
+  legacyGameCenterFingerprint: 'fortuneness.session.game-center-fingerprint',
   refreshIdempotencyKey: 'fortuneness.session.refresh-idempotency-key',
   refreshToken: 'fortuneness.session.refresh-token',
   userId: 'fortuneness.session.user-id',
@@ -15,7 +16,7 @@ const secureOptions: SecureStore.SecureStoreOptions = {
 
 export interface StoredCredentials {
   appAccountToken: string;
-  playerFingerprint: string;
+  identityFingerprint: string;
   /**
    * The idempotency key belonging to `refreshToken`. It is minted once per
    * rotation and reused by every attempt to spend that token: the server
@@ -40,17 +41,17 @@ export async function getOrCreateDeviceId(createUuid: () => string): Promise<str
 }
 
 export async function loadStoredCredentials(): Promise<StoredCredentials | undefined> {
-  const [appAccountToken, playerFingerprint, refreshIdempotencyKey, refreshToken, userId] =
+  const [appAccountToken, identityFingerprint, refreshIdempotencyKey, refreshToken, userId] =
     await Promise.all([
       SecureStore.getItemAsync(storageKeys.appAccountToken, secureOptions),
-      SecureStore.getItemAsync(storageKeys.playerFingerprint, secureOptions),
+      SecureStore.getItemAsync(storageKeys.identityFingerprint, secureOptions),
       SecureStore.getItemAsync(storageKeys.refreshIdempotencyKey, secureOptions),
       SecureStore.getItemAsync(storageKeys.refreshToken, secureOptions),
       SecureStore.getItemAsync(storageKeys.userId, secureOptions),
     ]);
   if (
     appAccountToken === null ||
-    playerFingerprint === null ||
+    identityFingerprint === null ||
     refreshToken === null ||
     userId === null
   ) {
@@ -61,7 +62,7 @@ export async function loadStoredCredentials(): Promise<StoredCredentials | undef
   // still has a usable session, and one is minted on its next rotation.
   return {
     appAccountToken,
-    playerFingerprint,
+    identityFingerprint,
     ...(refreshIdempotencyKey === null ? {} : { refreshIdempotencyKey }),
     refreshToken,
     userId,
@@ -77,8 +78,8 @@ export async function saveStoredCredentials(credentials: StoredCredentials): Pro
         secureOptions,
       ),
       SecureStore.setItemAsync(
-        storageKeys.playerFingerprint,
-        credentials.playerFingerprint,
+        storageKeys.identityFingerprint,
+        credentials.identityFingerprint,
         secureOptions,
       ),
       credentials.refreshIdempotencyKey === undefined
@@ -101,7 +102,8 @@ export async function clearStoredCredentials(): Promise<void> {
   await Promise.all(
     [
       storageKeys.appAccountToken,
-      storageKeys.playerFingerprint,
+      storageKeys.identityFingerprint,
+      storageKeys.legacyGameCenterFingerprint,
       storageKeys.refreshIdempotencyKey,
       storageKeys.refreshToken,
       storageKeys.userId,

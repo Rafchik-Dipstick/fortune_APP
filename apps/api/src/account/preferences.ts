@@ -124,7 +124,7 @@ export class PreferencesService {
     user: { id: string; sessionVersion: number; status: string },
     family: {
       expiresAt: Date;
-      gameCenterAuthenticatedAt: Date;
+      identityAuthenticatedAt: Date;
       revokedAt: Date | null;
       sessionVersion: number;
       userId: string;
@@ -145,7 +145,7 @@ export class PreferencesService {
       family.sessionVersion !== authentication.sessionVersion ||
       family.revokedAt !== null ||
       family.expiresAt <= now ||
-      Math.floor(family.gameCenterAuthenticatedAt.getTime() / 1_000) !==
+      Math.floor(family.identityAuthenticatedAt.getTime() / 1_000) !==
         authentication.authTimeSeconds
     ) {
       throw new PreferencesError('AUTH_REQUIRED');

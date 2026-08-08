@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Linking, StyleSheet, Switch, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
+import * as Application from 'expo-application';
 import type { IapCallerState } from '@fortuneness/api-contracts';
 
 import { useAuthentication } from '@/auth/authentication';
@@ -103,7 +104,7 @@ export default function SettingsScreen() {
   // The reminder is offered only once a reading exists, which is exactly what
   // an unlocked card in the collection records.
   const hasFirstReading = (collection.data?.response.unlockedCount ?? 0) > 0;
-  const buildNumber = Constants.expoConfig?.ios?.buildNumber ?? 'local';
+  const buildNumber = Application.nativeBuildVersion ?? 'local';
   const version = Constants.expoConfig?.version ?? '0.0.0';
 
   const changeReminder = (enabled: boolean) => {
@@ -146,10 +147,10 @@ export default function SettingsScreen() {
       <View style={styles.sections}>
         <Surface>
           <AppText color="gold" variant="caption">
-            Game Center
+            Apple Account
           </AppText>
           <AppText variant="headline">
-            {authentication.session?.alias ?? 'Game Center player'}
+            {authentication.session?.accountLabel ?? 'Apple Account'}
           </AppText>
           <AppText color="textMuted">Synced Fortuneness account</AppText>
           <AppButton
@@ -160,7 +161,7 @@ export default function SettingsScreen() {
             variant="secondary"
           />
           <AppText color="textMuted" variant="caption">
-            This clears Fortuneness tokens. Switch the Game Center player in Apple Settings.
+            This clears Fortuneness tokens from this device. Your Apple Account remains signed in.
           </AppText>
         </Surface>
 

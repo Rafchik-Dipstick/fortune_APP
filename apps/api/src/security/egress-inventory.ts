@@ -13,6 +13,7 @@ import { type ApiEnvironment } from '../config/environment.js';
 
 export type EgressEnforcement =
   | 'GUARDED' // Routed through requestBoundedHttps: allowlist, public IP, bounds.
+  | 'FIXED_ORIGIN' // A library call whose full HTTPS origin is a code constant.
   | 'PINNED_TRUST'; // Destination derives from Apple-signed data validated against pinned roots.
 
 export interface OutboundDestination {
@@ -36,15 +37,9 @@ export function describeOutboundDestinations(
 ): readonly OutboundDestination[] {
   const destinations: OutboundDestination[] = [
     {
-      enforcement: 'GUARDED',
-      hosts: environment.authentication.gameCenterPublicKeyHosts,
-      purpose: 'Game Center signing certificate named by an untrusted client proof',
-      scheme: 'https',
-    },
-    {
-      enforcement: 'GUARDED',
-      hosts: environment.authentication.gameCenterCertificateHosts,
-      purpose: 'Issuer certificates while building the Game Center chain',
+      enforcement: 'FIXED_ORIGIN',
+      hosts: ['appleid.apple.com'],
+      purpose: 'Sign in with Apple JSON Web Key Set',
       scheme: 'https',
     },
   ];

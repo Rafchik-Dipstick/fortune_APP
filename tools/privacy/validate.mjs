@@ -20,7 +20,7 @@ const forbiddenInfoPlistKeyPattern = /UsageDescription$|^NSUserTrackingUsageDesc
 const forbiddenPluginPattern = /push|notification-service|background-fetch|location/iu;
 
 const requiredPlugins = [
-  './plugins/with-game-center.cjs',
+  'expo-apple-authentication',
   './plugins/with-local-notifications-only.cjs',
 ];
 

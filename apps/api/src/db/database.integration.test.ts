@@ -1,17 +1,17 @@
 import { createHash, randomUUID } from 'node:crypto';
 
 import { PrismaPg } from '@prisma/adapter-pg';
-import { type GameCenterAuthRequest } from '@fortuneness/api-contracts';
+import { type AppleAuthRequest } from '@fortuneness/api-contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { AccessTokenService } from '../auth/access-token.js';
 import { AccountBootstrapService } from '../auth/account-bootstrap.js';
 import {
-  GameCenterLoginError,
-  GameCenterLoginService,
-  type GameCenterIdentityVerifier,
-} from '../auth/game-center-login.js';
-import { type VerifiedGameCenterIdentity } from '../auth/game-center-proof.js';
+  AppleLoginError,
+  AppleLoginService,
+  type AppleIdentityVerifier,
+} from '../auth/apple-login.js';
+import { type VerifiedAppleIdentity } from '../auth/apple-identity-token.js';
 import { LogoutSessionError, LogoutSessionService } from '../auth/logout-session.js';
 import { RefreshSessionError, RefreshSessionService } from '../auth/refresh-session.js';
 import { createTestApiEnvironment } from '../config/environment.fixture.js';
@@ -124,7 +124,7 @@ async function createFortuneStateFixture(options: {
     data: {
       userId: user.id,
       sessionVersion: user.sessionVersion,
-      gameCenterAuthenticatedAt: new Date(authTimeSeconds * 1_000),
+      identityAuthenticatedAt: new Date(authTimeSeconds * 1_000),
       expiresAt: new Date(options.now.getTime() + 30 * 86_400_000),
     },
   });
@@ -141,24 +141,10 @@ async function createFortuneStateFixture(options: {
   };
 }
 
-function createLoginRequest(marker: string): GameCenterAuthRequest {
+function createLoginRequest(marker: string): AppleAuthRequest {
   return {
-    proof: {
-      teamPlayerId: 'raw-team-player-never-persisted',
-      gamePlayerId: 'raw-game-player-never-persisted',
-      bundleId: 'app.fortuneness.test',
-      publicKeyUrl: 'https://static.gc.apple.com/public-key.cer',
-      signatureBase64: Buffer.from(`signature-${marker}`).toString('base64'),
-      saltBase64: Buffer.from(`salt-${marker}`).toString('base64'),
-      timestamp: String(Date.now()),
-    },
-    scopedIdsPersistent: true,
-    alias: 'Test Player',
-    restrictions: {
-      isUnderage: false,
-      isMultiplayerGamingRestricted: false,
-      isPersonalizedCommunicationRestricted: false,
-    },
+    identityToken: `${Buffer.from(marker).toString('base64url')}.payloadpart.signaturepart`,
+    nonce: randomUUID(),
     reportedDeviceLocale: 'en-US',
     reportedDeviceTimeZone: 'Europe/Kyiv',
     device: { id: randomUUID(), description: 'Integration test device' },
@@ -168,10 +154,10 @@ function createLoginRequest(marker: string): GameCenterAuthRequest {
 function createVerifiedIdentity(
   marker: string,
   currentDigest: string,
-  candidates: VerifiedGameCenterIdentity['identityCandidates'] = [
+  candidates: VerifiedAppleIdentity['identityCandidates'] = [
     { keyVersion: 'v1', digest: currentDigest },
   ],
-): VerifiedGameCenterIdentity {
+): VerifiedAppleIdentity {
   const authenticatedAt = new Date();
   return {
     authenticatedAt,
@@ -179,15 +165,11 @@ function createVerifiedIdentity(
     identityCandidates: candidates,
     proofExpiresAt: new Date(authenticatedAt.getTime() + 900_000),
     proofFingerprint: createHash('sha256').update(`proof-${marker}`).digest('hex'),
-    secondaryMigrationIdentity: {
-      keyVersion: 'v1',
-      digest: createHash('sha256').update(`secondary-${marker}`).digest('hex'),
-    },
   };
 }
 
 describe('PostgreSQL integrity', { concurrent: false }, () => {
-  it('rejects a replayed verified Game Center proof fingerprint', async () => {
+  it('rejects a replayed verified Apple identity-token fingerprint', async () => {
     const fingerprint = 'c'.repeat(64);
     await prisma.identityProofReplay.create({
       data: { fingerprint, expiresAt: new Date(Date.now() + 900_000) },
@@ -207,11 +189,11 @@ describe('PostgreSQL integrity', { concurrent: false }, () => {
       ['first', createVerifiedIdentity('first', identityDigest)],
       ['second', createVerifiedIdentity('second', identityDigest)],
     ]);
-    const proofVerifier: GameCenterIdentityVerifier = {
+    const identityVerifier: AppleIdentityVerifier = {
       verify: (request) => {
-        const marker = Buffer.from(request.proof.signatureBase64, 'base64')
-          .toString('utf8')
-          .replace('signature-', '');
+        const marker = Buffer.from(request.identityToken.split('.')[0] ?? '', 'base64url').toString(
+          'utf8',
+        );
         const verified = verifiedByMarker.get(marker);
         if (verified === undefined) {
           throw new Error('Unexpected integration proof marker.');
@@ -220,11 +202,11 @@ describe('PostgreSQL integrity', { concurrent: false }, () => {
       },
     };
     const accessTokens = new AccessTokenService(environment);
-    const login = new GameCenterLoginService({
+    const login = new AppleLoginService({
       accessTokens,
       client: prisma,
       environment,
-      proofVerifier,
+      identityVerifier,
     });
     const firstRequest = createLoginRequest('first');
     const secondRequest = createLoginRequest('second');
@@ -237,11 +219,11 @@ describe('PostgreSQL integrity', { concurrent: false }, () => {
     expect(second.bootstrap.appAccountToken).toBe(first.bootstrap.appAccountToken);
     expect(second.session.refreshToken).not.toBe(first.session.refreshToken);
     await expect(login.login(firstRequest)).rejects.toSatisfy(
-      (error: unknown) => error instanceof GameCenterLoginError && error.code === 'PROOF_REPLAY',
+      (error: unknown) => error instanceof AppleLoginError && error.code === 'PROOF_REPLAY',
     );
     await expect(
       prisma.externalIdentity.count({
-        where: { provider: 'GAME_CENTER', keyVersion: 'v1', subjectDigest: identityDigest },
+        where: { provider: 'SIGN_IN_WITH_APPLE', keyVersion: 'v1', subjectDigest: identityDigest },
       }),
     ).resolves.toBe(1);
     await expect(prisma.sessionFamily.count({ where: { userId: first.user.id } })).resolves.toBe(2);
@@ -260,14 +242,14 @@ describe('PostgreSQL integrity', { concurrent: false }, () => {
       ]),
     });
     await prisma.externalIdentity.updateMany({
-      where: { userId: first.user.id, provider: 'GAME_CENTER' },
+      where: { userId: first.user.id, provider: 'SIGN_IN_WITH_APPLE' },
       data: { keyVersion: 'v0', subjectDigest: previousDigest },
     });
     const rotated = await login.login(createLoginRequest(rotationMarker));
     expect(rotated.user.id).toBe(first.user.id);
     await expect(
       prisma.externalIdentity.findFirstOrThrow({
-        where: { userId: first.user.id, provider: 'GAME_CENTER' },
+        where: { userId: first.user.id, provider: 'SIGN_IN_WITH_APPLE' },
       }),
     ).resolves.toMatchObject({ keyVersion: 'v1', subjectDigest: identityDigest });
 

@@ -227,7 +227,10 @@ model SessionFamily {
   id                        String         @id @default(uuid()) @db.Uuid
   userId                    String         @db.Uuid
   sessionVersion            Int
-  gameCenterAuthenticatedAt DateTime       @db.Timestamptz(3)
+  // Keep the legacy physical column name during the Game Center -> Apple ID
+  // cutover so old and new Railway instances can overlap without either side
+  // observing a missing column. The application-facing name is provider-neutral.
+  identityAuthenticatedAt   DateTime       @map("gameCenterAuthenticatedAt") @db.Timestamptz(3)
   issuedAt                  DateTime       @default(now()) @db.Timestamptz(3)
   expiresAt                 DateTime       @db.Timestamptz(3)
   revokedAt                 DateTime?      @db.Timestamptz(3)

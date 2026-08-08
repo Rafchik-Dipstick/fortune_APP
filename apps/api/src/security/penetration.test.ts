@@ -6,11 +6,9 @@ import { apiPaths } from '@fortuneness/api-contracts';
 
 import { createApiApp } from '../app.js';
 import { AccessTokenService } from '../auth/access-token.js';
-import { CachedGameCenterPublicKeyProvider } from '../auth/game-center-public-key.js';
 import { createTestApiEnvironment } from '../config/environment.fixture.js';
 import { ApiReadiness } from '../health/readiness.js';
 import { decryptBytes, encryptBytes, resolveVersionedKey } from './crypto.js';
-import { EgressDeniedError } from './egress.js';
 
 /**
  * Phase 13 penetration retest of the Phase 0 trust and abuse model.
@@ -40,60 +38,6 @@ const createProbeApp = () =>
       });
     },
   });
-
-describe('AC-01 — Game Center public-key URL is an SSRF input', () => {
-  it.each([
-    ['the cloud metadata address', 'https://169.254.169.254/latest/meta-data/'],
-    ['loopback', 'https://127.0.0.1/public-key.cer'],
-    ['a private host', 'https://10.0.0.1/public-key.cer'],
-    ['a suffix lookalike', 'https://static.gc.apple.com.attacker.example/key.cer'],
-    ['a prefix lookalike', 'https://attacker-static.gc.apple.com/key.cer'],
-    ['plaintext transport', 'http://static.gc.apple.com/key.cer'],
-    ['an alternate port', 'https://static.gc.apple.com:8443/key.cer'],
-    ['embedded credentials', 'https://a:b@static.gc.apple.com/key.cer'],
-    ['a file URL', 'file:///etc/passwd'],
-    ['a gopher URL', 'gopher://static.gc.apple.com/key.cer'],
-  ])('refuses %s without attempting a fetch', async (_description, publicKeyUrl) => {
-    const fetchCertificate = vi.fn();
-    const provider = new CachedGameCenterPublicKeyProvider(environment.authentication, {
-      fetchCertificate,
-    });
-
-    await expect(provider.getPublicKey(publicKeyUrl, new Date())).rejects.toBeInstanceOf(
-      EgressDeniedError,
-    );
-    expect(fetchCertificate).not.toHaveBeenCalled();
-  });
-
-  it('refuses an allowlisted host that resolves internally, after the URL passes', async () => {
-    const fetchCertificate = vi
-      .fn()
-      .mockRejectedValue(new EgressDeniedError('PRIVATE_ADDRESS', 'resolved to a private address'));
-    const provider = new CachedGameCenterPublicKeyProvider(environment.authentication, {
-      fetchCertificate,
-    });
-
-    await expect(
-      provider.getPublicKey('https://static.gc.apple.com/key.cer', new Date()),
-    ).rejects.toBeInstanceOf(EgressDeniedError);
-    expect(fetchCertificate).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not cache a denied URL as a usable key', async () => {
-    const fetchCertificate = vi.fn().mockRejectedValue(new Error('unreachable'));
-    const provider = new CachedGameCenterPublicKeyProvider(environment.authentication, {
-      fetchCertificate,
-    });
-
-    await expect(
-      provider.getPublicKey('https://static.gc.apple.com/key.cer', new Date()),
-    ).rejects.toThrow();
-    await expect(
-      provider.getPublicKey('https://static.gc.apple.com/key.cer', new Date()),
-    ).rejects.toThrow();
-    expect(fetchCertificate).toHaveBeenCalledTimes(2);
-  });
-});
 
 describe('AC-02 and AC-04 — session forgery and replay', () => {
   const accessTokens = new AccessTokenService(environment.authentication);

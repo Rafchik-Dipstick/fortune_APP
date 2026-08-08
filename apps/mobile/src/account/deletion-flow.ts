@@ -78,7 +78,7 @@ export type DeletionRequestOutcome =
   | { kind: 'FAILED'; message: string; reauthenticationNeeded: boolean };
 
 /**
- * Deletion needs a Game Center proof from the last 300 seconds. An ordinary
+ * Deletion needs an Apple sign-in from the last 300 seconds. An ordinary
  * refresh deliberately keeps the original sign-in time, so a stale proof is
  * answered with one forced reauthentication and a single retry.
  */
@@ -92,7 +92,7 @@ export async function submitAccountDeletion(
       deletion: (await dependencies.request(dependencies.getAccessToken(), body)).deletion,
     };
   } catch (error) {
-    if (!(error instanceof MobileApiError) || error.code !== 'GAME_CENTER_REAUTH_REQUIRED') {
+    if (!(error instanceof MobileApiError) || error.code !== 'APPLE_ID_REAUTH_REQUIRED') {
       return {
         kind: 'FAILED',
         message: deletionErrorMessage(error),
@@ -103,7 +103,7 @@ export async function submitAccountDeletion(
       return {
         kind: 'FAILED',
         message:
-          'Deleting your account needs a fresh Game Center sign-in. Sign in under iOS Settings, then try again. Nothing was deleted.',
+          'Deleting your account needs a fresh Apple sign-in. Try again and complete the Apple prompt. Nothing was deleted.',
         reauthenticationNeeded: true,
       };
     }
@@ -117,7 +117,7 @@ export async function submitAccountDeletion(
         kind: 'FAILED',
         message: deletionErrorMessage(retryError),
         reauthenticationNeeded:
-          retryError instanceof MobileApiError && retryError.code === 'GAME_CENTER_REAUTH_REQUIRED',
+          retryError instanceof MobileApiError && retryError.code === 'APPLE_ID_REAUTH_REQUIRED',
       };
     }
   }
@@ -127,8 +127,8 @@ const deletionMessages: Partial<Record<MobileApiError['code'], string>> = {
   ACCOUNT_DELETION_PENDING:
     'This account already has a deletion in progress. Reopen Fortuneness to see its status.',
   ACCOUNT_PURGED: 'This account has already been deleted and cannot be restored.',
-  GAME_CENTER_REAUTH_REQUIRED:
-    'Deleting your account needs a Game Center sign-in from the last five minutes. Nothing was deleted.',
+  APPLE_ID_REAUTH_REQUIRED:
+    'Deleting your account needs an Apple sign-in from the last five minutes. Nothing was deleted.',
   NETWORK_UNAVAILABLE: 'Deleting your account needs a connection. Nothing was deleted.',
 };
 

@@ -1,6 +1,6 @@
 # Fortuneness mobile
 
-This is the Expo SDK 57 iPhone/iPad workspace. It uses Expo Router and development builds; Expo Go is not supported because Game Center and StoreKit 2 require local Swift Expo modules.
+This is the Expo SDK 57 iPhone/iPad workspace. It uses Expo Router and development builds; StoreKit 2 still requires the local Swift Expo module.
 
 ## Local configuration
 
@@ -14,6 +14,6 @@ corepack npm run typecheck --workspace @fortuneness/mobile
 corepack npm run start --workspace @fortuneness/mobile
 ```
 
-`APP_BUNDLE_ID` intentionally fails closed for production until the Phase 0 owner decision is recorded. Development and preview use isolated placeholder identifiers and do not prove the final Game Center entitlement.
+`APP_BUNDLE_ID` intentionally fails closed for production until the Phase 0 owner decision is recorded. It is also the audience the API requires on Sign in with Apple identity tokens.
 
 The `en-XA` length-expanded pseudo-locale is declared only in development/preview profiles. Use the session-only switch in Settings to compare it with English on one QA build, or set `EXPO_PUBLIC_LOCALE_OVERRIDE=en-XA` to start there. Production hard-disables the switch and pseudo-locale generation and declares only English.

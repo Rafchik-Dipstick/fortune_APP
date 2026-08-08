@@ -2,19 +2,6 @@ import { z } from 'zod';
 
 import { isoUtcDateTimeSchema, uuidSchema } from './base.js';
 
-const unsignedIntegerStringSchema = z
-  .string()
-  .regex(/^\d{1,20}$/u)
-  .refine((value) => BigInt(value) <= 18_446_744_073_709_551_615n, {
-    message: 'must fit an unsigned 64-bit integer',
-  });
-
-const base64FieldSchema = z
-  .string()
-  .min(4)
-  .max(8_192)
-  .regex(/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u);
-
 const reportedLocaleSchema = z
   .string()
   .trim()
@@ -26,38 +13,6 @@ export const reportedTimeZoneSchema = z.string().trim().min(1).max(128);
 
 export const idempotencyKeySchema = uuidSchema;
 
-export const gameCenterProofSchema = z
-  .object({
-    teamPlayerId: z.string().trim().min(1).max(256),
-    gamePlayerId: z.string().trim().min(1).max(256),
-    bundleId: z
-      .string()
-      .trim()
-      .min(3)
-      .max(255)
-      .regex(/^[A-Za-z0-9]+(?:[.-][A-Za-z0-9]+)+$/u),
-    publicKeyUrl: z
-      .url()
-      .max(2_048)
-      .refine((value) => new URL(value).protocol === 'https:', {
-        message: 'must use HTTPS',
-      }),
-    signatureBase64: base64FieldSchema,
-    saltBase64: base64FieldSchema,
-    timestamp: unsignedIntegerStringSchema,
-  })
-  .strict()
-  .meta({ id: 'GameCenterProof' });
-
-export const gameCenterRestrictionsSchema = z
-  .object({
-    isUnderage: z.boolean(),
-    isMultiplayerGamingRestricted: z.boolean(),
-    isPersonalizedCommunicationRestricted: z.boolean(),
-  })
-  .strict()
-  .meta({ id: 'GameCenterRestrictions' });
-
 export const authDeviceSchema = z
   .object({
     id: uuidSchema,
@@ -66,18 +21,20 @@ export const authDeviceSchema = z
   .strict()
   .meta({ id: 'AuthDevice' });
 
-export const gameCenterAuthRequestSchema = z
+export const appleAuthRequestSchema = z
   .object({
-    proof: gameCenterProofSchema,
-    scopedIdsPersistent: z.boolean(),
-    alias: z.string().trim().min(1).max(128),
-    restrictions: gameCenterRestrictionsSchema,
+    identityToken: z
+      .string()
+      .min(20)
+      .max(16_384)
+      .regex(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/u),
+    nonce: uuidSchema,
     reportedDeviceLocale: reportedLocaleSchema,
     reportedDeviceTimeZone: reportedTimeZoneSchema,
     device: authDeviceSchema,
   })
   .strict()
-  .meta({ id: 'GameCenterAuthRequest' });
+  .meta({ id: 'AppleAuthRequest' });
 
 export const refreshSessionRequestSchema = z
   .object({
@@ -134,14 +91,14 @@ export const accountBootstrapSchema = z
   .strict()
   .meta({ id: 'AccountBootstrap' });
 
-export const gameCenterAuthResponseSchema = z
+export const appleAuthResponseSchema = z
   .object({
     user: authenticatedUserSchema,
     session: sessionTokensSchema,
     bootstrap: accountBootstrapSchema,
   })
   .strict()
-  .meta({ id: 'GameCenterAuthResponse' });
+  .meta({ id: 'AppleAuthResponse' });
 
 export const refreshSessionResponseSchema = z
   .object({ session: sessionTokensSchema })
@@ -159,9 +116,8 @@ export const meResponseSchema = z
 export type AccountBootstrap = z.infer<typeof accountBootstrapSchema>;
 export type AuthDevice = z.infer<typeof authDeviceSchema>;
 export type AuthenticatedUser = z.infer<typeof authenticatedUserSchema>;
-export type GameCenterAuthRequest = z.infer<typeof gameCenterAuthRequestSchema>;
-export type GameCenterAuthResponse = z.infer<typeof gameCenterAuthResponseSchema>;
-export type GameCenterProof = z.infer<typeof gameCenterProofSchema>;
+export type AppleAuthRequest = z.infer<typeof appleAuthRequestSchema>;
+export type AppleAuthResponse = z.infer<typeof appleAuthResponseSchema>;
 export type MeResponse = z.infer<typeof meResponseSchema>;
 export type RefreshSessionRequest = z.infer<typeof refreshSessionRequestSchema>;
 export type RefreshSessionResponse = z.infer<typeof refreshSessionResponseSchema>;

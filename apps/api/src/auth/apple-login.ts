@@ -2,11 +2,11 @@ import { randomUUID } from 'node:crypto';
 
 import {
   deletionManagementSchema,
-  gameCenterAuthResponseSchema,
+  appleAuthResponseSchema,
   type AuthenticatedUser,
+  type AppleAuthRequest,
+  type AppleAuthResponse,
   type DeletionManagement,
-  type GameCenterAuthRequest,
-  type GameCenterAuthResponse,
 } from '@fortuneness/api-contracts';
 
 import { type AuthenticationEnvironment } from '../config/environment.js';
@@ -22,17 +22,17 @@ import { resolveCurrentPurchaseToken } from '../iap/purchase-token.js';
 import { createCurrentHmacDigest, createOpaqueToken } from '../security/crypto.js';
 import { type DeletionManagementTokenService } from '../account/deletion-management-token.js';
 import { type AccessTokenService } from './access-token.js';
-import { type VerifiedGameCenterIdentity } from './game-center-proof.js';
+import { type VerifiedAppleIdentity } from './apple-identity-token.js';
 
 const millisecondsPerDay = 86_400_000;
 const refreshTokenDigestPrefix = 'refresh-token:';
 const deviceDigestPrefix = 'session-device:';
 
-export interface GameCenterIdentityVerifier {
-  verify(request: GameCenterAuthRequest): Promise<VerifiedGameCenterIdentity>;
+export interface AppleIdentityVerifier {
+  verify(request: AppleAuthRequest): Promise<VerifiedAppleIdentity>;
 }
 
-export type GameCenterLoginErrorCode =
+export type AppleLoginErrorCode =
   | 'ACCOUNT_BLOCKED'
   | 'ACCOUNT_DELETION_PENDING'
   | 'ACCOUNT_PURGED'
@@ -40,8 +40,8 @@ export type GameCenterLoginErrorCode =
   | 'PROOF_REPLAY'
   | 'TIME_ZONE_INVALID';
 
-export class GameCenterLoginError extends Error {
-  readonly code: GameCenterLoginErrorCode;
+export class AppleLoginError extends Error {
+  readonly code: AppleLoginErrorCode;
   /**
    * Present only for `ACCOUNT_DELETION_PENDING`. Authentication during the
    * processing period returns the scoped exchange rather than a session, so
@@ -50,13 +50,9 @@ export class GameCenterLoginError extends Error {
    */
   readonly deletionManagement: DeletionManagement | undefined;
 
-  constructor(
-    code: GameCenterLoginErrorCode,
-    cause?: unknown,
-    deletionManagement?: DeletionManagement,
-  ) {
-    super(`Game Center login failed: ${code}.`, { cause });
-    this.name = 'GameCenterLoginError';
+  constructor(code: AppleLoginErrorCode, cause?: unknown, deletionManagement?: DeletionManagement) {
+    super(`Apple login failed: ${code}.`, { cause });
+    this.name = 'AppleLoginError';
     this.code = code;
     this.deletionManagement = deletionManagement;
   }
@@ -69,7 +65,7 @@ interface LoginDependencies {
   environment: AuthenticationEnvironment;
   now?: () => Date;
   opaqueTokenFactory?: () => string;
-  proofVerifier: GameCenterIdentityVerifier;
+  identityVerifier: AppleIdentityVerifier;
   uuidFactory?: () => string;
 }
 
@@ -100,22 +96,22 @@ function assertAccountStatusAllowsSession(user: FullUser): void {
     case 'ACTIVE':
       return;
     case 'BLOCKED':
-      throw new GameCenterLoginError('ACCOUNT_BLOCKED');
+      throw new AppleLoginError('ACCOUNT_BLOCKED');
     case 'DELETION_PENDING':
-      throw new GameCenterLoginError('ACCOUNT_DELETION_PENDING');
+      throw new AppleLoginError('ACCOUNT_DELETION_PENDING');
     case 'PURGED':
-      throw new GameCenterLoginError('ACCOUNT_PURGED');
+      throw new AppleLoginError('ACCOUNT_PURGED');
   }
 }
 
-export class GameCenterLoginService {
+export class AppleLoginService {
   private readonly accessTokens: AccessTokenService;
   private readonly client: PrismaClient;
   private readonly deletionManagementTokens: DeletionManagementTokenService | undefined;
   private readonly environment: AuthenticationEnvironment;
   private readonly now: () => Date;
   private readonly opaqueTokenFactory: () => string;
-  private readonly proofVerifier: GameCenterIdentityVerifier;
+  private readonly identityVerifier: AppleIdentityVerifier;
   private readonly uuidFactory: () => string;
 
   constructor(dependencies: LoginDependencies) {
@@ -125,17 +121,17 @@ export class GameCenterLoginService {
     this.environment = dependencies.environment;
     this.now = dependencies.now ?? (() => new Date());
     this.opaqueTokenFactory = dependencies.opaqueTokenFactory ?? createOpaqueToken;
-    this.proofVerifier = dependencies.proofVerifier;
+    this.identityVerifier = dependencies.identityVerifier;
     this.uuidFactory = dependencies.uuidFactory ?? randomUUID;
   }
 
-  async login(request: GameCenterAuthRequest): Promise<GameCenterAuthResponse> {
-    const verifiedIdentity = await this.proofVerifier.verify(request);
+  async login(request: AppleAuthRequest): Promise<AppleAuthResponse> {
+    const verifiedIdentity = await this.identityVerifier.verify(request);
     let accountTimeZone: string;
     try {
       accountTimeZone = canonicalizeIanaTimeZone(request.reportedDeviceTimeZone);
     } catch (error) {
-      throw new GameCenterLoginError('TIME_ZONE_INVALID', error);
+      throw new AppleLoginError('TIME_ZONE_INVALID', error);
     }
 
     try {
@@ -149,10 +145,10 @@ export class GameCenterLoginService {
   }
 
   private async commitLogin(
-    request: GameCenterAuthRequest,
-    verifiedIdentity: VerifiedGameCenterIdentity,
+    request: AppleAuthRequest,
+    verifiedIdentity: VerifiedAppleIdentity,
     accountTimeZone: string,
-  ): Promise<GameCenterAuthResponse> {
+  ): Promise<AppleAuthResponse> {
     return runReadCommittedTransaction(this.client, async (transaction) => {
       const now = this.now();
       await this.reserveProof(transaction, verifiedIdentity, now);
@@ -186,7 +182,7 @@ export class GameCenterLoginService {
         data: {
           userId: user.id,
           sessionVersion: user.sessionVersion,
-          gameCenterAuthenticatedAt: verifiedIdentity.authenticatedAt,
+          identityAuthenticatedAt: verifiedIdentity.authenticatedAt,
           issuedAt: now,
           expiresAt: refreshTokenExpiresAt,
           refreshTokens: {
@@ -209,7 +205,7 @@ export class GameCenterLoginService {
         userId: user.id,
       });
 
-      return gameCenterAuthResponseSchema.parse({
+      return appleAuthResponseSchema.parse({
         user: serializeAuthenticatedUser(user),
         session: {
           accessToken: access.accessToken,
@@ -252,7 +248,7 @@ export class GameCenterLoginService {
       return;
     }
     const issued = await this.deletionManagementTokens.issue(user.id, authenticatedAt);
-    throw new GameCenterLoginError(
+    throw new AppleLoginError(
       'ACCOUNT_DELETION_PENDING',
       undefined,
       deletionManagementSchema.parse({
@@ -269,7 +265,7 @@ export class GameCenterLoginService {
   }
 
   /**
-   * Issues a fresh session after a cancelled deletion. The Game Center proof
+   * Issues a fresh session after a cancelled deletion. The Apple identity token
    * that produced the deletion-management token is reused as the authoritative
    * `auth_time`, so cancellation cannot manufacture a newer proof than the
    * player actually presented.
@@ -277,7 +273,7 @@ export class GameCenterLoginService {
   async issueRestoredSession(options: {
     authenticatedAt: Date;
     userId: string;
-  }): Promise<GameCenterAuthResponse> {
+  }): Promise<AppleAuthResponse> {
     return runReadCommittedTransaction(this.client, async (transaction) => {
       const now = this.now();
       const user = await transaction.user.findUniqueOrThrow({ where: { id: options.userId } });
@@ -296,7 +292,7 @@ export class GameCenterLoginService {
         data: {
           userId: user.id,
           sessionVersion: user.sessionVersion,
-          gameCenterAuthenticatedAt: options.authenticatedAt,
+          identityAuthenticatedAt: options.authenticatedAt,
           issuedAt: now,
           expiresAt: refreshTokenExpiresAt,
           refreshTokens: {
@@ -315,7 +311,7 @@ export class GameCenterLoginService {
         userId: user.id,
       });
 
-      return gameCenterAuthResponseSchema.parse({
+      return appleAuthResponseSchema.parse({
         user: serializeAuthenticatedUser(user),
         session: {
           accessToken: access.accessToken,
@@ -336,14 +332,14 @@ export class GameCenterLoginService {
 
   private async reserveProof(
     transaction: Prisma.TransactionClient,
-    verifiedIdentity: VerifiedGameCenterIdentity,
+    verifiedIdentity: VerifiedAppleIdentity,
     now: Date,
   ): Promise<void> {
     const existing = await transaction.identityProofReplay.findUnique({
       where: { fingerprint: verifiedIdentity.proofFingerprint },
     });
     if (existing !== null && existing.expiresAt > now) {
-      throw new GameCenterLoginError('PROOF_REPLAY');
+      throw new AppleLoginError('PROOF_REPLAY');
     }
     if (existing !== null) {
       await transaction.identityProofReplay.delete({
@@ -361,14 +357,14 @@ export class GameCenterLoginService {
 
   private async resolveUser(
     transaction: Prisma.TransactionClient,
-    verifiedIdentity: VerifiedGameCenterIdentity,
+    verifiedIdentity: VerifiedAppleIdentity,
     accountTimeZone: string,
     reportedDeviceLocale: string,
     now: Date,
   ): Promise<FullUser> {
     const matches = await transaction.externalIdentity.findMany({
       where: {
-        provider: 'GAME_CENTER',
+        provider: 'SIGN_IN_WITH_APPLE',
         OR: verifiedIdentity.identityCandidates.map((candidate) => ({
           keyVersion: candidate.keyVersion,
           subjectDigest: candidate.digest,
@@ -378,7 +374,7 @@ export class GameCenterLoginService {
     });
     const matchedUserIds = new Set(matches.map((match) => match.userId));
     if (matchedUserIds.size > 1) {
-      throw new GameCenterLoginError('IDENTITY_CONFLICT');
+      throw new AppleLoginError('IDENTITY_CONFLICT');
     }
 
     const matchedIdentity =
@@ -403,8 +399,8 @@ export class GameCenterLoginService {
       data: {
         keyVersion: verifiedIdentity.currentIdentity.keyVersion,
         subjectDigest: verifiedIdentity.currentIdentity.digest,
-        secondaryKeyVersion: verifiedIdentity.secondaryMigrationIdentity.keyVersion,
-        secondaryMigrationDigest: verifiedIdentity.secondaryMigrationIdentity.digest,
+        secondaryKeyVersion: null,
+        secondaryMigrationDigest: null,
         lastAuthenticatedAt: verifiedIdentity.authenticatedAt,
       },
     });
@@ -428,7 +424,7 @@ export class GameCenterLoginService {
 
   private async createAccount(
     transaction: Prisma.TransactionClient,
-    verifiedIdentity: VerifiedGameCenterIdentity,
+    verifiedIdentity: VerifiedAppleIdentity,
     accountTimeZone: string,
     reportedDeviceLocale: string,
     now: Date,
@@ -449,12 +445,10 @@ export class GameCenterLoginService {
     });
     await transaction.externalIdentity.create({
       data: {
-        provider: 'GAME_CENTER',
+        provider: 'SIGN_IN_WITH_APPLE',
         userId,
         keyVersion: verifiedIdentity.currentIdentity.keyVersion,
         subjectDigest: verifiedIdentity.currentIdentity.digest,
-        secondaryKeyVersion: verifiedIdentity.secondaryMigrationIdentity.keyVersion,
-        secondaryMigrationDigest: verifiedIdentity.secondaryMigrationIdentity.digest,
         lastAuthenticatedAt: verifiedIdentity.authenticatedAt,
         createdAt: now,
         updatedAt: now,
@@ -475,7 +469,7 @@ export class GameCenterLoginService {
     now: Date,
   ): Promise<string> {
     if (user.activeFinancialSubjectId === null) {
-      throw new GameCenterLoginError('IDENTITY_CONFLICT');
+      throw new AppleLoginError('IDENTITY_CONFLICT');
     }
     await lockFinancialSubjectForUpdate(transaction, user.activeFinancialSubjectId);
     const current = await resolveCurrentPurchaseToken(

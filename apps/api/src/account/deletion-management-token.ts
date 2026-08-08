@@ -22,7 +22,7 @@ const claimsSchema = z.looseObject({
 });
 
 export interface DeletionManagementClaims {
-  /** Authoritative Game Center proof time this token was minted from. */
+  /** Authoritative Apple sign-in time this token was minted from. */
   authTime: Date;
   expiresAt: Date;
   userId: string;

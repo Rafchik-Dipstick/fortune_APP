@@ -52,7 +52,7 @@ export class FortuneViewedService {
         family.sessionVersion !== authentication.sessionVersion ||
         family.revokedAt !== null ||
         family.expiresAt <= now ||
-        Math.floor(family.gameCenterAuthenticatedAt.getTime() / 1_000) !==
+        Math.floor(family.identityAuthenticatedAt.getTime() / 1_000) !==
           authentication.authTimeSeconds
       ) {
         throw new FortuneViewedError('AUTH_REQUIRED');

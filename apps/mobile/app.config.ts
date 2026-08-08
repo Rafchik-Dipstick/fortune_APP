@@ -50,7 +50,7 @@ const privacyManifests: NonNullable<NonNullable<ExpoConfig['ios']>['privacyManif
   NSPrivacyTrackingDomains: [],
   NSPrivacyCollectedDataTypes: [
     {
-      // The Game Center scoped player identifier, stored only as a digest, is
+      // The Sign in with Apple subject identifier, stored only as a digest, is
       // what ties readings to an account.
       NSPrivacyCollectedDataType: 'NSPrivacyCollectedDataTypeUserID',
       NSPrivacyCollectedDataTypeLinked: true,
@@ -114,7 +114,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ios: {
       ...config.ios,
       bundleIdentifier,
-      buildNumber: process.env.APP_BUILD_NUMBER?.trim() ?? '1',
+      usesAppleSignIn: true,
       supportsTablet: true,
       requireFullScreen: false,
       infoPlist: {
@@ -153,6 +153,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         },
       ],
       'expo-secure-store',
+      'expo-apple-authentication',
       'expo-sqlite',
       [
         'expo-audio',
@@ -172,7 +173,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         },
       ],
       './plugins/with-local-notifications-only.cjs',
-      './plugins/with-game-center.cjs',
     ],
     experiments: {
       typedRoutes: true,

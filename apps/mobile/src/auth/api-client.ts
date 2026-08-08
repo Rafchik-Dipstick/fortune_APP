@@ -14,7 +14,7 @@ import {
   fortuneStateResponseSchema,
   fortuneViewedPath,
   fortuneViewedResponseSchema,
-  gameCenterAuthResponseSchema,
+  appleAuthResponseSchema,
   iapCatalogResponseSchema,
   iapReconcileResponseSchema,
   iapStatusResponseSchema,
@@ -32,8 +32,8 @@ import {
   type ConsumptionConsent,
   type ConsumptionConsentUpdateRequest,
   type FortuneDetailResponse,
-  type GameCenterAuthRequest,
-  type GameCenterAuthResponse,
+  type AppleAuthRequest,
+  type AppleAuthResponse,
   type FortuneDrawRequest,
   type FortuneDrawResponse,
   type FortuneHistoryQuery,
@@ -145,15 +145,15 @@ async function requireSuccessJson(response: Response): Promise<unknown> {
   return payload;
 }
 
-export async function authenticateGameCenter(
-  authenticationRequest: GameCenterAuthRequest,
-): Promise<GameCenterAuthResponse> {
-  const response = await request(apiPaths.authGameCenter, {
+export async function authenticateApple(
+  authenticationRequest: AppleAuthRequest,
+): Promise<AppleAuthResponse> {
+  const response = await request(apiPaths.authApple, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(authenticationRequest),
   });
-  const parsed = gameCenterAuthResponseSchema.safeParse(await requireSuccessJson(response));
+  const parsed = appleAuthResponseSchema.safeParse(await requireSuccessJson(response));
   if (!parsed.success) {
     throw new MobileApiError({
       code: 'RESPONSE_INVALID',
@@ -289,12 +289,12 @@ export async function getAccountDeletionStatus(
 
 export async function cancelAccountDeletion(
   deletionManagementToken: string,
-): Promise<GameCenterAuthResponse> {
+): Promise<AppleAuthResponse> {
   const response = await request(apiPaths.meDeletionCancel, {
     method: 'POST',
     headers: { Authorization: `Bearer ${deletionManagementToken}` },
   });
-  const parsed = gameCenterAuthResponseSchema.safeParse(await requireSuccessJson(response));
+  const parsed = appleAuthResponseSchema.safeParse(await requireSuccessJson(response));
   if (!parsed.success) {
     throw new MobileApiError({
       code: 'RESPONSE_INVALID',

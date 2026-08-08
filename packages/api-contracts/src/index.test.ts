@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   apiErrorEnvelopeSchema,
   apiPaths,
-  gameCenterAuthRequestSchema,
-  gameCenterAuthResponseSchema,
+  appleAuthRequestSchema,
+  appleAuthResponseSchema,
   healthResponseSchema,
   isoUtcDateTimeSchema,
   stableApiErrorCodes,
@@ -59,45 +59,25 @@ describe('base API contracts', () => {
     ).toBe(true);
   });
 
-  it('validates exact Game Center proof and bootstrap boundaries', () => {
+  it('validates exact Apple identity-token and bootstrap boundaries', () => {
     const request = {
-      proof: {
-        teamPlayerId: 'team-player',
-        gamePlayerId: 'game-player',
-        bundleId: 'app.fortuneness.dev',
-        publicKeyUrl: 'https://static.gc.apple.com/public-key.cer',
-        signatureBase64: 'c2lnbmF0dXJl',
-        saltBase64: 'c2FsdA==',
-        timestamp: '1786009600000',
-      },
-      scopedIdsPersistent: true,
-      alias: 'Stargazer',
-      restrictions: {
-        isUnderage: false,
-        isMultiplayerGamingRestricted: false,
-        isPersonalizedCommunicationRestricted: false,
-      },
+      identityToken: 'headerpayload.headerpayload.signaturepart',
+      nonce: 'aabbccdd-1111-4222-8333-444455556666',
       reportedDeviceLocale: 'en-US',
       reportedDeviceTimeZone: 'Europe/Kyiv',
       device: { id: 'cce93010-158e-4d65-bdd8-38672203a59b', description: 'iPhone' },
     };
 
-    expect(gameCenterAuthRequestSchema.parse(request)).toEqual(request);
+    expect(appleAuthRequestSchema.parse(request)).toEqual(request);
     expect(
-      gameCenterAuthRequestSchema.safeParse({
+      appleAuthRequestSchema.safeParse({
         ...request,
-        scopedIdsPersistent: false,
-      }).success,
-    ).toBe(true);
-    expect(
-      gameCenterAuthRequestSchema.safeParse({
-        ...request,
-        proof: { ...request.proof, publicKeyUrl: 'http://127.0.0.1/key' },
+        identityToken: 'not-a-jwt',
       }).success,
     ).toBe(false);
 
     expect(
-      gameCenterAuthResponseSchema.safeParse({
+      appleAuthResponseSchema.safeParse({
         user: {},
         session: {},
         bootstrap: {},

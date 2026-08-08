@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { Linking, StyleSheet, View } from 'react-native';
 
 import { DeletionPendingPanel } from '@/account/deletion-pending';
@@ -96,15 +97,8 @@ export function AuthenticationGate({ children }: { children: ReactNode }) {
       case 'AUTHENTICATING':
         return {
           title: 'Opening your circle',
-          message: 'Connecting securely with Game Center and your Fortuneness account.',
+          message: 'Connecting securely with your Fortuneness account.',
           retry: false,
-        };
-      case 'NONPERSISTENT_ID':
-        return {
-          title: 'Game Center is still preparing',
-          message:
-            'Game Center returned temporary player identifiers. Wait a moment, then try again; no account was created.',
-          retry: true,
         };
       case 'DELETION_PENDING':
         return {
@@ -117,22 +111,22 @@ export function AuthenticationGate({ children }: { children: ReactNode }) {
         return {
           title: 'This account was deleted',
           message:
-            'The prior Fortuneness profile and its benefits cannot be restored or transferred. Try again to create a new empty profile for the current Game Center player.',
+            'The prior Fortuneness profile and its benefits cannot be restored or transferred. Sign in with Apple to create a new empty profile.',
           retry: true,
+          appleButton: true,
         };
       case 'UNSUPPORTED':
         return {
           title: 'Development build required',
-          message:
-            'Game Center is unavailable in Expo Go. Open Fortuneness in its iOS development client.',
+          message: 'Sign in with Apple is unavailable on this device or build.',
           retry: false,
         };
-      case 'GAME_CENTER_BLOCKED':
+      case 'APPLE_SIGN_IN_REQUIRED':
         return {
-          title: 'Sign in to Game Center',
-          message:
-            'Fortuneness uses your Game Center player to protect and sync your readings. Sign in under iOS Settings, then try again.',
+          title: 'Sign in to Fortuneness',
+          message: 'Use your Apple Account to protect and sync your readings across your devices.',
           retry: true,
+          appleButton: true,
         };
       case 'ERROR':
         return {
@@ -158,9 +152,20 @@ export function AuthenticationGate({ children }: { children: ReactNode }) {
           <LoadingSkeleton />
         ) : null}
         {authentication.phase === 'DELETION_PENDING' ? <DeletionPendingPanel /> : null}
-        {copy.retry ? (
+        {copy.retry && 'appleButton' in copy && copy.appleButton ? (
+          <AppleAuthentication.AppleAuthenticationButton
+            accessibilityLabel="Sign in with Apple"
+            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE_OUTLINE}
+            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+            cornerRadius={12}
+            onPress={() => {
+              void authentication.retry();
+            }}
+            style={styles.appleButton}
+          />
+        ) : copy.retry ? (
           <AppButton
-            label="Try Game Center again"
+            label="Try again"
             onPress={() => {
               void authentication.retry();
             }}
@@ -199,6 +204,10 @@ export function AuthenticationGate({ children }: { children: ReactNode }) {
 }
 
 const styles = StyleSheet.create({
+  appleButton: {
+    width: '100%',
+    height: 48,
+  },
   container: {
     flex: 1,
     justifyContent: 'center',

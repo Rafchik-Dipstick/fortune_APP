@@ -118,7 +118,7 @@ function dependencies(overrides: Partial<DeletionFlowDependencies> = {}): Deleti
 }
 
 const staleProof = () =>
-  new MobileApiError({ code: 'GAME_CENTER_REAUTH_REQUIRED', message: 'stale', retryable: true });
+  new MobileApiError({ code: 'APPLE_ID_REAUTH_REQUIRED', message: 'stale', retryable: true });
 
 describe('submitAccountDeletion', () => {
   it('returns the pending state on the first success', async () => {
@@ -132,7 +132,7 @@ describe('submitAccountDeletion', () => {
     expect(reauthenticate).not.toHaveBeenCalled();
   });
 
-  it('reauthenticates once when the Game Center proof has aged out', async () => {
+  it('reauthenticates once when the Apple sign-in has aged out', async () => {
     const reauthenticate = vi.fn(() => Promise.resolve(true));
     const request = vi
       .fn<DeletionFlowDependencies['request']>()

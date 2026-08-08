@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { StyleSheet, View } from 'react-native';
 import type { AccountDeletionState } from '@fortuneness/api-contracts';
 
@@ -67,15 +68,17 @@ export function DeletionPendingPanel() {
       <Surface>
         <AppText variant="label">See the deletion status</AppText>
         <AppText color="textMuted" variant="caption">
-          Sign in with Game Center again to view the deletion status or keep this account. Signing
-          in during the processing period does not restore access on its own.
+          Sign in with Apple again to view the deletion status or keep this account. Signing in
+          during the processing period does not restore access on its own.
         </AppText>
-        <AppButton
-          label="Sign in with Game Center"
+        <AppleAuthentication.AppleAuthenticationButton
+          buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE_OUTLINE}
+          buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+          cornerRadius={12}
           onPress={() => {
             void authentication.retry();
           }}
-          variant="secondary"
+          style={styles.appleButton}
         />
       </Surface>
     );
@@ -117,6 +120,10 @@ export function DeletionPendingPanel() {
 }
 
 const styles = StyleSheet.create({
+  appleButton: {
+    width: '100%',
+    height: 48,
+  },
   actions: {
     flexDirection: 'row',
     flexWrap: 'wrap',

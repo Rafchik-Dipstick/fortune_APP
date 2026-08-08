@@ -119,7 +119,7 @@ export default function DeleteAccountScreen() {
           </AppText>
           <AppText color="textMuted">
             You can keep the account at any time during the processing period by signing in with
-            Game Center again.
+            Apple again.
           </AppText>
         </Surface>
 
@@ -170,8 +170,8 @@ export default function DeleteAccountScreen() {
             onPress={confirm}
           />
           <AppText color="textMuted" variant="caption">
-            Deleting requires a Game Center sign-in from the last five minutes; you may be asked to
-            sign in again.
+            Deleting requires an Apple sign-in from the last five minutes; you may be asked to sign
+            in again.
           </AppText>
           {failure === undefined ? null : (
             <AppText accessibilityLiveRegion="polite" color="textMuted" variant="caption">

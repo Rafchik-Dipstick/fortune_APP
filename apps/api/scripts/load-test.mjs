@@ -2,7 +2,7 @@
 // Phase 13 load test for the Fortuneness API.
 //
 // Drives the authenticated read, draw, history, and collection surfaces plus
-// the two unauthenticated boundaries — Game Center login and the App Store
+// the two unauthenticated boundaries — Apple login and the App Store
 // webhook — at a configured concurrency, then judges the result against the
 // Phase 13 service-level objectives and exits non-zero if any is missed.
 //
@@ -102,7 +102,7 @@ function base64Url(input) {
 }
 
 /**
- * Mints an access token with the deployment's own keyring. Game Center login
+ * Mints an access token with the deployment's own keyring. Sign in with Apple
  * needs a physical device, so a synthetic session is the only way to load-test
  * the authenticated surfaces; the token is otherwise identical to a real one
  * and takes the same verification path on every request.
@@ -249,7 +249,7 @@ async function runAuthenticatedSession({ baseUrl, deadline, session, samplesBySc
 
 /**
  * The two unauthenticated boundaries. Both are driven with input that must be
- * rejected: a real Game Center proof needs a device, and a real notification
+ * rejected: a real Apple identity token needs a device, and a real notification
  * needs Apple. What this measures is the cost of *refusing* hostile input at
  * volume, which is the denial-of-service question the phase actually asks.
  */
@@ -257,21 +257,13 @@ async function runUnauthenticatedSession({ baseUrl, deadline, samplesByScenario 
   const headers = { 'Content-Type': 'application/json' };
 
   while (performance.now() < deadline) {
-    await timedRequest(samplesByScenario.authReject, `${baseUrl}/v1/auth/game-center`, {
+    await timedRequest(samplesByScenario.authReject, `${baseUrl}/v1/auth/apple`, {
       body: JSON.stringify({
-        alias: 'Load Test',
-        proof: {
-          bundleId: 'app.fortuneness.invalid',
-          gamePlayerId: 'G:0000000000',
-          publicKeyUrl: 'https://static.gc.apple.com/public-key/invalid.cer',
-          saltBase64: 'c2FsdA==',
-          signatureBase64: 'c2lnbmF0dXJl',
-          teamPlayerId: 'T:0000000000',
-          timestamp: String(Date.now()),
-        },
+        identityToken: 'headerpayload.headerpayload.signaturepart',
+        nonce: randomUUID(),
         reportedDeviceLocale: 'en-US',
         reportedDeviceTimeZone: 'UTC',
-        scopedIdsPersistent: true,
+        device: { id: randomUUID(), description: 'Load test' },
       }),
       headers,
       method: 'POST',

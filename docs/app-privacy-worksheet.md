@@ -12,17 +12,17 @@ This worksheet is the source of truth for the App Store Connect **App Privacy** 
 
 ## What Fortuneness collects
 
-| Apple data type          | Collected | Linked to identity | Used for tracking | Purpose           | What it actually is                                                                             |
-| ------------------------ | --------- | ------------------ | ----------------- | ----------------- | ----------------------------------------------------------------------------------------------- |
-| User ID                  | Yes       | Yes                | No                | App Functionality | The Game Center scoped player identifier, stored only as a salted digest, plus the account UUID |
-| Purchase History         | Yes       | Yes                | No                | App Functionality | Apple transaction identifiers and entitlement state needed to grant and audit readings          |
-| Other User Content       | Yes       | Yes                | No                | App Functionality | The reading archive and card collection the player generated                                    |
-| Product Interaction      | No        | —                  | —                 | —                 | No analytics SDK is installed and no interaction events are sent                                |
-| Crash / Performance Data | No        | —                  | —                 | —                 | No crash reporter and no analytics SDK ship in the app; see the Phase 13 note below             |
-| Identifiers (IDFA)       | No        | —                  | —                 | —                 | The app never links `AdSupport` and never presents an ATT prompt                                |
-| Contact Info             | No        | —                  | —                 | —                 | Game Center provides no email or postal address to the app                                      |
-| Location                 | No        | —                  | —                 | —                 | Only an IANA time-zone name is reported, which is not a location under Apple's definition       |
-| Diagnostics              | No        | —                  | —                 | —                 | Operational only; server error reports describe the service, never the player — see below       |
+| Apple data type          | Collected | Linked to identity | Used for tracking | Purpose           | What it actually is                                                                       |
+| ------------------------ | --------- | ------------------ | ----------------- | ----------------- | ----------------------------------------------------------------------------------------- |
+| User ID                  | Yes       | Yes                | No                | App Functionality | The Sign in with Apple subject, stored only as a keyed digest, plus the account UUID      |
+| Purchase History         | Yes       | Yes                | No                | App Functionality | Apple transaction identifiers and entitlement state needed to grant and audit readings    |
+| Other User Content       | Yes       | Yes                | No                | App Functionality | The reading archive and card collection the player generated                              |
+| Product Interaction      | No        | —                  | —                 | —                 | No analytics SDK is installed and no interaction events are sent                          |
+| Crash / Performance Data | No        | —                  | —                 | —                 | No crash reporter and no analytics SDK ship in the app; see the Phase 13 note below       |
+| Identifiers (IDFA)       | No        | —                  | —                 | —                 | The app never links `AdSupport` and never presents an ATT prompt                          |
+| Contact Info             | No        | —                  | —                 | —                 | The app requests no name or email scope during Sign in with Apple                         |
+| Location                 | No        | —                  | —                 | —                 | Only an IANA time-zone name is reported, which is not a location under Apple's definition |
+| Diagnostics              | No        | —                  | —                 | —                 | Operational only; server error reports describe the service, never the player — see below |
 
 ### Phase 13 note — on-device timing and server error reporting
 
@@ -48,7 +48,7 @@ Tracking answer: **No**. Fortuneness has no advertising SDK, no third-party anal
 
 | Capability                      | Requested | Evidence                                                                      |
 | ------------------------------- | --------- | ----------------------------------------------------------------------------- |
-| Game Center                     | Yes       | `plugins/with-game-center.cjs`; the only sign-in method the app offers        |
+| Sign in with Apple              | Yes       | `expo-apple-authentication`; the only sign-in method the app offers           |
 | In-App Purchase                 | Yes       | StoreKit 2 via `modules/fortuneness-iap`                                      |
 | Local notifications             | Yes       | Reminder one-shots; permission requested only after an explicit opt-in        |
 | Remote push (`aps-environment`) | No        | Deleted by `plugins/with-local-notifications-only.cjs`; asserted by the gate  |

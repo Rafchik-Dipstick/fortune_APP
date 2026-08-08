@@ -14,7 +14,7 @@ The canonical product and technical requirements live in [`FORTUNENESS_SPEC.md`]
 | Phase 1 — repository and quality scaffold         | In progress                       | JavaScript/API/mobile scaffold is present; native modules, entitlement evidence, EAS linkage, and signed device builds remain gated.                      |
 | Phase 2 — design system and adaptive slice        | In progress                       | Static fixtures and 24 templates exist; human editorial/art approval and the Expo device matrix remain open.                                              |
 | Phase 3 — API skeleton and shared contracts       | Local implementation complete     | Full local gate passes; Railway staging linkage, variables, PostgreSQL, deploy, and live health evidence remain external.                                 |
-| Phases 4–10                                       | Local implementation complete     | Offline gates pass; physical-device Game Center and Apple Sandbox commerce evidence remain external.                                                      |
+| Phases 4–10                                       | Local implementation complete     | Offline gates pass; physical-device Sign in with Apple and Apple Sandbox commerce evidence remain external.                                               |
 | Phase 11 — full deck and content                  | In progress                       | All 78 crops validate; human art/alt-text review, bundle integration, 624 approved templates, and device/performance gates remain.                        |
 | Phase 12 — settings, reminder, legal, deletion    | Local implementation complete     | Offline gates pass; App Privacy answers, published policy text, and device reminder/deletion runs remain external.                                        |
 | Phase 13 — security and reliability hardening     | Code evidence complete            | Retest, redaction, deadlines, egress, and telemetry land offline; the staging load run, dashboards, rotation drill, and device profiling remain external. |
@@ -26,14 +26,14 @@ These items require owner credentials, external account changes, hardware, legal
 
 - Confirm the public name, subtitle direction, support email, privacy-policy host, legal entity, and Apple developer account.
 - Reserve the final bundle ID; `app.fortuneness` is only a proposal until availability is confirmed.
-- Create the App Store Connect app, Game Center capability, IAP products, subscription group, Billing Grace Period configuration, and environment-specific V2 notification URLs.
+- Create the App Store Connect app, Sign in with Apple capability, IAP products, subscription group, Billing Grace Period configuration, and environment-specific V2 notification URLs.
 - Record the exact StoreKit `billingPlanType` for the standard month-to-month Oracle+ product.
 - Create the Expo/EAS project and credentials.
 - Create isolated Railway staging and production projects and PostgreSQL services with an approved backup plan.
 - Confirm Google ADC image-generation access.
 - Assign the editorial owner and confirm capacity for at least 624 reviewed English fortune templates and 78 reviewed illustration descriptions.
-- Complete the identity/commerce trust-boundary review and the physical-device Game Center/StoreKit spike.
-- Close the Game Center-only reviewer-access gate or select Sign in with Apple before Phase 5.
+- Complete the identity/commerce trust-boundary review and the physical-device Sign in with Apple/StoreKit spike.
+- Verify the Sign in with Apple reviewer flow on a clean device before release.
 - Create the Sentry organization and two separated projects or environments. Since Phase 13 the API refuses to start a production deployment without `SENTRY_DSN`, so this is a hard deployment prerequisite rather than a nicety.
 
 ## Environments
@@ -42,7 +42,7 @@ These items require owner credentials, external account changes, hardware, legal
 | ----------- | --------------------------------------- | ----------------------------------------------------------- | ----------------------------------- | -------------------------- |
 | Local       | Local API and PostgreSQL                | Xcode StoreKit only, with a local exported test certificate | Xcode development build             | Scaffold pending           |
 | Staging     | Isolated Railway service and PostgreSQL | App Store Sandbox only                                      | EAS development/Internal TestFlight | External resources pending |
-| Production  | Isolated Railway service and PostgreSQL | App Store Production only                                   | App Store build                     | External resources pending |
+| Production  | Isolated Railway service and PostgreSQL | Production plus signed Sandbox for Review/TestFlight        | App Store build                     | External resources pending |
 
 Environment trust must never cross: local Xcode certificates cannot enter Railway, preview builds cannot target production, and transaction environment is part of every commerce business key.
 
@@ -1564,3 +1564,15 @@ git diff --check
 ```
 
 Deployment impact: one iOS Info.plist key, one configuration example, and three documents. No API surface, database schema, entitlement, capability, or permission changed. The removed variables were never read, so no deployed behavior depends on them. Verification did not serve a request, run prebuild, open a device, contact Apple, open a database, or alter a deployed environment. The production API domain remains undetermined, so `EXPO_PUBLIC_API_URL` is still unset for the production profile and no production build can yet be made.
+
+### 2026-08-08 — Authentication migration to Sign in with Apple
+
+- Replaced the GameKit/Game Center proof flow with `expo-apple-authentication`, the native Apple-approved sign-in button, and the Sign in with Apple entitlement/config plugin.
+- Added `POST /v1/auth/apple`. The API verifies Apple's `RS256` identity JWT against the fixed Apple JWKS endpoint, exact issuer and bundle audience, client nonce, `iat`/`exp`, configured freshness/skew, and a bounded replay fingerprint.
+- Changed the external identity provider to `SIGN_IN_WITH_APPLE` and stores only a domain-separated, versioned HMAC of Apple's `sub`. The old `GAME_CENTER` database enum value is retained only for migration compatibility; it is not used by the active login path.
+- Changed startup so an existing Fortuneness refresh session restores silently. The Apple sheet is presented only after the user chooses sign in or when deletion requires fresh reauthentication.
+- Renamed the authoritative session-family timestamp to `identityAuthenticatedAt`, updated deletion reauthentication/error codes, removed the local Game Center module and entitlement plugin, and regenerated the OpenAPI document.
+- Kept `identityAuthenticatedAt` mapped to the legacy physical PostgreSQL column `gameCenterAuthenticatedAt`, avoiding a breaking column rename while old and new Railway instances overlap.
+- There is no safe automatic mapping from a legacy Game Center identifier to an Apple subject. Any production deployment with existing Game Center accounts needs an explicit one-time account-linking flow that authenticates both identities before this migration ships.
+
+Deployment impact: new API path and stable auth error codes, one database column rename, replaced identity keyring environment names, Sign in with Apple capability, one mobile dependency, updated legal/privacy copy, and removal of the Game Center native module. Physical-device capability/provisioning and Apple Sandbox verification remain external gates.

@@ -1,4 +1,4 @@
-# See the sibling Game Center podspec: without this file the module is
+# Without a podspec the module is
 # discovered but never compiled, so the StoreKit 2 purchase boundary is absent
 # at runtime and every purchase path fails as if the module did not exist.
 

@@ -10,7 +10,7 @@ import {
 import { type PrismaClient } from '../generated/prisma/client.js';
 import { resolveCurrentPurchaseToken } from '../iap/purchase-token.js';
 import { type AuthenticationContext } from '../middleware/authentication.js';
-import { serializeAuthenticatedUser } from './game-center-login.js';
+import { serializeAuthenticatedUser } from './apple-login.js';
 
 export type AccountBootstrapErrorCode =
   'ACCOUNT_DELETION_PENDING' | 'ACCOUNT_PURGED' | 'AUTH_REQUIRED';
@@ -50,7 +50,7 @@ export class AccountBootstrapService {
         family.sessionVersion !== authentication.sessionVersion ||
         family.revokedAt !== null ||
         family.expiresAt <= now ||
-        Math.floor(family.gameCenterAuthenticatedAt.getTime() / 1_000) !==
+        Math.floor(family.identityAuthenticatedAt.getTime() / 1_000) !==
           authentication.authTimeSeconds ||
         userLock.activeFinancialSubjectId === null
       ) {

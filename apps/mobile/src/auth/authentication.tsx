@@ -8,20 +8,12 @@ import {
   type ReactNode,
 } from 'react';
 import * as Crypto from 'expo-crypto';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { getCalendars, getLocales } from 'expo-localization';
-import type {
-  DeletionManagement,
-  GameCenterAuthResponse,
-  MeResponse,
-} from '@fortuneness/api-contracts';
+import type { DeletionManagement, AppleAuthResponse, MeResponse } from '@fortuneness/api-contracts';
 
 import {
-  addGameCenterAuthenticationListener,
-  fetchGameCenterIdentityVerificationItemsAsync,
-  startGameCenterAuthenticationAsync,
-} from '../../modules/game-center';
-import {
-  authenticateGameCenter,
+  authenticateApple,
   getAccountBootstrap,
   logoutSession,
   refreshSession,
@@ -32,7 +24,6 @@ import {
   loadStoredCredentials,
   saveStoredCredentials,
 } from './session-storage';
-import { allowNonPersistentGameCenterIds } from './game-center-allowance';
 import { clearAllLocalAccountData } from '../local-data/account-cleanup';
 
 interface AuthenticationContextValue extends AuthenticationState {
@@ -40,7 +31,7 @@ interface AuthenticationContextValue extends AuthenticationState {
   disconnect: () => Promise<void>;
   enterDeletionPending: (deletionManagement?: DeletionManagement) => Promise<void>;
   reauthenticate: () => Promise<boolean>;
-  resumeAfterDeletionCancelled: (response: GameCenterAuthResponse) => Promise<void>;
+  resumeAfterDeletionCancelled: (response: AppleAuthResponse) => Promise<void>;
   retry: () => Promise<void>;
 }
 
@@ -48,9 +39,8 @@ const AuthenticationContext = createContext<AuthenticationContextValue | undefin
 
 function createCoordinator(): AuthenticationCoordinator {
   return new AuthenticationCoordinator({
-    allowNonPersistentIds: allowNonPersistentGameCenterIds,
     api: {
-      authenticate: authenticateGameCenter,
+      authenticate: authenticateApple,
       bootstrap: getAccountBootstrap,
       logout: logoutSession,
       refresh: refreshSession,
@@ -61,15 +51,17 @@ function createCoordinator(): AuthenticationCoordinator {
       locale: getLocales()[0].languageTag,
       timeZone: getCalendars()[0].timeZone ?? 'UTC',
     }),
-    fingerprint: (teamPlayerId) =>
+    fingerprint: (appleUserId) =>
       Crypto.digestStringAsync(
         Crypto.CryptoDigestAlgorithm.SHA256,
-        `game-center-team:${teamPlayerId}`,
+        `sign-in-with-apple:${appleUserId}`,
       ),
     native: {
-      fetchProof: fetchGameCenterIdentityVerificationItemsAsync,
-      start: startGameCenterAuthenticationAsync,
-      subscribe: addGameCenterAuthenticationListener,
+      isAvailable: AppleAuthentication.isAvailableAsync,
+      signIn: async (nonce) => {
+        const credential = await AppleAuthentication.signInAsync({ nonce });
+        return { identityToken: credential.identityToken, user: credential.user };
+      },
     },
     storage: {
       getDeviceId: getOrCreateDeviceId,
@@ -107,7 +99,7 @@ export function AuthenticationProvider({ children }: { children: ReactNode }) {
   );
   const reauthenticate = useCallback(() => coordinator.reauthenticate(), [coordinator]);
   const resumeAfterDeletionCancelled = useCallback(
-    (response: GameCenterAuthResponse) => coordinator.resumeAfterDeletionCancelled(response),
+    (response: AppleAuthResponse) => coordinator.resumeAfterDeletionCancelled(response),
     [coordinator],
   );
   const value = useMemo(

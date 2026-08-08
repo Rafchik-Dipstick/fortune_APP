@@ -1,52 +1,17 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type {
-  GameCenterAuthRequest,
-  GameCenterAuthResponse,
+  AppleAuthRequest,
+  AppleAuthResponse,
   MeResponse,
   RefreshSessionResponse,
 } from '@fortuneness/api-contracts';
 
-import type {
-  GameCenterIdentityVerificationItems,
-  GameCenterPlayerState,
-} from '../../modules/game-center';
 import {
   AuthenticationCoordinator,
   type AuthenticationCoordinatorDependencies,
 } from './authentication-coordinator';
 import { MobileApiError } from './api-client';
 import type { StoredCredentials } from './session-storage';
-
-const playerState = (teamPlayerId: string): GameCenterPlayerState => ({
-  status: 'AUTHENTICATED',
-  isAuthenticated: true,
-  scopedIdsPersistent: true,
-  teamPlayerId,
-  gamePlayerId: `game-${teamPlayerId}`,
-  alias: `Alias ${teamPlayerId}`,
-  restrictions: {
-    isUnderage: false,
-    isMultiplayerGamingRestricted: false,
-    isPersonalizedCommunicationRestricted: false,
-  },
-});
-
-const proof = (teamPlayerId: string): GameCenterIdentityVerificationItems => ({
-  teamPlayerId,
-  gamePlayerId: `game-${teamPlayerId}`,
-  alias: `Alias ${teamPlayerId}`,
-  bundleId: 'app.fortuneness.test',
-  publicKeyUrl: 'https://static.gc.apple.com/key.cer',
-  signatureBase64: Buffer.from('signature').toString('base64'),
-  saltBase64: Buffer.from('salt').toString('base64'),
-  timestamp: '1786000000000',
-  scopedIdsPersistent: true,
-  restrictions: {
-    isUnderage: false,
-    isMultiplayerGamingRestricted: false,
-    isPersonalizedCommunicationRestricted: false,
-  },
-});
 
 function account(userId: string, marker: string): MeResponse {
   return {
@@ -68,7 +33,7 @@ function account(userId: string, marker: string): MeResponse {
       },
     },
     bootstrap: {
-      serverTime: '2026-08-06T10:00:00.000Z',
+      serverTime: '2026-08-08T10:00:00.000Z',
       reportedDeviceLocale: 'en-US',
       reportedDeviceTimeZone: 'Europe/Kyiv',
       appAccountToken: marker,
@@ -81,20 +46,26 @@ function tokens(marker: string): RefreshSessionResponse {
     session: {
       accessToken: `access-${marker}`.padEnd(32, 'a'),
       refreshToken: `refresh-${marker}`.padEnd(32, 'r'),
-      accessTokenExpiresAt: '2099-08-06T10:15:00.000Z',
-      refreshTokenExpiresAt: '2099-09-05T10:00:00.000Z',
-      authTime: '2026-08-06T10:00:00.000Z',
+      accessTokenExpiresAt: '2099-08-08T10:15:00.000Z',
+      refreshTokenExpiresAt: '2099-09-07T10:00:00.000Z',
+      authTime: '2026-08-08T10:00:00.000Z',
     },
   };
 }
 
-function loginResponse(userId: string, marker: string): GameCenterAuthResponse {
+function loginResponse(userId: string, marker: string): AppleAuthResponse {
   return { ...account(userId, marker), ...tokens(marker) };
 }
 
+const storedCredentials = (): StoredCredentials => ({
+  appAccountToken: '55555555-5555-4555-8555-555555555555',
+  identityFingerprint: 'fingerprint:apple-user-one',
+  refreshToken: 'stored-refresh-token'.padEnd(32, 'r'),
+  userId: '11111111-1111-4111-8111-111111111111',
+});
+
 function createFixture(
   options: {
-    allowNonPersistentIds?: boolean;
     authenticateFailure?: MobileApiError;
     bootstrapFailure?: MobileApiError;
     initialStored?: StoredCredentials;
@@ -102,21 +73,17 @@ function createFixture(
   } = {},
 ) {
   let stored = options.initialStored;
-  let proofPlayerId = 'player-one';
-  const authenticate = vi.fn<(request: GameCenterAuthRequest) => Promise<GameCenterAuthResponse>>(
-    (request) => {
-      if (options.authenticateFailure !== undefined) {
-        return Promise.reject(options.authenticateFailure);
-      }
-      const userId =
-        request.proof.teamPlayerId === 'player-one'
-          ? '11111111-1111-4111-8111-111111111111'
-          : '22222222-2222-4222-8222-222222222222';
-      return Promise.resolve(
-        loginResponse(userId, request.proof.teamPlayerId === 'player-one' ? 'one' : 'two'),
-      );
-    },
-  );
+  let appleUser = 'apple-user-one';
+  const authenticate = vi.fn<(request: AppleAuthRequest) => Promise<AppleAuthResponse>>(() => {
+    if (options.authenticateFailure !== undefined) {
+      return Promise.reject(options.authenticateFailure);
+    }
+    const userId =
+      appleUser === 'apple-user-one'
+        ? '11111111-1111-4111-8111-111111111111'
+        : '22222222-2222-4222-8222-222222222222';
+    return Promise.resolve(loginResponse(userId, appleUser));
+  });
   const refresh =
     options.refreshFailure === undefined
       ? vi.fn().mockResolvedValue(tokens('restored'))
@@ -137,10 +104,13 @@ function createFixture(
     stored = undefined;
     return Promise.resolve();
   });
+  const signIn = vi.fn(() =>
+    Promise.resolve({
+      identityToken: 'headerpayload.headerpayload.signaturepart',
+      user: appleUser,
+    }),
+  );
   const dependencies: AuthenticationCoordinatorDependencies = {
-    ...(options.allowNonPersistentIds === undefined
-      ? {}
-      : { allowNonPersistentIds: options.allowNonPersistentIds }),
     api: {
       authenticate,
       bootstrap,
@@ -150,11 +120,10 @@ function createFixture(
     clearAccountData,
     createUuid: () => '33333333-3333-4333-8333-333333333333',
     deviceContext: () => ({ locale: 'en-US', timeZone: 'Europe/Kyiv' }),
-    fingerprint: (teamPlayerId) => Promise.resolve(`fingerprint:${teamPlayerId}`),
+    fingerprint: (user) => Promise.resolve(`fingerprint:${user}`),
     native: {
-      fetchProof: () => Promise.resolve(proof(proofPlayerId)),
-      start: () => Promise.resolve(playerState(proofPlayerId)),
-      subscribe: () => ({ remove: () => undefined }),
+      isAvailable: () => Promise.resolve(true),
+      signIn,
     },
     storage: {
       getDeviceId: () => Promise.resolve('44444444-4444-4444-8444-444444444444'),
@@ -169,9 +138,10 @@ function createFixture(
     coordinator: new AuthenticationCoordinator(dependencies),
     refresh,
     save,
-    setProofPlayer: (teamPlayerId: string) => {
-      proofPlayerId = teamPlayerId;
+    setAppleUser: (user: string) => {
+      appleUser = user;
     },
+    signIn,
   };
 }
 
@@ -180,18 +150,38 @@ afterEach(() => {
 });
 
 describe('AuthenticationCoordinator', () => {
-  it('exchanges a persistent proof and stores only account credentials plus a local fingerprint', async () => {
+  it('starts at an Apple sign-in gate without presenting the system sheet', async () => {
     const fixture = createFixture();
-    await fixture.coordinator.handleNativeState(playerState('player-one'));
 
+    await fixture.coordinator.start();
+
+    expect(fixture.coordinator.state.phase).toBe('APPLE_SIGN_IN_REQUIRED');
+    expect(fixture.signIn).not.toHaveBeenCalled();
+    fixture.coordinator.stop();
+  });
+
+  it('exchanges an Apple identity token only after the user chooses sign in', async () => {
+    const fixture = createFixture();
+    await fixture.coordinator.start();
+    await fixture.coordinator.retry();
+
+    expect(fixture.authenticate).toHaveBeenCalledWith({
+      identityToken: 'headerpayload.headerpayload.signaturepart',
+      nonce: '33333333-3333-4333-8333-333333333333',
+      reportedDeviceLocale: 'en-US',
+      reportedDeviceTimeZone: 'Europe/Kyiv',
+      device: { id: '44444444-4444-4444-8444-444444444444' },
+    });
     expect(fixture.coordinator.state).toMatchObject({
       phase: 'AUTHENTICATED',
-      session: { alias: 'Alias player-one', playerFingerprint: 'fingerprint:player-one' },
+      session: {
+        accountLabel: 'Apple Account',
+        identityFingerprint: 'fingerprint:apple-user-one',
+      },
     });
-    expect(fixture.authenticate).toHaveBeenCalledOnce();
     expect(fixture.save).toHaveBeenCalledWith({
-      appAccountToken: 'one',
-      playerFingerprint: 'fingerprint:player-one',
+      appAccountToken: 'apple-user-one',
+      identityFingerprint: 'fingerprint:apple-user-one',
       refreshIdempotencyKey: expect.any(String),
       refreshToken: expect.any(String),
       userId: '11111111-1111-4111-8111-111111111111',
@@ -199,32 +189,22 @@ describe('AuthenticationCoordinator', () => {
     fixture.coordinator.stop();
   });
 
-  it('restores only after the current Game Center fingerprint matches', async () => {
-    const fixture = createFixture({
-      initialStored: {
-        appAccountToken: '55555555-5555-4555-8555-555555555555',
-        playerFingerprint: 'fingerprint:player-one',
-        refreshToken: 'stored-refresh-token'.padEnd(32, 'r'),
-        userId: '11111111-1111-4111-8111-111111111111',
-      },
-    });
-    await fixture.coordinator.handleNativeState(playerState('player-one'));
+  it('restores a rotating Fortuneness session without presenting Apple sign-in', async () => {
+    const fixture = createFixture({ initialStored: storedCredentials() });
+
+    await fixture.coordinator.start();
 
     expect(fixture.refresh).toHaveBeenCalledOnce();
     expect(fixture.bootstrap).toHaveBeenCalledOnce();
     expect(fixture.authenticate).not.toHaveBeenCalled();
+    expect(fixture.signIn).not.toHaveBeenCalled();
     expect(fixture.coordinator.state.phase).toBe('AUTHENTICATED');
     fixture.coordinator.stop();
   });
 
-  it('clears a rejected stored refresh before falling back to a fresh proof', async () => {
+  it('clears an invalid refresh session and returns to the Apple sign-in gate', async () => {
     const fixture = createFixture({
-      initialStored: {
-        appAccountToken: '55555555-5555-4555-8555-555555555555',
-        playerFingerprint: 'fingerprint:player-one',
-        refreshToken: 'stored-refresh-token'.padEnd(32, 'r'),
-        userId: '11111111-1111-4111-8111-111111111111',
-      },
+      initialStored: storedCredentials(),
       refreshFailure: new MobileApiError({
         code: 'AUTH_REQUIRED',
         message: 'invalid',
@@ -232,109 +212,18 @@ describe('AuthenticationCoordinator', () => {
         statusCode: 401,
       }),
     });
-    await fixture.coordinator.handleNativeState(playerState('player-one'));
+
+    await fixture.coordinator.start();
 
     expect(fixture.clearAccountData).toHaveBeenCalledOnce();
-    expect(fixture.authenticate).toHaveBeenCalledOnce();
-    expect(fixture.coordinator.state.phase).toBe('AUTHENTICATED');
+    expect(fixture.signIn).not.toHaveBeenCalled();
+    expect(fixture.coordinator.state.phase).toBe('APPLE_SIGN_IN_REQUIRED');
     fixture.coordinator.stop();
   });
 
-  it('retains the rotated refresh token when bootstrap is temporarily offline', async () => {
+  it('keeps stored account data through a transient refresh failure', async () => {
     const fixture = createFixture({
-      bootstrapFailure: new MobileApiError({
-        code: 'NETWORK_UNAVAILABLE',
-        message: 'offline',
-        retryable: true,
-      }),
-      initialStored: {
-        appAccountToken: '55555555-5555-4555-8555-555555555555',
-        playerFingerprint: 'fingerprint:player-one',
-        refreshToken: 'stored-refresh-token'.padEnd(32, 'r'),
-        userId: '11111111-1111-4111-8111-111111111111',
-      },
-    });
-    await fixture.coordinator.handleNativeState(playerState('player-one'));
-
-    expect(fixture.save).toHaveBeenCalledWith({
-      appAccountToken: '55555555-5555-4555-8555-555555555555',
-      playerFingerprint: 'fingerprint:player-one',
-      refreshIdempotencyKey: expect.any(String),
-      refreshToken: tokens('restored').session.refreshToken,
-      userId: '11111111-1111-4111-8111-111111111111',
-    });
-    expect(fixture.clearAccountData).not.toHaveBeenCalled();
-    expect(fixture.authenticate).not.toHaveBeenCalled();
-    expect(fixture.coordinator.state.phase).toBe('ERROR');
-    fixture.coordinator.stop();
-  });
-
-  it('clears the first account before establishing a switched player', async () => {
-    const fixture = createFixture();
-    await fixture.coordinator.handleNativeState(playerState('player-one'));
-    fixture.setProofPlayer('player-two');
-    await fixture.coordinator.handleNativeState(playerState('player-two'));
-
-    expect(fixture.clearAccountData).toHaveBeenCalled();
-    expect(fixture.coordinator.state).toMatchObject({
-      phase: 'AUTHENTICATED',
-      session: {
-        playerFingerprint: 'fingerprint:player-two',
-        user: { id: '22222222-2222-4222-8222-222222222222' },
-      },
-    });
-    fixture.coordinator.stop();
-  });
-
-  it('keeps a disconnected player blocked until retry or a player change', async () => {
-    const fixture = createFixture();
-    await fixture.coordinator.handleNativeState(playerState('player-one'));
-    await fixture.coordinator.disconnect();
-    await fixture.coordinator.handleNativeState(playerState('player-one'));
-    expect(fixture.coordinator.state.phase).toBe('GAME_CENTER_BLOCKED');
-
-    fixture.setProofPlayer('player-two');
-    await fixture.coordinator.handleNativeState(playerState('player-two'));
-    expect(fixture.coordinator.state.phase).toBe('AUTHENTICATED');
-    fixture.coordinator.stop();
-  });
-
-  it.each([
-    ['a failed server', 'RETRYABLE_CONFLICT', 503, true],
-    ['an unparseable response', 'RESPONSE_INVALID', 200, true],
-    ['a rate limit', 'RATE_LIMITED', 429, false],
-  ] as const)(
-    'keeps the stored account through %s',
-    async (_label, code, statusCode, retryable) => {
-      const fixture = createFixture({
-        initialStored: {
-          appAccountToken: '55555555-5555-4555-8555-555555555555',
-          playerFingerprint: 'fingerprint:player-one',
-          refreshToken: 'stored-refresh-token'.padEnd(32, 'r'),
-          userId: '11111111-1111-4111-8111-111111111111',
-        },
-        refreshFailure: new MobileApiError({ code, message: 'transient', retryable, statusCode }),
-      });
-      await fixture.coordinator.handleNativeState(playerState('player-one'));
-
-      // Erasing the keychain here also purges the local reading archive, and
-      // none of these errors is evidence that the stored session is gone.
-      expect(fixture.clearAccountData).not.toHaveBeenCalled();
-      expect(fixture.coordinator.state.phase).toBe('ERROR');
-      fixture.coordinator.stop();
-    },
-  );
-
-  it('spends one refresh token under one idempotency key across attempts', async () => {
-    const storedKey = '66666666-6666-4666-8666-666666666666';
-    const fixture = createFixture({
-      initialStored: {
-        appAccountToken: '55555555-5555-4555-8555-555555555555',
-        playerFingerprint: 'fingerprint:player-one',
-        refreshIdempotencyKey: storedKey,
-        refreshToken: 'stored-refresh-token'.padEnd(32, 'r'),
-        userId: '11111111-1111-4111-8111-111111111111',
-      },
+      initialStored: storedCredentials(),
       refreshFailure: new MobileApiError({
         code: 'RETRYABLE_CONFLICT',
         message: 'transient',
@@ -342,70 +231,15 @@ describe('AuthenticationCoordinator', () => {
         statusCode: 503,
       }),
     });
-    await fixture.coordinator.handleNativeState(playerState('player-one'));
-    await fixture.coordinator.retry();
 
-    // A fresh key on an already-consumed token reads as reuse and revokes the
-    // whole session family, so every attempt must present the stored one.
-    for (const call of fixture.refresh.mock.calls) {
-      expect(call[2]).toBe(storedKey);
-    }
-    expect(fixture.refresh.mock.calls.length).toBeGreaterThan(1);
+    await fixture.coordinator.start();
+
+    expect(fixture.clearAccountData).not.toHaveBeenCalled();
+    expect(fixture.coordinator.state.phase).toBe('ERROR');
     fixture.coordinator.stop();
   });
 
-  it('mints a new idempotency key once the token it belongs to is rotated', async () => {
-    const storedKey = '66666666-6666-4666-8666-666666666666';
-    const fixture = createFixture({
-      initialStored: {
-        appAccountToken: '55555555-5555-4555-8555-555555555555',
-        playerFingerprint: 'fingerprint:player-one',
-        refreshIdempotencyKey: storedKey,
-        refreshToken: 'stored-refresh-token'.padEnd(32, 'r'),
-        userId: '11111111-1111-4111-8111-111111111111',
-      },
-    });
-    await fixture.coordinator.handleNativeState(playerState('player-one'));
-
-    expect(fixture.refresh).toHaveBeenCalledWith(
-      'stored-refresh-token'.padEnd(32, 'r'),
-      expect.anything(),
-      storedKey,
-    );
-    for (const [credentials] of fixture.save.mock.calls) {
-      expect(credentials.refreshIdempotencyKey).not.toBe(storedKey);
-    }
-    fixture.coordinator.stop();
-  });
-
-  it('blocks a temporary Game Center identifier by default', async () => {
-    const fixture = createFixture();
-    await fixture.coordinator.handleNativeState({
-      ...playerState('player-one'),
-      scopedIdsPersistent: false,
-    });
-
-    expect(fixture.coordinator.state.phase).toBe('NONPERSISTENT_ID');
-    expect(fixture.authenticate).not.toHaveBeenCalled();
-    fixture.coordinator.stop();
-  });
-
-  it('signs in on a temporary identifier when the allowance is set', async () => {
-    // Game Center only issues persistent identifiers to TestFlight and App
-    // Store builds, so without this a development build stops here and never
-    // reaches the server at all.
-    const fixture = createFixture({ allowNonPersistentIds: true });
-    await fixture.coordinator.handleNativeState({
-      ...playerState('player-one'),
-      scopedIdsPersistent: false,
-    });
-
-    expect(fixture.coordinator.state.phase).toBe('AUTHENTICATED');
-    expect(fixture.authenticate).toHaveBeenCalledOnce();
-    fixture.coordinator.stop();
-  });
-
-  it('renders deletion pending without retaining local credentials', async () => {
+  it('keeps the Apple identity in memory through deletion management and cancellation', async () => {
     const fixture = createFixture({
       authenticateFailure: new MobileApiError({
         code: 'ACCOUNT_DELETION_PENDING',
@@ -414,10 +248,51 @@ describe('AuthenticationCoordinator', () => {
         statusCode: 423,
       }),
     });
-    await fixture.coordinator.handleNativeState(playerState('player-one'));
-
+    await fixture.coordinator.retry();
     expect(fixture.coordinator.state.phase).toBe('DELETION_PENDING');
-    expect(fixture.clearAccountData).toHaveBeenCalled();
+
+    await fixture.coordinator.resumeAfterDeletionCancelled(
+      loginResponse('11111111-1111-4111-8111-111111111111', 'restored'),
+    );
+
+    expect(fixture.coordinator.state).toMatchObject({
+      phase: 'AUTHENTICATED',
+      session: { identityFingerprint: 'fingerprint:apple-user-one' },
+    });
+    fixture.coordinator.stop();
+  });
+
+  it('rejects sensitive reauthentication with a different Apple Account', async () => {
+    const fixture = createFixture();
+    await fixture.coordinator.retry();
+    fixture.setAppleUser('apple-user-two');
+
+    await expect(fixture.coordinator.reauthenticate()).resolves.toBe(false);
+    expect(fixture.coordinator.state).toMatchObject({
+      phase: 'AUTHENTICATED',
+      session: { identityFingerprint: 'fingerprint:apple-user-one' },
+    });
+    fixture.coordinator.stop();
+  });
+
+  it('reuses the stored idempotency key for a retry of the same refresh token', async () => {
+    const storedKey = '66666666-6666-4666-8666-666666666666';
+    const fixture = createFixture({
+      initialStored: { ...storedCredentials(), refreshIdempotencyKey: storedKey },
+      refreshFailure: new MobileApiError({
+        code: 'RETRYABLE_CONFLICT',
+        message: 'transient',
+        retryable: true,
+      }),
+    });
+
+    await fixture.coordinator.start();
+    await fixture.coordinator.retry();
+
+    for (const call of fixture.refresh.mock.calls) {
+      expect(call[2]).toBe(storedKey);
+    }
+    expect(fixture.refresh.mock.calls.length).toBe(2);
     fixture.coordinator.stop();
   });
 });

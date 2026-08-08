@@ -17,11 +17,10 @@
   "x-stable-error-codes": [
     "VALIDATION_FAILED",
     "AUTH_REQUIRED",
-    "GAME_CENTER_REAUTH_REQUIRED",
-    "GAME_CENTER_UNAVAILABLE",
-    "GAME_CENTER_ID_NOT_PERSISTENT",
-    "GAME_CENTER_PROOF_INVALID",
-    "GAME_CENTER_PROOF_EXPIRED",
+    "APPLE_ID_REAUTH_REQUIRED",
+    "APPLE_ID_UNAVAILABLE",
+    "APPLE_ID_TOKEN_INVALID",
+    "APPLE_ID_TOKEN_EXPIRED",
     "ACCOUNT_DELETION_PENDING",
     "ACCOUNT_PURGED",
     "NOT_FOUND",
@@ -80,11 +79,10 @@
                 "enum": [
                   "VALIDATION_FAILED",
                   "AUTH_REQUIRED",
-                  "GAME_CENTER_REAUTH_REQUIRED",
-                  "GAME_CENTER_UNAVAILABLE",
-                  "GAME_CENTER_ID_NOT_PERSISTENT",
-                  "GAME_CENTER_PROOF_INVALID",
-                  "GAME_CENTER_PROOF_EXPIRED",
+                  "APPLE_ID_REAUTH_REQUIRED",
+                  "APPLE_ID_UNAVAILABLE",
+                  "APPLE_ID_TOKEN_INVALID",
+                  "APPLE_ID_TOKEN_EXPIRED",
                   "ACCOUNT_PURGED",
                   "NOT_FOUND",
                   "CONTENT_UNAVAILABLE",
@@ -314,7 +312,7 @@
         "type": "string",
         "enum": ["FREE_DAILY", "SUBSCRIPTION_DAILY", "PACK_CREDIT"]
       },
-      "GameCenterAuthResponse": {
+      "AppleAuthResponse": {
         "type": "object",
         "properties": {
           "user": { "$ref": "#/components/schemas/AuthenticatedUser" },
@@ -410,13 +408,16 @@
         ],
         "additionalProperties": false
       },
-      "GameCenterAuthRequest": {
+      "AppleAuthRequest": {
         "type": "object",
         "properties": {
-          "proof": { "$ref": "#/components/schemas/GameCenterProof" },
-          "scopedIdsPersistent": { "type": "boolean" },
-          "alias": { "type": "string", "minLength": 1, "maxLength": 128 },
-          "restrictions": { "$ref": "#/components/schemas/GameCenterRestrictions" },
+          "identityToken": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 16384,
+            "pattern": "^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/u"
+          },
+          "nonce": { "type": "string", "format": "uuid" },
           "reportedDeviceLocale": {
             "type": "string",
             "minLength": 2,
@@ -427,64 +428,11 @@
           "device": { "$ref": "#/components/schemas/AuthDevice" }
         },
         "required": [
-          "proof",
-          "scopedIdsPersistent",
-          "alias",
-          "restrictions",
+          "identityToken",
+          "nonce",
           "reportedDeviceLocale",
           "reportedDeviceTimeZone",
           "device"
-        ],
-        "additionalProperties": false
-      },
-      "GameCenterProof": {
-        "type": "object",
-        "properties": {
-          "teamPlayerId": { "type": "string", "minLength": 1, "maxLength": 256 },
-          "gamePlayerId": { "type": "string", "minLength": 1, "maxLength": 256 },
-          "bundleId": {
-            "type": "string",
-            "minLength": 3,
-            "maxLength": 255,
-            "pattern": "^[A-Za-z0-9]+(?:[.-][A-Za-z0-9]+)+$/u"
-          },
-          "publicKeyUrl": { "type": "string", "maxLength": 2048, "format": "uri" },
-          "signatureBase64": {
-            "type": "string",
-            "minLength": 4,
-            "maxLength": 8192,
-            "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u"
-          },
-          "saltBase64": {
-            "type": "string",
-            "minLength": 4,
-            "maxLength": 8192,
-            "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u"
-          },
-          "timestamp": { "type": "string", "pattern": "^\\d{1,20}$/u" }
-        },
-        "required": [
-          "teamPlayerId",
-          "gamePlayerId",
-          "bundleId",
-          "publicKeyUrl",
-          "signatureBase64",
-          "saltBase64",
-          "timestamp"
-        ],
-        "additionalProperties": false
-      },
-      "GameCenterRestrictions": {
-        "type": "object",
-        "properties": {
-          "isUnderage": { "type": "boolean" },
-          "isMultiplayerGamingRestricted": { "type": "boolean" },
-          "isPersonalizedCommunicationRestricted": { "type": "boolean" }
-        },
-        "required": [
-          "isUnderage",
-          "isMultiplayerGamingRestricted",
-          "isPersonalizedCommunicationRestricted"
         ],
         "additionalProperties": false
       },
@@ -1072,41 +1020,31 @@
         }
       }
     },
-    "/v1/auth/game-center": {
+    "/v1/auth/apple": {
       "post": {
-        "description": "Verifies a fresh, persistent Game Center identity proof and returns authoritative account bootstrap and rotating session tokens.",
-        "summary": "Authenticate with Game Center",
+        "description": "Verifies a fresh Sign in with Apple identity token and returns authoritative account bootstrap and rotating session tokens.",
+        "summary": "Authenticate with Apple ID",
         "tags": ["Authentication"],
         "requestBody": {
           "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/GameCenterAuthRequest" }
-            }
+            "application/json": { "schema": { "$ref": "#/components/schemas/AppleAuthRequest" } }
           }
         },
         "responses": {
           "200": {
-            "description": "The proof was verified and an active session was issued.",
+            "description": "The Apple identity token was verified and an active session was issued.",
             "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/GameCenterAuthResponse" }
-              }
+              "application/json": { "schema": { "$ref": "#/components/schemas/AppleAuthResponse" } }
             }
           },
           "400": {
-            "description": "The proof or advisory device context is malformed.",
+            "description": "The identity token request or advisory device context is malformed.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
             }
           },
           "401": {
-            "description": "The proof is invalid, stale, or signed for another bundle.",
-            "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
-            }
-          },
-          "409": {
-            "description": "The player identifiers are not persistent.",
+            "description": "The token is invalid, stale, replayed, or issued for another client.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
             }
@@ -1124,7 +1062,7 @@
             }
           },
           "503": {
-            "description": "Apple proof verification or stable database state is temporarily unavailable.",
+            "description": "Apple identity verification or stable database state is unavailable.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
             }

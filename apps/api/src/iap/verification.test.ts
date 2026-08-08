@@ -95,8 +95,8 @@ describe('configured acceptance sets', () => {
   const encodedKey = Buffer.alloc(32, 7).toString('base64');
   const keyRing = JSON.stringify({ v1: encodedKey });
   const baseKeys = {
-    GAME_CENTER_IDENTITY_HMAC_KEYS_JSON: keyRing,
-    GAME_CENTER_IDENTITY_CURRENT_KEY_VERSION: 'v1',
+    APPLE_IDENTITY_HMAC_KEYS_JSON: keyRing,
+    APPLE_IDENTITY_CURRENT_KEY_VERSION: 'v1',
     JWT_ACCESS_KEYS_JSON: keyRing,
     JWT_ACCESS_CURRENT_KEY_VERSION: 'v1',
     JWT_ISSUER: 'fortuneness-api',

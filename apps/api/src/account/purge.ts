@@ -219,7 +219,7 @@ export class AccountPurgeWorker {
   /**
    * Personal application data. Draws are removed last among the content rows
    * because credit ledger entries reference them with SET NULL, and the
-   * external identity goes with them so the Game Center player is unlinked.
+   * external identity goes with them so the Apple subject is unlinked.
    *
    * That SET NULL is an UPDATE on an append-only table; the
    * `20260807120000_purgeable_ledger_detach` migration is what narrowly permits

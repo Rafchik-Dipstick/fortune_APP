@@ -5,7 +5,7 @@ import { isIP } from 'node:net';
 /**
  * The single outbound HTTPS boundary for the API process.
  *
- * Every server-initiated request — Game Center public keys, Apple certificate
+ * Every server-initiated request — App Store APIs, Apple certificate
  * issuers, the App Store Server API, and error reporting — passes through this
  * guard so one implementation owns the SSRF controls the trust review requires
  * (AC-01, AC-20): HTTPS only, an exact host allowlist, no credentials, ports,

@@ -6,7 +6,7 @@ import {
   apiPaths,
   consumptionConsentSchema,
   consumptionConsentUpdateRequestSchema,
-  gameCenterAuthResponseSchema,
+  appleAuthResponseSchema,
   preferencesUpdateRequestSchema,
   preferencesUpdateResponseSchema,
   type AccountDeletionRequest,
@@ -14,7 +14,7 @@ import {
   type AccountDeletionState,
   type ConsumptionConsent,
   type ConsumptionConsentUpdateRequest,
-  type GameCenterAuthResponse,
+  type AppleAuthResponse,
   type PreferencesUpdateRequest,
   type PreferencesUpdateResponse,
 } from '@fortuneness/api-contracts';
@@ -33,7 +33,7 @@ export interface PreferencesHandler {
 }
 
 export interface AccountDeletionHandler {
-  cancel(userId: string, authenticatedAt: Date): Promise<GameCenterAuthResponse>;
+  cancel(userId: string, authenticatedAt: Date): Promise<AppleAuthResponse>;
   request(
     authentication: AuthenticationContext,
     confirmations: AccountDeletionRequest,
@@ -94,7 +94,7 @@ function mapDeletionError(error: AccountDeletionError): ApiHttpError {
       return new ApiHttpError({
         code: 'ACCOUNT_DELETION_PENDING',
         message:
-          'This account already has a pending deletion request. Reauthenticate with Game Center to see its status.',
+          'This account already has a pending deletion request. Sign in with Apple again to see its status.',
         statusCode: 423,
       });
     case 'ACCOUNT_PURGED':
@@ -110,11 +110,11 @@ function mapDeletionError(error: AccountDeletionError): ApiHttpError {
         retryable: true,
         statusCode: 401,
       });
-    case 'GAME_CENTER_REAUTH_REQUIRED':
+    case 'APPLE_ID_REAUTH_REQUIRED':
       return new ApiHttpError({
-        code: 'GAME_CENTER_REAUTH_REQUIRED',
+        code: 'APPLE_ID_REAUTH_REQUIRED',
         message:
-          'Account deletion requires a Game Center sign-in from the last 300 seconds. Reauthenticate and try again.',
+          'Account deletion requires an Apple sign-in from the last 300 seconds. Reauthenticate and try again.',
         retryable: true,
         statusCode: 401,
       });
@@ -229,7 +229,7 @@ function createDeletionCancelRoute(handler: AccountDeletionHandler): RequestHand
       response
         .status(200)
         .json(
-          gameCenterAuthResponseSchema.parse(
+          appleAuthResponseSchema.parse(
             await handler.cancel(
               request.deletionManagementUserId,
               request.deletionManagementAuthTime,

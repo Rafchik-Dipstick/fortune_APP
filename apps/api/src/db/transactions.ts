@@ -30,7 +30,7 @@ export interface LockedFinancialSubject {
 
 export interface LockedSessionFamily {
   expiresAt: Date;
-  gameCenterAuthenticatedAt: Date;
+  identityAuthenticatedAt: Date;
   id: string;
   revokedAt: Date | null;
   sessionVersion: number;
@@ -171,7 +171,7 @@ export async function lockSessionFamilyForUpdate(
       "id",
       "userId",
       "sessionVersion",
-      "gameCenterAuthenticatedAt",
+      "gameCenterAuthenticatedAt" AS "identityAuthenticatedAt",
       "expiresAt",
       "revokedAt"
     FROM "SessionFamily"

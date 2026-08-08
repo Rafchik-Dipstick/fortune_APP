@@ -27,7 +27,7 @@ private enum IapModuleError: Error, LocalizedError {
  StoreKit 2 boundary for Fortuneness commerce (spec section 7.2).
 
  - The `Transaction.updates` listener starts at module creation — before any
-   Game Center or bootstrap work — and stays alive for the process lifetime.
+   authentication or bootstrap work — and stays alive for the process lifetime.
    JavaScript buffers delivery work until an account decision exists.
  - Only StoreKit-verified transactions cross this boundary; every payload
    carries the signed JWS representation for server verification.

@@ -11,8 +11,8 @@ const bearerTokenPattern = /^Bearer ([A-Za-z0-9._~-]{32,4096})$/u;
 
 function reauthenticationRequired(): ApiHttpError {
   return new ApiHttpError({
-    code: 'GAME_CENTER_REAUTH_REQUIRED',
-    message: 'Deletion management requires a fresh Game Center sign-in.',
+    code: 'APPLE_ID_REAUTH_REQUIRED',
+    message: 'Deletion management requires a fresh Apple sign-in.',
     retryable: true,
     statusCode: 401,
   });

@@ -1,29 +1,29 @@
 import { type Express, type RequestHandler } from 'express';
 import {
   apiPaths,
-  gameCenterAuthRequestSchema,
-  gameCenterAuthResponseSchema,
+  appleAuthRequestSchema,
+  appleAuthResponseSchema,
   idempotencyKeySchema,
   meResponseSchema,
   refreshSessionRequestSchema,
   refreshSessionResponseSchema,
-  type GameCenterAuthRequest,
-  type GameCenterAuthResponse,
+  type AppleAuthRequest,
+  type AppleAuthResponse,
   type MeResponse,
   type RefreshSessionRequest,
   type RefreshSessionResponse,
 } from '@fortuneness/api-contracts';
 
 import { AccountBootstrapError } from '../auth/account-bootstrap.js';
-import { GameCenterLoginError } from '../auth/game-center-login.js';
-import { GameCenterVerificationError } from '../auth/game-center-errors.js';
+import { AppleIdentityVerificationError } from '../auth/apple-auth-errors.js';
+import { AppleLoginError } from '../auth/apple-login.js';
 import { LogoutSessionError } from '../auth/logout-session.js';
 import { RefreshSessionError } from '../auth/refresh-session.js';
 import { type AuthenticationContext } from '../middleware/authentication.js';
 import { ApiHttpError } from '../middleware/errors.js';
 
-export interface GameCenterLoginHandler {
-  login(request: GameCenterAuthRequest): Promise<GameCenterAuthResponse>;
+export interface AppleLoginHandler {
+  login(request: AppleAuthRequest): Promise<AppleAuthResponse>;
 }
 
 export interface RefreshSessionHandler {
@@ -38,45 +38,37 @@ export interface AccountBootstrapHandler {
   get(authentication: AuthenticationContext): Promise<MeResponse>;
 }
 
-function mapVerificationError(error: GameCenterVerificationError): ApiHttpError {
+function mapVerificationError(error: AppleIdentityVerificationError): ApiHttpError {
   switch (error.code) {
-    case 'NONPERSISTENT_ID':
+    case 'TOKEN_EXPIRED':
       return new ApiHttpError({
-        code: 'GAME_CENTER_ID_NOT_PERSISTENT',
-        message: 'Game Center did not provide persistent scoped identifiers.',
-        retryable: true,
-        statusCode: 409,
-      });
-    case 'PROOF_EXPIRED':
-      return new ApiHttpError({
-        code: 'GAME_CENTER_PROOF_EXPIRED',
-        message: 'The Game Center proof is no longer fresh.',
+        code: 'APPLE_ID_TOKEN_EXPIRED',
+        message: 'The Apple identity token is no longer fresh.',
         retryable: true,
         statusCode: 401,
       });
     case 'KEY_UNAVAILABLE':
       return new ApiHttpError({
-        code: 'GAME_CENTER_UNAVAILABLE',
-        message: 'Game Center verification is temporarily unavailable.',
+        code: 'APPLE_ID_UNAVAILABLE',
+        message: 'Apple identity verification is temporarily unavailable.',
         retryable: true,
         statusCode: 503,
       });
-    case 'BUNDLE_MISMATCH':
-    case 'INVALID_PROOF':
+    case 'INVALID_TOKEN':
       return new ApiHttpError({
-        code: 'GAME_CENTER_PROOF_INVALID',
-        message: 'The Game Center proof is invalid.',
+        code: 'APPLE_ID_TOKEN_INVALID',
+        message: 'The Apple identity token is invalid.',
         statusCode: 401,
       });
   }
 }
 
-function mapLoginError(error: GameCenterLoginError): ApiHttpError | undefined {
+function mapLoginError(error: AppleLoginError): ApiHttpError | undefined {
   switch (error.code) {
     case 'PROOF_REPLAY':
       return new ApiHttpError({
-        code: 'GAME_CENTER_PROOF_INVALID',
-        message: 'The Game Center proof has already been used.',
+        code: 'APPLE_ID_TOKEN_INVALID',
+        message: 'The Apple identity token has already been used.',
         statusCode: 401,
       });
     case 'TIME_ZONE_INVALID':
@@ -113,15 +105,15 @@ function mapLoginError(error: GameCenterLoginError): ApiHttpError | undefined {
   }
 }
 
-export function createGameCenterLoginRoute(login: GameCenterLoginHandler): RequestHandler {
+export function createAppleLoginRoute(login: AppleLoginHandler): RequestHandler {
   return async (request, response, next) => {
     response.setHeader('Cache-Control', 'no-store');
-    const parsedRequest = gameCenterAuthRequestSchema.safeParse(request.body);
+    const parsedRequest = appleAuthRequestSchema.safeParse(request.body);
     if (!parsedRequest.success) {
       next(
         new ApiHttpError({
           code: 'VALIDATION_FAILED',
-          message: 'The Game Center authentication request is invalid.',
+          message: 'The Apple authentication request is invalid.',
           statusCode: 400,
         }),
       );
@@ -129,14 +121,14 @@ export function createGameCenterLoginRoute(login: GameCenterLoginHandler): Reque
     }
 
     try {
-      const result = gameCenterAuthResponseSchema.parse(await login.login(parsedRequest.data));
+      const result = appleAuthResponseSchema.parse(await login.login(parsedRequest.data));
       response.status(200).json(result);
     } catch (error) {
-      if (error instanceof GameCenterVerificationError) {
+      if (error instanceof AppleIdentityVerificationError) {
         next(mapVerificationError(error));
         return;
       }
-      if (error instanceof GameCenterLoginError) {
+      if (error instanceof AppleLoginError) {
         next(mapLoginError(error) ?? error);
         return;
       }
@@ -168,7 +160,7 @@ function mapRefreshError(error: RefreshSessionError): ApiHttpError {
     case 'AUTH_REQUIRED':
       return new ApiHttpError({
         code: 'AUTH_REQUIRED',
-        message: 'A new Game Center session is required.',
+        message: 'A new Apple sign-in is required.',
         statusCode: 401,
       });
   }
@@ -278,12 +270,12 @@ export function registerAuthenticationRoutes(
   handlers: {
     authenticate: RequestHandler;
     bootstrap: AccountBootstrapHandler;
-    login: GameCenterLoginHandler;
+    login: AppleLoginHandler;
     logout: LogoutSessionHandler;
     refresh: RefreshSessionHandler;
   },
 ): void {
-  app.post(apiPaths.authGameCenter, createGameCenterLoginRoute(handlers.login));
+  app.post(apiPaths.authApple, createAppleLoginRoute(handlers.login));
   app.post(apiPaths.authRefresh, createRefreshSessionRoute(handlers.refresh));
   app.post(apiPaths.authLogout, handlers.authenticate, createLogoutRoute(handlers.logout));
   app.get(apiPaths.me, handlers.authenticate, createAccountBootstrapRoute(handlers.bootstrap));

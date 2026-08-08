@@ -63,7 +63,7 @@ async function createDrawingUser(): Promise<AuthenticationContext> {
     data: {
       userId: user.id,
       sessionVersion: user.sessionVersion,
-      gameCenterAuthenticatedAt: new Date(authTimeSeconds * 1_000),
+      identityAuthenticatedAt: new Date(authTimeSeconds * 1_000),
       expiresAt: new Date(now.getTime() + 30 * 86_400_000),
     },
   });

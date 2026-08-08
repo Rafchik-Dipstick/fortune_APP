@@ -10,7 +10,7 @@ describe('generated OpenAPI document', () => {
 
     expect(Object.keys(document.paths ?? {})).toEqual([
       apiPaths.health,
-      apiPaths.authGameCenter,
+      apiPaths.authApple,
       apiPaths.fortunes,
       apiPaths.fortuneDetail.replace(':id', '{id}'),
       apiPaths.collection,
@@ -36,13 +36,13 @@ describe('generated OpenAPI document', () => {
   it('publishes strict authentication request and response schemas', () => {
     const document = generateOpenApiDocument();
 
-    expect(document.paths?.[apiPaths.authGameCenter]?.post?.responses).toHaveProperty('200');
+    expect(document.paths?.[apiPaths.authApple]?.post?.responses).toHaveProperty('200');
     expect(document.paths?.[apiPaths.authRefresh]?.post?.parameters).toEqual(
       expect.arrayContaining([expect.objectContaining({ name: 'Idempotency-Key', in: 'header' })]),
     );
     expect(document.paths?.[apiPaths.authLogout]?.post?.security).toEqual([{ bearerAuth: [] }]);
     expect(document.components?.securitySchemes).toHaveProperty('bearerAuth');
-    expect(document.components?.schemas).toHaveProperty('GameCenterAuthRequest');
+    expect(document.components?.schemas).toHaveProperty('AppleAuthRequest');
     expect(document.components?.schemas).toHaveProperty('SessionTokens');
   });
 

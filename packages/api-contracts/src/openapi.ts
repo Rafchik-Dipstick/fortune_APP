@@ -4,8 +4,8 @@ import { z } from 'zod';
 import {
   apiErrorEnvelopeSchema,
   apiPaths,
-  gameCenterAuthRequestSchema,
-  gameCenterAuthResponseSchema,
+  appleAuthRequestSchema,
+  appleAuthResponseSchema,
   fortuneDrawRequestSchema,
   fortuneDrawResponseSchema,
   fortuneDetailResponseSchema,
@@ -76,31 +76,27 @@ export const generateOpenApiDocument = () => {
 
   registry.registerPath({
     method: 'post',
-    path: apiPaths.authGameCenter,
+    path: apiPaths.authApple,
     description:
-      'Verifies a fresh, persistent Game Center identity proof and returns authoritative account bootstrap and rotating session tokens.',
-    summary: 'Authenticate with Game Center',
+      'Verifies a fresh Sign in with Apple identity token and returns authoritative account bootstrap and rotating session tokens.',
+    summary: 'Authenticate with Apple ID',
     tags: ['Authentication'],
     request: {
       body: {
-        content: { 'application/json': { schema: gameCenterAuthRequestSchema } },
+        content: { 'application/json': { schema: appleAuthRequestSchema } },
       },
     },
     responses: {
       200: {
-        description: 'The proof was verified and an active session was issued.',
-        content: { 'application/json': { schema: gameCenterAuthResponseSchema } },
+        description: 'The Apple identity token was verified and an active session was issued.',
+        content: { 'application/json': { schema: appleAuthResponseSchema } },
       },
       400: {
-        description: 'The proof or advisory device context is malformed.',
+        description: 'The identity token request or advisory device context is malformed.',
         content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
       },
       401: {
-        description: 'The proof is invalid, stale, or signed for another bundle.',
-        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
-      },
-      409: {
-        description: 'The player identifiers are not persistent.',
+        description: 'The token is invalid, stale, replayed, or issued for another client.',
         content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
       },
       410: {
@@ -112,8 +108,7 @@ export const generateOpenApiDocument = () => {
         content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
       },
       503: {
-        description:
-          'Apple proof verification or stable database state is temporarily unavailable.',
+        description: 'Apple identity verification or stable database state is unavailable.',
         content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
       },
     },

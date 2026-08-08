@@ -232,7 +232,7 @@ export class RefreshSessionService {
       userId: locked.user.id,
       sessionFamilyId: locked.family.id,
       sessionVersion: locked.user.sessionVersion,
-      authTime: locked.family.gameCenterAuthenticatedAt,
+      authTime: locked.family.identityAuthenticatedAt,
     });
     const response = refreshSessionResponseSchema.parse({
       session: {
@@ -240,7 +240,7 @@ export class RefreshSessionService {
         refreshToken: replacementToken,
         accessTokenExpiresAt: access.expiresAt.toISOString(),
         refreshTokenExpiresAt: locked.family.expiresAt.toISOString(),
-        authTime: locked.family.gameCenterAuthenticatedAt.toISOString(),
+        authTime: locked.family.identityAuthenticatedAt.toISOString(),
       },
     });
     const receipt = encryptBytes(

@@ -11,7 +11,7 @@ export type RateLimitTier = 'authentication' | 'default' | 'draw' | 'webhook';
  * Endpoints whose abuse cost is highest get their own counter rather than
  * sharing the global budget:
  *
- * - `authentication` fronts Game Center proof verification, which performs
+ * - `authentication` fronts Apple identity-token verification, which performs
  *   guarded certificate egress and asymmetric signature work, and is the
  *   surface for proof-replay and session-forgery attempts (AC-01, AC-02, AC-04).
  * - `draw` fronts the row-locking allowance transaction, the target of the
@@ -25,7 +25,7 @@ export type RateLimitTier = 'authentication' | 'default' | 'draw' | 'webhook';
  * enforced by database constraints regardless of what gets through here.
  */
 const tierPaths: Readonly<Record<Exclude<RateLimitTier, 'default'>, readonly string[]>> = {
-  authentication: [apiPaths.authGameCenter, apiPaths.authRefresh, apiPaths.authLogout],
+  authentication: [apiPaths.authApple, apiPaths.authRefresh, apiPaths.authLogout],
   draw: [apiPaths.fortuneDraw],
   webhook: [apiPaths.appStoreWebhook],
 };

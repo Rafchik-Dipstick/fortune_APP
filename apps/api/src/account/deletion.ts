@@ -16,14 +16,14 @@ import { resolveSubscriptionAllowance } from '../fortune/allowance.js';
 import { type Prisma, type PrismaClient } from '../generated/prisma/client.js';
 import { type AuthenticationContext } from '../middleware/authentication.js';
 
-/** Deletion requires a Game Center proof no older than this (spec 6.3). */
+/** Deletion requires an Apple sign-in no older than this (spec 6.3). */
 export const deletionAuthTimeMaxAgeSeconds = 300;
 
 export type AccountDeletionErrorCode =
   | 'ACCOUNT_DELETION_PENDING'
   | 'ACCOUNT_PURGED'
   | 'AUTH_REQUIRED'
-  | 'GAME_CENTER_REAUTH_REQUIRED'
+  | 'APPLE_ID_REAUTH_REQUIRED'
   | 'RETRYABLE_CONFLICT'
   | 'VALIDATION_FAILED';
 
@@ -62,7 +62,7 @@ function serializeDeletion(request: {
 /**
  * Account deletion request, status, and cancellation (spec section 6.3).
  *
- * The request path is deliberately narrow: a fresh Game Center proof, the
+ * The request path is deliberately narrow: a fresh Apple identity token, the
  * confirmations the situation actually requires, and a single transaction in
  * the global `User → SessionFamily` lock order that revokes every session
  * before returning. Nothing about the account remains usable afterwards, so a
@@ -111,15 +111,13 @@ export class AccountDeletionService {
 
         // The authoritative proof age comes from the session family, not from
         // the token, and the token's immutable auth_time must match it.
-        const authenticatedAtSeconds = Math.floor(
-          family.gameCenterAuthenticatedAt.getTime() / 1_000,
-        );
+        const authenticatedAtSeconds = Math.floor(family.identityAuthenticatedAt.getTime() / 1_000);
         if (authenticatedAtSeconds !== authentication.authTimeSeconds) {
           throw new AccountDeletionError('AUTH_REQUIRED');
         }
         const proofAgeSeconds = Math.floor(now.getTime() / 1_000) - authenticatedAtSeconds;
         if (proofAgeSeconds > deletionAuthTimeMaxAgeSeconds || proofAgeSeconds < 0) {
-          throw new AccountDeletionError('GAME_CENTER_REAUTH_REQUIRED');
+          throw new AccountDeletionError('APPLE_ID_REAUTH_REQUIRED');
         }
 
         await this.assertConfirmationsSatisfied(transaction, user, confirmations, now);

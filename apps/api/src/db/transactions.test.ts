@@ -96,7 +96,7 @@ describe('database row lock order', () => {
           id: familyId,
           userId,
           sessionVersion: 3,
-          gameCenterAuthenticatedAt: new Date(),
+          identityAuthenticatedAt: new Date(),
           expiresAt: new Date(Date.now() + 60_000),
           revokedAt: null,
         },

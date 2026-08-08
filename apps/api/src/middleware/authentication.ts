@@ -59,7 +59,7 @@ export const createAuthoritativeAuthentication =
         family.expiresAt <= now() ||
         family.sessionVersion !== claims.sessionVersion ||
         family.user.sessionVersion !== claims.sessionVersion ||
-        Math.floor(family.gameCenterAuthenticatedAt.getTime() / 1_000) !== claims.authTimeSeconds
+        Math.floor(family.identityAuthenticatedAt.getTime() / 1_000) !== claims.authTimeSeconds
       ) {
         throw authenticationRequired();
       }

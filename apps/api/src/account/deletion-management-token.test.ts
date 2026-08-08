@@ -17,7 +17,7 @@ const tokens = new DeletionManagementTokenService(environment, () => now);
 const accessTokens = new AccessTokenService(environment, () => now);
 
 describe('deletion-management tokens', () => {
-  it('round-trips the user and the originating Game Center proof time', async () => {
+  it('round-trips the user and the originating Apple sign-in time', async () => {
     const issued = await tokens.issue(userId, authenticatedAt);
     const claims = await tokens.verify(issued.token);
 

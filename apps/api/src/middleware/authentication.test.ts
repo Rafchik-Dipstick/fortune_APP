@@ -27,7 +27,7 @@ async function createFixture(overrides: Record<string, unknown> = {}) {
     sessionVersion: 3,
     revokedAt: null,
     expiresAt: new Date('2026-09-05T10:00:00.000Z'),
-    gameCenterAuthenticatedAt: new Date('2026-08-06T09:59:30.999Z'),
+    identityAuthenticatedAt: new Date('2026-08-06T09:59:30.999Z'),
     user: { id: userId, status: 'ACTIVE', sessionVersion: 3 },
     ...overrides,
   });

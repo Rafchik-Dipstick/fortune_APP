@@ -84,7 +84,7 @@ async function applyPack(purchaseToken: string, now: Date): Promise<void> {
   }
 }
 
-/** Builds an account whose Game Center proof is `proofAgeSeconds` old. */
+/** Builds an account whose Apple sign-in is `proofAgeSeconds` old. */
 async function createFixture(proofAgeSeconds = 10): Promise<DeletionFixture> {
   const now = new Date();
   const financialSubject = await prisma.financialSubject.create({ data: {} });
@@ -97,7 +97,7 @@ async function createFixture(proofAgeSeconds = 10): Promise<DeletionFixture> {
     data: {
       userId: user.id,
       sessionVersion: user.sessionVersion,
-      gameCenterAuthenticatedAt: new Date(authTimeSeconds * 1_000),
+      identityAuthenticatedAt: new Date(authTimeSeconds * 1_000),
       expiresAt: new Date(now.getTime() + 30 * 86_400_000),
       refreshTokens: {
         create: {
@@ -109,7 +109,7 @@ async function createFixture(proofAgeSeconds = 10): Promise<DeletionFixture> {
   });
   await prisma.externalIdentity.create({
     data: {
-      provider: 'GAME_CENTER',
+      provider: 'SIGN_IN_WITH_APPLE',
       userId: user.id,
       keyVersion: 'v1',
       subjectDigest: randomUUID().replaceAll('-', '').padEnd(64, '0'),
@@ -156,7 +156,7 @@ describe('account deletion', () => {
     const fixture = await createFixture(301);
 
     await expect(deletion.request(fixture.authentication, confirmations)).rejects.toMatchObject({
-      code: 'GAME_CENTER_REAUTH_REQUIRED',
+      code: 'APPLE_ID_REAUTH_REQUIRED',
     });
     const user = await prisma.user.findUniqueOrThrow({ where: { id: fixture.userId } });
     expect(user.status).toBe('ACTIVE');
