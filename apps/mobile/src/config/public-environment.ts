@@ -72,4 +72,23 @@ export function parsePublicEnvironment(
   return environment;
 }
 
-export const publicEnvironment = parsePublicEnvironment(process.env);
+/**
+ * Each variable is named as a literal `process.env.EXPO_PUBLIC_*` member.
+ *
+ * This is not style. Expo inlines public variables with a Babel transform that
+ * rewrites exactly that expression shape into a string literal at bundle time;
+ * a release bundle has no `process.env` to read. Passing the object itself —
+ * `parsePublicEnvironment(process.env)` — gives the transform nothing to
+ * rewrite, so every key arrives `undefined` and the parser quietly falls back
+ * to its development defaults. That shipped a store binary pointed at
+ * `http://localhost:3000`, and it failed silently, because falling back is
+ * exactly what the defaults are for. It only worked in development because the
+ * dev server populates `process.env` at runtime.
+ */
+export const publicEnvironment = parsePublicEnvironment({
+  EXPO_PUBLIC_API_URL: process.env.EXPO_PUBLIC_API_URL,
+  EXPO_PUBLIC_APP_ENV: process.env.EXPO_PUBLIC_APP_ENV,
+  EXPO_PUBLIC_PRIVACY_URL: process.env.EXPO_PUBLIC_PRIVACY_URL,
+  EXPO_PUBLIC_SUPPORT_URL: process.env.EXPO_PUBLIC_SUPPORT_URL,
+  EXPO_PUBLIC_TERMS_URL: process.env.EXPO_PUBLIC_TERMS_URL,
+});
