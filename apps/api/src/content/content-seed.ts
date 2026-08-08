@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import {
   computeContentChecksum,
   contentManifestSchema,
@@ -5,7 +7,26 @@ import {
   type TarotCardContent,
 } from '@fortuneness/fortune-content';
 
-import { type Prisma, type PrismaClient } from '../generated/prisma/client.js';
+import { Prisma, type PrismaClient } from '../generated/prisma/client.js';
+
+/**
+ * Rows per statement. The catalog is written with multi-row `INSERT … ON
+ * CONFLICT` rather than one upsert per row: at 78 cards and 624 templates the
+ * per-row form costs 702 round trips, which is imperceptible against a
+ * loopback database and roughly two minutes against a deployed one over the
+ * public proxy — long enough to exceed any sane transaction budget and to hold
+ * locks on the content tables for the whole time. Chunking keeps each
+ * statement well inside PostgreSQL's 65535 bound parameters.
+ */
+const insertChunkSize = 200;
+
+function chunk<Item>(items: readonly Item[], size: number): Item[][] {
+  const chunks: Item[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
+}
 
 export interface ContentSeedInput {
   /** Canonical card metadata; the manifest decides which of these ship. */
@@ -49,29 +70,45 @@ async function seedCards(
 ): Promise<number> {
   const manifestCards = new Map(input.manifest.cards.map((card) => [card.key, card] as const));
 
-  for (const card of input.deckCards) {
+  const values = input.deckCards.map((card) => {
     const manifestCard = manifestCards.get(card.key);
     if (manifestCard !== undefined) {
       assertManifestCardMatchesCanonical(manifestCard, card);
     }
 
-    const data = {
-      displayNumber: card.displayNumber,
-      nameEn: card.localizedName.en,
-      arcana: card.arcana,
-      suit: card.suit ?? null,
-      rank: card.rank ?? null,
-      assetKey: card.assetKey,
-      illustrationAltEn: card.localizedAltText.en,
-      sortOrder: card.sortOrder,
-      active: manifestCard?.active ?? false,
-    };
+    return Prisma.sql`(
+      ${card.key},
+      ${card.displayNumber},
+      ${card.localizedName.en},
+      ${card.arcana}::"Arcana",
+      ${card.suit ?? null}::"TarotSuit",
+      ${card.rank ?? null}::"TarotRank",
+      ${card.assetKey},
+      ${card.localizedAltText.en},
+      ${card.sortOrder},
+      ${manifestCard?.active ?? false},
+      now()
+    )`;
+  });
 
-    await transaction.tarotCard.upsert({
-      where: { key: card.key },
-      create: { key: card.key, ...data },
-      update: data,
-    });
+  for (const group of chunk(values, insertChunkSize)) {
+    await transaction.$executeRaw`
+      INSERT INTO "TarotCard" (
+        "key", "displayNumber", "nameEn", "arcana", "suit", "rank",
+        "assetKey", "illustrationAltEn", "sortOrder", "active", "updatedAt"
+      )
+      VALUES ${Prisma.join(group)}
+      ON CONFLICT ("key") DO UPDATE SET
+        "displayNumber" = EXCLUDED."displayNumber",
+        "nameEn" = EXCLUDED."nameEn",
+        "arcana" = EXCLUDED."arcana",
+        "suit" = EXCLUDED."suit",
+        "rank" = EXCLUDED."rank",
+        "assetKey" = EXCLUDED."assetKey",
+        "illustrationAltEn" = EXCLUDED."illustrationAltEn",
+        "sortOrder" = EXCLUDED."sortOrder",
+        "active" = EXCLUDED."active",
+        "updatedAt" = now()`;
   }
 
   return input.manifest.cards.filter((card) => card.active).length;
@@ -110,34 +147,52 @@ async function seedTemplates(
     });
   }
 
-  for (const template of manifest.templates) {
+  const values = manifest.templates.map((template) => {
     if (template.contentVersion !== version) {
       throw new Error(
         `Template ${template.cardKey}:${template.orientation}:${template.intention} declares content version ${template.contentVersion}, but the manifest is ${version}.`,
       );
     }
-    const logicalKey = {
-      cardKey: template.cardKey,
-      locale: template.locale,
-      orientation: template.orientation,
-      intention: template.intention,
-      variant: template.variant,
-      contentVersion: version,
-    };
-    const copy = {
-      headline: template.headline,
-      message: template.message,
-      gentleAction: template.action,
-      affirmation: template.affirmation,
-      active: template.active,
-    };
 
-    const written = await transaction.fortuneTemplate.upsert({
-      where: { cardKey_locale_orientation_intention_variant_contentVersion: logicalKey },
-      create: { ...logicalKey, ...copy },
-      update: copy,
-    });
-    writtenIds.push(written.id);
+    // Supplied rather than defaulted: `id` carries Prisma's client-side
+    // `uuid()` default, which a raw insert never reaches. A row that already
+    // exists keeps its own id, because ON CONFLICT DO UPDATE never rewrites it
+    // — the id a `FortuneDraw` references stays stable across re-seeds.
+    return Prisma.sql`(
+      ${randomUUID()}::uuid,
+      ${template.cardKey},
+      ${template.locale},
+      ${template.orientation}::"Orientation",
+      ${template.intention}::"FortuneIntention",
+      ${template.variant},
+      ${template.headline},
+      ${template.message},
+      ${template.action},
+      ${template.affirmation},
+      ${version},
+      ${template.active},
+      now()
+    )`;
+  });
+
+  for (const group of chunk(values, insertChunkSize)) {
+    const written = await transaction.$queryRaw<{ id: string }[]>`
+      INSERT INTO "FortuneTemplate" (
+        "id", "cardKey", "locale", "orientation", "intention", "variant",
+        "headline", "message", "gentleAction", "affirmation", "contentVersion",
+        "active", "updatedAt"
+      )
+      VALUES ${Prisma.join(group)}
+      ON CONFLICT ("cardKey", "locale", "orientation", "intention", "variant", "contentVersion")
+      DO UPDATE SET
+        "headline" = EXCLUDED."headline",
+        "message" = EXCLUDED."message",
+        "gentleAction" = EXCLUDED."gentleAction",
+        "affirmation" = EXCLUDED."affirmation",
+        "active" = EXCLUDED."active",
+        "updatedAt" = now()
+      RETURNING "id"`;
+    writtenIds.push(...written.map((row) => row.id));
   }
 
   // Rows this version no longer ships are retired, never edited or deleted.
@@ -157,15 +212,24 @@ export async function seedContent(
   input: ContentSeedInput,
 ): Promise<ContentSeedSummary> {
   const manifest = contentManifestSchema.parse(input.manifest);
-  return prisma.$transaction(async (transaction) => {
-    const activeCards = await seedCards(transaction, { ...input, manifest });
-    const templates = await seedTemplates(transaction, manifest);
-    return {
-      activeCards,
-      contentChecksum: computeContentChecksum(manifest),
-      contentVersion: manifest.contentVersion,
-      seededCards: input.deckCards.length,
-      ...templates,
-    };
-  });
+  return prisma.$transaction(
+    async (transaction) => {
+      const activeCards = await seedCards(transaction, { ...input, manifest });
+      const templates = await seedTemplates(transaction, manifest);
+      return {
+        activeCards,
+        contentChecksum: computeContentChecksum(manifest),
+        contentVersion: manifest.contentVersion,
+        seededCards: input.deckCards.length,
+        ...templates,
+      };
+    },
+    // The whole catalog is one transaction on purpose: a partially seeded deck
+    // is worse than an unseeded one. Batched inserts bring that to a handful of
+    // statements, but the budget still has to cover an operator seeding a
+    // deployed database across the public proxy, where each round trip costs
+    // orders of magnitude more than on loopback. Prisma's 5-second default does
+    // not.
+    { maxWait: 15_000, timeout: 60_000 },
+  );
 }

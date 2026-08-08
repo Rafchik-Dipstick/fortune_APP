@@ -15,7 +15,7 @@ These are immutable once a build ships. Do not configure Railway or EAS until ea
 | Production bundle identifier | `app.fortuneness`                                                                               | [ ]        |
 | Consumable product ID        | `app.fortuneness.fortunepack10`                                                                 | [ ]        |
 | Subscription product ID      | `app.fortuneness.oracleplus.monthly`                                                            | [ ]        |
-| Public API domain            | _pending_ — becomes `EXPO_PUBLIC_API_URL` and is baked into every binary                        | [ ]        |
+| Public API domain            | `https://fortuneapp-production.up.railway.app` — set in `eas.json`, baked into every binary     | [x]        |
 | Marketing/legal domain       | `fortuneness.app` — must serve live privacy, terms, and support pages                           | [ ]        |
 | Marketing version            | `app.config.ts` currently declares `0.1.0`; App Store first releases are conventionally `1.0.0` | [ ]        |
 
@@ -120,12 +120,11 @@ Export compliance is already answered in the binary: `app.config.ts` declares `I
 
 ## 3. EAS production build
 
-`apps/mobile/eas.json` already pins the production profile to `EXPO_PUBLIC_APP_ENV=production` and `EXPO_PUBLIC_ENABLE_PSEUDO_LOCALE=false`. Set the rest as EAS environment variables in the `production` environment:
+`apps/mobile/eas.json` already pins the production profile to `EXPO_PUBLIC_APP_ENV=production`, `EXPO_PUBLIC_ENABLE_PSEUDO_LOCALE=false`, and `EXPO_PUBLIC_API_URL=https://fortuneapp-production.up.railway.app`. These are public values compiled into the binary, so they belong in the committed profile rather than in EAS secret storage. Set the rest as EAS environment variables in the `production` environment:
 
 | Variable                  | Value                                                      |
 | ------------------------- | ---------------------------------------------------------- |
 | `APP_BUNDLE_ID`           | the confirmed identifier — the build **throws** without it |
-| `EXPO_PUBLIC_API_URL`     | `https://` the production API domain                       |
 | `EXPO_PUBLIC_PRIVACY_URL` | live HTTPS privacy page                                    |
 | `EXPO_PUBLIC_TERMS_URL`   | live HTTPS terms page                                      |
 | `EXPO_PUBLIC_SUPPORT_URL` | live HTTPS support page                                    |

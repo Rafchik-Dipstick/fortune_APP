@@ -32,7 +32,8 @@
       "environment": "production",
       "env": {
         "EXPO_PUBLIC_APP_ENV": "production",
-        "EXPO_PUBLIC_ENABLE_PSEUDO_LOCALE": "false"
+        "EXPO_PUBLIC_ENABLE_PSEUDO_LOCALE": "false",
+        "EXPO_PUBLIC_API_URL": "https://fortuneapp-production.up.railway.app"
       }
     }
   },
