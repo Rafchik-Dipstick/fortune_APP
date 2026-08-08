@@ -12,7 +12,7 @@ These are immutable once a build ships. Do not configure Railway or EAS until ea
 
 | Decision                     | Proposed value                                                                                  | Confirmed? |
 | ---------------------------- | ----------------------------------------------------------------------------------------------- | ---------- |
-| Production bundle identifier | `app.fortuneness`                                                                               | [ ]        |
+| Production bundle identifier | `fortuness.app` — registered under team `YGR53JLX36`, set in `eas.json`                         | [x]        |
 | Consumable product ID        | `app.fortuneness.fortunepack10`                                                                 | [ ]        |
 | Subscription product ID      | `app.fortuneness.oracleplus.monthly`                                                            | [ ]        |
 | Public API domain            | `https://fortuneapp-production.up.railway.app` — set in `eas.json`, baked into every binary     | [x]        |
