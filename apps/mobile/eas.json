@@ -34,6 +34,9 @@
         "EXPO_PUBLIC_APP_ENV": "production",
         "EXPO_PUBLIC_ENABLE_PSEUDO_LOCALE": "false",
         "EXPO_PUBLIC_API_URL": "https://fortuneapp-production.up.railway.app",
+        "EXPO_PUBLIC_PRIVACY_URL": "https://fortuneapp-production.up.railway.app/privacy",
+        "EXPO_PUBLIC_TERMS_URL": "https://fortuneapp-production.up.railway.app/terms",
+        "EXPO_PUBLIC_SUPPORT_URL": "https://fortuneapp-production.up.railway.app/support",
         "APP_BUNDLE_ID": "fortuness.app"
       }
     }

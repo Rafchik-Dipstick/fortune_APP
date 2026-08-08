@@ -9,7 +9,8 @@
     "config:check": "expo config --type public",
     "dev:env": "node scripts/create-dev-env.mjs",
     "ios": "expo run:ios",
-    "prebuild": "npm run build --workspace @fortuneness/api-contracts",
+    "eas-build-post-install": "cd ../.. && npm run build --workspace @fortuneness/shared-types --workspace @fortuneness/api-contracts",
+    "prebuild": "cd ../.. && npm run build --workspace @fortuneness/shared-types --workspace @fortuneness/api-contracts",
     "start": "expo start --dev-client",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json"

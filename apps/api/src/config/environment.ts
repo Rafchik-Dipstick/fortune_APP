@@ -256,6 +256,10 @@ const rawApiEnvironmentSchema = z
     SENTRY_RELEASE: optionalTrimmedSchema(128),
     METRICS_FLUSH_INTERVAL_MS: environmentInteger(60_000, 5_000, 3_600_000),
     APP_BUNDLE_ID: bundleIdentifierSchema,
+    // Printed on the public legal and support pages, so it is configuration
+    // rather than a constant: changing where players write must not need a
+    // redeploy of the mobile app.
+    SUPPORT_EMAIL: z.email().trim().max(160).default('rafaelkras123@gmail.com'),
     GAME_CENTER_ALLOWED_PUBLIC_KEY_HOSTS: hostAllowlistSchema.default(['static.gc.apple.com']),
     GAME_CENTER_ALLOWED_CERTIFICATE_HOSTS: hostAllowlistSchema.default(['cacerts.digicert.com']),
     GAME_CENTER_IDENTITY_HMAC_KEYS_JSON: keyRingSchema,
@@ -545,6 +549,7 @@ export interface ApiEnvironment {
   port: number;
   rateLimits: RateLimitEnvironment;
   requestTimeoutMs: number;
+  supportEmail: string;
   trustProxyHops: number;
 }
 
@@ -663,6 +668,7 @@ export const parseApiEnvironment = (source: NodeJS.ProcessEnv): ApiEnvironment =
       windowMs: result.data.RATE_LIMIT_WINDOW_MS,
     },
     requestTimeoutMs: result.data.REQUEST_TIMEOUT_MS,
+    supportEmail: result.data.SUPPORT_EMAIL,
     trustProxyHops: result.data.TRUST_PROXY,
   };
 };

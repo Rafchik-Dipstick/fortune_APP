@@ -6,6 +6,7 @@ import { apiPaths } from '@fortuneness/api-contracts';
 import { type ApiEnvironment } from './config/environment.js';
 import { type ApiReadiness } from './health/readiness.js';
 import { registerHealthRoute } from './health/route.js';
+import { registerLegalRoutes } from './legal/routes.js';
 import { type ApiLogger, createApiLogger } from './logging/logger.js';
 import { ApiHttpError, createErrorHandler, notFoundHandler } from './middleware/errors.js';
 import { createTieredRateLimit } from './middleware/rate-limits.js';
@@ -111,6 +112,7 @@ export const createApiApp = (options: CreateApiAppOptions): Express => {
   });
 
   registerHealthRoute(app, options.readiness);
+  registerLegalRoutes(app, { supportEmail: options.environment.supportEmail });
   options.configureRoutes?.(app);
   app.use(notFoundHandler);
   app.use(createErrorHandler(logger, options.errorReporter));
