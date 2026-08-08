@@ -104,7 +104,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     // happens to be logged in. Fortuneness is its own project under this
     // account, unrelated to anything else published there.
     owner: 'infinityenglish',
-    version: '0.1.0',
+    version: '0.2.0',
     backgroundColor: '#0D0A1A',
     icon: brandMarkPath,
     platforms: ['ios'],

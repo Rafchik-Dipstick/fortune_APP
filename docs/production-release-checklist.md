@@ -10,14 +10,14 @@ This document is the single place that says what must be true before the first p
 
 These are immutable once a build ships. Do not configure Railway or EAS until each is confirmed.
 
-| Decision                     | Proposed value                                                                                  | Confirmed? |
-| ---------------------------- | ----------------------------------------------------------------------------------------------- | ---------- |
-| Production bundle identifier | `fortuness.app` — registered under team `YGR53JLX36`, set in `eas.json`                         | [x]        |
-| Consumable product ID        | `app.fortuneness.fortunepack10`                                                                 | [ ]        |
-| Subscription product ID      | `app.fortuneness.oracleplus.monthly`                                                            | [ ]        |
-| Public API domain            | `https://fortuneapp-production.up.railway.app` — set in `eas.json`, baked into every binary     | [x]        |
-| Marketing/legal domain       | `fortuneness.app` — must serve live privacy, terms, and support pages                           | [ ]        |
-| Marketing version            | `app.config.ts` currently declares `0.1.0`; App Store first releases are conventionally `1.0.0` | [ ]        |
+| Decision                     | Proposed value                                                                              | Confirmed? |
+| ---------------------------- | ------------------------------------------------------------------------------------------- | ---------- |
+| Production bundle identifier | `fortuness.app` — registered under team `YGR53JLX36`, set in `eas.json`                     | [x]        |
+| Consumable product ID        | `app.fortuneness.fortunepack10`                                                             | [ ]        |
+| Subscription product ID      | `app.fortuneness.oracleplus.monthly`                                                        | [ ]        |
+| Public API domain            | `https://fortuneapp-production.up.railway.app` — set in `eas.json`, baked into every binary | [x]        |
+| Marketing/legal domain       | `fortuneness.app` — must serve live privacy, terms, and support pages                       | [ ]        |
+| Marketing version            | `0.2.0`, declared in `app.config.ts`                                                        | [x]        |
 
 The bundle identifier is the hardest of these to change later: it is the Game Center audience, the StoreKit product namespace, and the App Store record. The API refuses a Game Center proof whose bundle ID disagrees with its own `APP_BUNDLE_ID`, so the two sides must be set from the same confirmed string.
 
