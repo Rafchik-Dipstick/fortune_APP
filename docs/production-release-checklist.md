@@ -43,8 +43,6 @@ Set `NODE_ENV=production` and `DEPLOYMENT_ENVIRONMENT=production` together. The 
 | `TRUST_PROXY`                                        | tested positive hop count, typically `1`           | Refused at `0` in production; the rate limiter would key every request alike |
 | `APP_BUNDLE_ID`                                      | the confirmed identifier from §0                   | A mismatch rejects every Game Center login                                   |
 | `APP_APPLE_ID`                                       | numeric App Apple ID from App Store Connect        | Needed for App Store Server API calls                                        |
-| `SENTRY_DSN`                                         | the production project DSN                         | A production deployment refuses to start without it                          |
-| `SENTRY_RELEASE`                                     | the deployed commit SHA                            | Otherwise reports cannot be attributed to a build                            |
 | `APPLE_IAP_ENVIRONMENT`                              | `PRODUCTION`                                       | Refused as anything else in the production deployment                        |
 | `APPLE_IAP_ISSUER_ID`                                | App Store Connect API issuer                       | Required in production; all three credentials or none                        |
 | `APPLE_IAP_KEY_ID`                                   | App Store Connect API key ID                       | as above                                                                     |
@@ -75,6 +73,8 @@ Also set `JWT_ISSUER=fortuneness-api` and `JWT_AUDIENCE=fortuneness-mobile`, mat
 | `GAME_CENTER_ALLOW_NONPERSISTENT_IDS` | Local-only; the parser refuses it outside the `local` deployment |
 
 Everything not listed — the four deadlines, the four rate-limit budgets, pool size, TTLs, log level, metrics interval, and the two product IDs — has a production-appropriate default in `apps/api/src/config/environment.ts`. Set one only to deliberately depart from it.
+
+Error reporting is off. `SENTRY_DSN` is optional and left unset, so nothing is transmitted and the reporter stays inert; the structured log stream is the only place a production fault appears. The variable name is the only Sentry-specific thing about it — the code posts to a DSN's envelope endpoint through the egress guard with no vendor SDK, so any Sentry-protocol ingest can be dropped in later without a code change.
 
 ### Service settings
 

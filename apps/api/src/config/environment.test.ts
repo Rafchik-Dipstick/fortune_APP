@@ -296,20 +296,20 @@ describe('parseApiEnvironment', () => {
     ).toThrow(/DEPLOYMENT_ENVIRONMENT/);
   });
 
-  it('requires error reporting before a production deployment starts', () => {
-    expect(() =>
-      parseApiEnvironment({
-        ...validAuthenticationEnvironment,
-        DATABASE_URL: databaseUrl,
-        NODE_ENV: 'production',
-        DEPLOYMENT_ENVIRONMENT: 'production',
-        TRUST_PROXY: '1',
-        APPLE_IAP_ENVIRONMENT: 'PRODUCTION',
-        APPLE_IAP_ISSUER_ID: '57246542-96fe-1a63-e053-0824d011072a',
-        APPLE_IAP_KEY_ID: '2X9R4HXF34',
-        APPLE_IAP_PRIVATE_KEY_BASE64: appStorePrivateKey,
-      }),
-    ).toThrow(/SENTRY_DSN/);
+  it('starts a production deployment with error reporting left unconfigured', () => {
+    const environment = parseApiEnvironment({
+      ...validAuthenticationEnvironment,
+      DATABASE_URL: databaseUrl,
+      NODE_ENV: 'production',
+      DEPLOYMENT_ENVIRONMENT: 'production',
+      TRUST_PROXY: '1',
+      APPLE_IAP_ENVIRONMENT: 'PRODUCTION',
+      APPLE_IAP_ISSUER_ID: '57246542-96fe-1a63-e053-0824d011072a',
+      APPLE_IAP_KEY_ID: '2X9R4HXF34',
+      APPLE_IAP_PRIVATE_KEY_BASE64: appStorePrivateKey,
+    });
+
+    expect(environment.observability.errorReporting).toBeNull();
   });
 
   it.each(['staging', 'production'] as const)(

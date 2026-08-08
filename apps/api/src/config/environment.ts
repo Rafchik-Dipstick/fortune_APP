@@ -333,14 +333,6 @@ const rawApiEnvironmentSchema = z
       });
     }
 
-    if (environment.DEPLOYMENT_ENVIRONMENT === 'production' && environment.SENTRY_DSN === null) {
-      context.addIssue({
-        code: 'custom',
-        path: ['SENTRY_DSN'],
-        message: 'must be configured before the production deployment starts',
-      });
-    }
-
     if (environment.DATABASE_LOCK_TIMEOUT_MS >= environment.DATABASE_STATEMENT_TIMEOUT_MS) {
       context.addIssue({
         code: 'custom',
