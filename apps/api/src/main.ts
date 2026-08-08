@@ -84,8 +84,7 @@ const start = async (): Promise<void> => {
     });
   } catch (error) {
     const message =
-      error instanceof InvalidApiEnvironmentError ||
-      error instanceof PurchaseTokenKeyMismatchError
+      error instanceof InvalidApiEnvironmentError || error instanceof PurchaseTokenKeyMismatchError
         ? error.message
         : 'The API failed during startup before logging was available.';
     process.stderr.write(`${message}\n`);

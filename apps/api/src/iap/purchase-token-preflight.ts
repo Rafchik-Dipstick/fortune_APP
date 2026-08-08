@@ -21,8 +21,7 @@ export class PurchaseTokenKeyMismatchError extends Error {
 }
 
 export type PurchaseTokenPreflightOutcome =
-  | { checkedVersions: string[]; status: 'verified' }
-  | { status: 'skipped' };
+  { checkedVersions: string[]; status: 'verified' } | { status: 'skipped' };
 
 type BindingReader = Pick<Prisma.TransactionClient['appAccountTokenBinding'], 'findFirst'>;
 

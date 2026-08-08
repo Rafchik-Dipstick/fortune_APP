@@ -76,6 +76,25 @@ Also set `JWT_ISSUER=fortuneness-api` and `JWT_AUDIENCE=fortuneness-mobile`, mat
 
 Everything not listed — the four deadlines, the four rate-limit budgets, pool size, TTLs, log level, metrics interval, and the two product IDs — has a production-appropriate default in `apps/api/src/config/environment.ts`. Set one only to deliberately depart from it.
 
+### Service settings
+
+This is a monorepo, and the API is a workspace inside it — not a standalone project directory.
+
+| Railway setting     | Value                   | Why                                                                                                                                                                 |
+| ------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Root Directory      | `/` (leave empty)       | The build and start commands are `npm --workspace` invocations, and workspaces are only defined in the root `package.json`. Setting this to `apps/api` breaks both. |
+| Railway Config File | `apps/api/railway.json` | Supplies the build command, start command, health check, and watch patterns as code                                                                                 |
+
+Everything else — builder, build command, start command, health check path — comes from that config file. Do not also set them in the dashboard; the file is the source of truth.
+
+The build command deliberately names three workspaces:
+
+```text
+corepack npm run build --workspace @fortuneness/api-contracts --workspace @fortuneness/fortune-content --workspace @fortuneness/api
+```
+
+`api-contracts` and `fortune-content` are both compiled because every package resolves to its own `dist/`, and `dist/` is gitignored — so on a fresh clone nothing is built yet. The running server imports only `api-contracts`, but `prisma/seed.ts` imports `fortune-content`, and a seed that cannot resolve its content package leaves the database with no cards to draw. `shared-types` is intentionally absent: only the mobile app uses it.
+
 ### Deploy sequence
 
 1. Provision the PostgreSQL service and confirm the backup plan meets the 24-hour RPO, 4-hour RTO, and 30-recovery-point policy.

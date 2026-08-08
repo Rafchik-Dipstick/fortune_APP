@@ -1,2 +1,5 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Auto detect text files and perform LF normalization.
+# eol=lf also forces LF in the working tree on every platform, which the
+# repository requires: prettier.config.mjs sets endOfLine: 'lf', so a CRLF
+# checkout on Windows makes `npm run format:check` fail on untouched files.
+* text=auto eol=lf
