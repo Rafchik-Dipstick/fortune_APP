@@ -214,7 +214,11 @@ export class AuthenticationCoordinator {
     if (
       !nativeState.isAuthenticated ||
       nativeState.teamPlayerId === undefined ||
-      !nativeState.scopedIdsPersistent
+      // Mirrors the sign-in path deliberately. Refusing a temporary identifier
+      // here regardless of the allowance made deletion unreachable on exactly
+      // the builds that can only ever hold one — TestFlight and App Review —
+      // so an account created there could never be deleted from inside the app.
+      (!nativeState.scopedIdsPersistent && !this.dependencies.allowNonPersistentIds)
     ) {
       return false;
     }
