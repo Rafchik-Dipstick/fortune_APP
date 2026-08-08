@@ -32,6 +32,7 @@ import {
   loadStoredCredentials,
   saveStoredCredentials,
 } from './session-storage';
+import { allowNonPersistentGameCenterIds } from './game-center-allowance';
 import { clearAllLocalAccountData } from '../local-data/account-cleanup';
 
 interface AuthenticationContextValue extends AuthenticationState {
@@ -47,16 +48,7 @@ const AuthenticationContext = createContext<AuthenticationContextValue | undefin
 
 function createCoordinator(): AuthenticationCoordinator {
   return new AuthenticationCoordinator({
-    // Always attempted, because the client is the wrong place to decide this.
-    // Game Center reports scoped identifiers as non-persistent for any app it
-    // has not yet seen published on the App Store, which is TestFlight and App
-    // Review as much as a development build — gating on the app environment
-    // refused the reviewer a sign-in and made the app impossible to approve.
-    // The server holds the real fence: it refuses a temporary identifier
-    // unless its own deployment sets GAME_CENTER_ALLOW_NONPERSISTENT_IDS, so
-    // the allowance is one an operator grants and revokes, and a binary can
-    // never grant it to itself.
-    allowNonPersistentIds: true,
+    allowNonPersistentIds: allowNonPersistentGameCenterIds,
     api: {
       authenticate: authenticateGameCenter,
       bootstrap: getAccountBootstrap,
