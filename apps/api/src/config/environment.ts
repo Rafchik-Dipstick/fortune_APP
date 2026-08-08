@@ -264,10 +264,16 @@ const rawApiEnvironmentSchema = z
     GAME_CENTER_ALLOWED_CERTIFICATE_HOSTS: hostAllowlistSchema.default(['cacerts.digicert.com']),
     GAME_CENTER_IDENTITY_HMAC_KEYS_JSON: keyRingSchema,
     GAME_CENTER_IDENTITY_CURRENT_KEY_VERSION: keyVersionSchema,
-    // Game Center issues non-persistent scoped identifiers to sandbox players,
-    // which is every build that is not from TestFlight or the App Store. This
-    // accepts them so the rest of the application can be exercised on a
-    // development build; the superRefine below rejects it outside `local`.
+    // Game Center reports scoped identifiers as non-persistent for any app it
+    // has not yet seen published on the App Store — TestFlight and App Review
+    // included, not just development builds. Refusing them outright therefore
+    // locks the reviewer out of the app entirely, so this is an operator
+    // switch rather than a local-only one: turn it on to get through review,
+    // turn it off once the app is live and Game Center issues stable
+    // identifiers. It stays false by default, because the cost of accepting
+    // one is real — the identity can change under the account that owns it,
+    // and every account created under a temporary identifier is orphaned when
+    // the identifier settles.
     GAME_CENTER_ALLOW_NONPERSISTENT_IDS: environmentBoolean(false),
     GAME_CENTER_PROOF_MAX_AGE_SECONDS: environmentInteger(300, 30, 900),
     GAME_CENTER_PROOF_CLOCK_SKEW_SECONDS: environmentInteger(60, 0, 300),
@@ -414,20 +420,6 @@ const rawApiEnvironmentSchema = z
           });
         }
       }
-    }
-
-    // Accepting a temporary Game Center identifier means accepting an identity
-    // that can change under the account it owns, so it is refused anywhere a
-    // real player could reach it. `local` is the only deployment that may.
-    if (
-      environment.GAME_CENTER_ALLOW_NONPERSISTENT_IDS &&
-      environment.DEPLOYMENT_ENVIRONMENT !== 'local'
-    ) {
-      context.addIssue({
-        code: 'custom',
-        path: ['GAME_CENTER_ALLOW_NONPERSISTENT_IDS'],
-        message: 'non-persistent Game Center identifiers are local-only',
-      });
     }
 
     if (environment.NODE_ENV === 'production') {

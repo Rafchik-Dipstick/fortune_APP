@@ -313,20 +313,36 @@ describe('parseApiEnvironment', () => {
   });
 
   it.each(['staging', 'production'] as const)(
-    'refuses non-persistent Game Center identifiers in %s',
+    'refuses non-persistent Game Center identifiers in %s unless the operator allows them',
     (deployment) => {
       // Accepting a temporary identifier means accepting an identity that can
-      // change under the account that owns it. Local development is the only
-      // place a real player cannot be harmed by that.
-      expect(() =>
-        parseApiEnvironment({
-          ...validAuthenticationEnvironment,
-          DATABASE_URL: databaseUrl,
-          DEPLOYMENT_ENVIRONMENT: deployment,
-          GAME_CENTER_ALLOW_NONPERSISTENT_IDS: 'true',
-          SENTRY_DSN: 'https://abc123@o1.ingest.example.com/42',
-        }),
-      ).toThrow(/GAME_CENTER_ALLOW_NONPERSISTENT_IDS/);
+      // change under the account that owns it, so the default stays closed.
+      const environment = parseApiEnvironment({
+        ...validAuthenticationEnvironment,
+        DATABASE_URL: databaseUrl,
+        DEPLOYMENT_ENVIRONMENT: deployment,
+        APPLE_IAP_ENVIRONMENT: deployment === 'production' ? 'PRODUCTION' : 'SANDBOX',
+      });
+
+      expect(environment.authentication.allowNonPersistentGameCenterIds).toBe(false);
+    },
+  );
+
+  it.each(['staging', 'production'] as const)(
+    'lets %s accept temporary identifiers so App Review can sign in',
+    (deployment) => {
+      // Game Center reports scoped identifiers as non-persistent for any app
+      // it has not seen published, which includes the build App Review runs.
+      // A deployment that could never accept one could never be approved.
+      const environment = parseApiEnvironment({
+        ...validAuthenticationEnvironment,
+        DATABASE_URL: databaseUrl,
+        DEPLOYMENT_ENVIRONMENT: deployment,
+        APPLE_IAP_ENVIRONMENT: deployment === 'production' ? 'PRODUCTION' : 'SANDBOX',
+        GAME_CENTER_ALLOW_NONPERSISTENT_IDS: 'true',
+      });
+
+      expect(environment.authentication.allowNonPersistentGameCenterIds).toBe(true);
     },
   );
 

@@ -33,7 +33,6 @@ import {
   saveStoredCredentials,
 } from './session-storage';
 import { clearAllLocalAccountData } from '../local-data/account-cleanup';
-import { publicEnvironment } from '../config/public-environment';
 
 interface AuthenticationContextValue extends AuthenticationState {
   applyAccountUpdate: (user: MeResponse['user']) => void;
@@ -48,13 +47,16 @@ const AuthenticationContext = createContext<AuthenticationContextValue | undefin
 
 function createCoordinator(): AuthenticationCoordinator {
   return new AuthenticationCoordinator({
-    // Deliberately not gated on `__DEV__`: an EAS build embeds a
-    // production-mode bundle, so `__DEV__` is false whenever the application
-    // runs from its own binary rather than from Metro, which silently disabled
-    // this on the very builds that need it. The real fence is the server, which
-    // refuses the same allowance unless its deployment is `local`; preview and
-    // production builds also resolve a different app environment here.
-    allowNonPersistentIds: publicEnvironment.appEnvironment === 'development',
+    // Always attempted, because the client is the wrong place to decide this.
+    // Game Center reports scoped identifiers as non-persistent for any app it
+    // has not yet seen published on the App Store, which is TestFlight and App
+    // Review as much as a development build — gating on the app environment
+    // refused the reviewer a sign-in and made the app impossible to approve.
+    // The server holds the real fence: it refuses a temporary identifier
+    // unless its own deployment sets GAME_CENTER_ALLOW_NONPERSISTENT_IDS, so
+    // the allowance is one an operator grants and revokes, and a binary can
+    // never grant it to itself.
+    allowNonPersistentIds: true,
     api: {
       authenticate: authenticateGameCenter,
       bootstrap: getAccountBootstrap,
