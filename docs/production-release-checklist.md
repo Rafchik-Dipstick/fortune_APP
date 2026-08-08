@@ -36,19 +36,19 @@ Set `NODE_ENV=production` and `DEPLOYMENT_ENVIRONMENT=production` together. The 
 
 ### Must be set by hand
 
-| Variable                                             | Production value                                   | Why it cannot default                                                        |
-| ---------------------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `NODE_ENV`                                           | `production`                                       | —                                                                            |
-| `DEPLOYMENT_ENVIRONMENT`                             | `production`                                       | Forces Production-only App Store trust                                       |
-| `TRUST_PROXY`                                        | tested positive hop count, typically `1`           | Refused at `0` in production; the rate limiter would key every request alike |
-| `APP_BUNDLE_ID`                                      | the confirmed identifier from §0                   | A mismatch rejects every Game Center login                                   |
-| `APP_APPLE_ID`                                       | numeric App Apple ID from App Store Connect        | Needed for App Store Server API calls                                        |
-| `APPLE_IAP_ENVIRONMENT`                              | `PRODUCTION`                                       | Refused as anything else in the production deployment                        |
-| `APPLE_IAP_ISSUER_ID`                                | App Store Connect API issuer                       | Required in production; all three credentials or none                        |
-| `APPLE_IAP_KEY_ID`                                   | App Store Connect API key ID                       | as above                                                                     |
-| `APPLE_IAP_PRIVATE_KEY_BASE64`                       | base64 of the P-256 `.p8`                          | as above                                                                     |
-| `IAP_ORACLE_PLUS_MONTHLY_EXPECTED_BILLING_PLAN_TYPE` | the exact value Apple reports for the monthly plan | Fails closed on a 12-month commitment plan misconfiguration                  |
-| `CORS_ORIGINS`                                       | empty, or HTTPS origins only                       | Non-HTTPS origins are refused in production; a native app needs none         |
+| Variable                                             | Production value                                   | Why it cannot default                                                                                      |
+| ---------------------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `NODE_ENV`                                           | `production`                                       | —                                                                                                          |
+| `DEPLOYMENT_ENVIRONMENT`                             | `production`                                       | Forces Production-only App Store trust                                                                     |
+| `TRUST_PROXY`                                        | tested positive hop count, typically `1`           | Refused at `0` in production; the rate limiter would key every request alike                               |
+| `APP_BUNDLE_ID`                                      | the confirmed identifier from §0                   | A mismatch rejects every Game Center login                                                                 |
+| `APP_APPLE_ID`                                       | numeric App Apple ID from App Store Connect        | Needed for App Store Server API calls                                                                      |
+| `APPLE_IAP_ENVIRONMENT`                              | `PRODUCTION`                                       | Refused as anything else in the production deployment; sandbox transactions are still honoured — see below |
+| `APPLE_IAP_ISSUER_ID`                                | App Store Connect API issuer                       | Required in production; all three credentials or none                                                      |
+| `APPLE_IAP_KEY_ID`                                   | App Store Connect API key ID                       | as above                                                                                                   |
+| `APPLE_IAP_PRIVATE_KEY_BASE64`                       | base64 of the P-256 `.p8`                          | as above                                                                                                   |
+| `IAP_ORACLE_PLUS_MONTHLY_EXPECTED_BILLING_PLAN_TYPE` | the exact value Apple reports for the monthly plan | Fails closed on a 12-month commitment plan misconfiguration                                                |
+| `CORS_ORIGINS`                                       | empty, or HTTPS origins only                       | Non-HTTPS origins are refused in production; a native app needs none                                       |
 
 ### Key rings — generate fresh, never reuse a development value
 
@@ -73,6 +73,8 @@ Also set `JWT_ISSUER=fortuneness-api` and `JWT_AUDIENCE=fortuneness-mobile`, mat
 | `GAME_CENTER_ALLOW_NONPERSISTENT_IDS` | Local-only; the parser refuses it outside the `local` deployment |
 
 Everything not listed — the four deadlines, the four rate-limit budgets, pool size, TTLs, log level, metrics interval, and the two product IDs — has a production-appropriate default in `apps/api/src/config/environment.ts`. Set one only to deliberately depart from it.
+
+A production deployment verifies **both** Production and Sandbox signed transactions. This is not a loosening: App Review tests in-app purchases in the sandbox, against the production binary and therefore against this service, and TestFlight is sandbox-only — a service that accepted Production alone would fail every purchase a reviewer attempted and could not be exercised before release. Each transaction is verified against Apple's trust chain for the environment it declares, and the verified environment is stored on the row, so a sandbox purchase is never recorded as a paid one. `APPLE_IAP_ENVIRONMENT` still governs which App Store Server API endpoint the service calls, and staging remains sandbox-only.
 
 Error reporting is off. `SENTRY_DSN` is optional and left unset, so nothing is transmitted and the reporter stays inert; the structured log stream is the only place a production fault appears. The variable name is the only Sentry-specific thing about it — the code posts to a DSN's envelope endpoint through the egress guard with no vendor SDK, so any Sentry-protocol ingest can be dropped in later without a code change.
 

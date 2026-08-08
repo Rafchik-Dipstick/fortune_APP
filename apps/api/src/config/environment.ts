@@ -495,9 +495,23 @@ export interface AppStoreServerApiCredentials {
 }
 
 export interface CommerceEnvironment {
+  /**
+   * Every environment whose signed transactions this deployment will verify.
+   *
+   * A production deployment must accept Sandbox as well as Production. App
+   * Review tests in-app purchases in the sandbox, against the production
+   * binary and therefore against this service, and TestFlight is sandbox-only
+   * — so refusing sandbox transactions here fails review and makes the app
+   * untestable before release. Each transaction is still verified against
+   * Apple's own trust chain for the environment it declares, and the verified
+   * environment is recorded per transaction, so a sandbox purchase can never
+   * masquerade as a paid one.
+   */
+  acceptedEnvironments: readonly ('SANDBOX' | 'PRODUCTION' | 'XCODE')[];
   appAppleId: number | null;
   appStoreServerApi: AppStoreServerApiCredentials | null;
   consumptionInfoEnabled: boolean;
+  /** The environment this deployment issues App Store Server API calls against. */
   environment: 'SANDBOX' | 'PRODUCTION' | 'XCODE';
   expectedSubscriptionBillingPlanType: string | null;
   fortunePack10ProductId: string;
@@ -582,6 +596,14 @@ export const parseApiEnvironment = (source: NodeJS.ProcessEnv): ApiEnvironment =
       },
     },
     commerce: {
+      // Production also honours Sandbox, because that is what App Review and
+      // TestFlight produce. Every other deployment accepts only what it is
+      // configured for: staging must never see a real payment, and the Xcode
+      // test environment must never be reachable from a deployed service.
+      acceptedEnvironments:
+        result.data.APPLE_IAP_ENVIRONMENT === 'PRODUCTION'
+          ? (['PRODUCTION', 'SANDBOX'] as const)
+          : ([result.data.APPLE_IAP_ENVIRONMENT] as const),
       appAppleId: result.data.APP_APPLE_ID,
       appStoreServerApi:
         result.data.APPLE_IAP_ISSUER_ID !== null &&

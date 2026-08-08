@@ -100,10 +100,48 @@ export function loadAppleRootCertificates(): Buffer[] {
 }
 
 export interface AppleTransactionPolicy {
-  environment: VerifiedIapEnvironment;
+  /**
+   * Environments whose transactions this deployment will honour. Production
+   * carries both `PRODUCTION` and `SANDBOX`: App Review and TestFlight
+   * purchase in the sandbox against the production service.
+   */
+  acceptedEnvironments: readonly VerifiedIapEnvironment[];
   expectedSubscriptionBillingPlanType: string | null;
   fortunePack10ProductId: string;
   oraclePlusMonthlyProductId: string;
+}
+
+/**
+ * Reads the `environment` claim from an unverified JWS payload.
+ *
+ * Used only to choose which of Apple's trust chains to verify against, never
+ * as evidence. Whichever verifier this selects still checks the signature,
+ * the certificate chain, the bundle ID, and the app Apple ID, and rejects a
+ * payload whose environment disagrees with its own — so a forged claim buys
+ * an attacker nothing but a verification failure. Returning `null` simply
+ * means every accepted environment gets tried in turn.
+ */
+function peekEnvironment(signedData: string): VerifiedIapEnvironment | null {
+  const segments = signedData.split('.');
+  if (segments.length !== 3 || segments[1] === undefined) {
+    return null;
+  }
+  try {
+    const decoded: unknown = JSON.parse(Buffer.from(segments[1], 'base64url').toString('utf8'));
+    const claimed =
+      typeof decoded === 'object' && decoded !== null
+        ? (decoded as { environment?: unknown }).environment
+        : undefined;
+    return claimed === 'Sandbox'
+      ? 'SANDBOX'
+      : claimed === 'Production'
+        ? 'PRODUCTION'
+        : claimed === 'Xcode'
+          ? 'XCODE'
+          : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -128,12 +166,20 @@ export function normalizeVerifiedTransaction(
     );
   }
 
-  const receivingEnvironment: string = toEnvironment(policy.environment);
+  // The environment is taken from the verified payload, not from configuration,
+  // and must be one this deployment accepts. Recording what Apple actually
+  // signed is what keeps a sandbox purchase distinguishable from a paid one
+  // once production honours both.
+  const accepted = policy.acceptedEnvironments;
   const payloadEnvironment: string | undefined = payload.environment;
-  if (payloadEnvironment !== undefined && payloadEnvironment !== receivingEnvironment) {
+  const transactionEnvironment =
+    payloadEnvironment === undefined
+      ? (accepted[0] ?? 'PRODUCTION')
+      : accepted.find((candidate) => (toEnvironment(candidate) as string) === payloadEnvironment);
+  if (transactionEnvironment === undefined) {
     throw new SignedTransactionVerificationError(
       'TRANSACTION_UNVERIFIED',
-      'Verified transaction environment does not match the receiving environment.',
+      'Verified transaction environment is not accepted by this deployment.',
     );
   }
 
@@ -204,7 +250,7 @@ export function normalizeVerifiedTransaction(
     billingPlanType: isSubscription
       ? (payload.billingPlanType ?? policy.expectedSubscriptionBillingPlanType ?? 'MONTHLY')
       : null,
-    environment: policy.environment,
+    environment: transactionEnvironment,
     expiresAt: isSubscription ? optionalDate(payload.expiresDate) : null,
     jwsHash: createHash('sha256').update(rawSignedTransaction, 'utf8').digest('hex'),
     normalizedPayload: {
@@ -251,23 +297,66 @@ export class AppleSignedDataVerifier
   implements SignedTransactionVerifier, SignedNotificationVerifier
 {
   private readonly policy: AppleTransactionPolicy;
-  private readonly verifier: SignedDataVerifier;
+  /**
+   * One verifier per accepted environment. Apple's `SignedDataVerifier` is
+   * bound to a single environment at construction, and a production
+   * deployment has to be able to verify sandbox data as well.
+   */
+  private readonly verifiers: Map<VerifiedIapEnvironment, SignedDataVerifier>;
 
   constructor(options: AppleSignedDataVerifierOptions) {
     this.policy = options.commerce;
-    this.verifier = new SignedDataVerifier(
-      options.rootCertificates ?? loadAppleRootCertificates(),
-      true,
-      toEnvironment(options.commerce.environment),
-      options.bundleId,
-      options.appAppleId ?? undefined,
+    const rootCertificates = options.rootCertificates ?? loadAppleRootCertificates();
+    this.verifiers = new Map(
+      options.commerce.acceptedEnvironments.map((environment) => [
+        environment,
+        new SignedDataVerifier(
+          rootCertificates,
+          true,
+          toEnvironment(environment),
+          options.bundleId,
+          // The sandbox does not issue an app Apple ID, and passing the
+          // production one makes Apple's verifier reject every sandbox
+          // payload outright.
+          environment === 'PRODUCTION' ? (options.appAppleId ?? undefined) : undefined,
+        ),
+      ]),
     );
+  }
+
+  /**
+   * Verifies against the environment the data claims, then against the rest.
+   *
+   * The claim is a routing hint only — see `peekEnvironment`. Trying the
+   * remaining verifiers afterwards keeps data with an absent or unexpected
+   * claim working, and the last failure is what surfaces.
+   */
+  private async verifyAcrossEnvironments<Result>(
+    signedData: string,
+    verify: (verifier: SignedDataVerifier) => Promise<Result>,
+  ): Promise<Result> {
+    const claimed = peekEnvironment(signedData);
+    const ordered = [...this.verifiers.entries()].sort(
+      ([left], [right]) => Number(right === claimed) - Number(left === claimed),
+    );
+
+    let lastError: unknown;
+    for (const [, verifier] of ordered) {
+      try {
+        return await verify(verifier);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError;
   }
 
   async verifyTransaction(signedTransaction: string): Promise<VerifiedAppleTransaction> {
     let payload: JWSTransactionDecodedPayload;
     try {
-      payload = await this.verifier.verifyAndDecodeTransaction(signedTransaction);
+      payload = await this.verifyAcrossEnvironments(signedTransaction, async (verifier) =>
+        verifier.verifyAndDecodeTransaction(signedTransaction),
+      );
     } catch (error) {
       throw new SignedTransactionVerificationError(
         'TRANSACTION_UNVERIFIED',
@@ -282,7 +371,9 @@ export class AppleSignedDataVerifier
 
   async verifyNotification(signedPayload: string): Promise<ResponseBodyV2DecodedPayload> {
     try {
-      return await this.verifier.verifyAndDecodeNotification(signedPayload);
+      return await this.verifyAcrossEnvironments(signedPayload, async (verifier) =>
+        verifier.verifyAndDecodeNotification(signedPayload),
+      );
     } catch (error) {
       throw new SignedTransactionVerificationError(
         'TRANSACTION_UNVERIFIED',
@@ -296,7 +387,9 @@ export class AppleSignedDataVerifier
 
   async verifyRenewalInfo(signedRenewalInfo: string): Promise<VerifiedRenewalInfo> {
     try {
-      const payload = await this.verifier.verifyAndDecodeRenewalInfo(signedRenewalInfo);
+      const payload = await this.verifyAcrossEnvironments(signedRenewalInfo, async (verifier) =>
+        verifier.verifyAndDecodeRenewalInfo(signedRenewalInfo),
+      );
       return {
         autoRenewEnabled:
           payload.autoRenewStatus === undefined ? null : payload.autoRenewStatus === 1,
