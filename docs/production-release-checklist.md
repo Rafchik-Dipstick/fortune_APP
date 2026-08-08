@@ -140,6 +140,8 @@ eas build --platform ios --profile production
 eas submit --platform ios --profile production
 ```
 
+The submit profile pins `ascAppId` to `6799167588`, and it has to. `eas submit` evaluates `app.config.ts` on the local machine, where `EAS_BUILD_PROFILE` and `APP_BUNDLE_ID` are unset — so `resolveBundleIdentifier` falls back to the development identifier and submit goes looking for the wrong App Store Connect record. Build profiles carry that environment; submit profiles do not. Naming the record removes the guess. The uploaded binary is unaffected either way, because the build host does have the environment.
+
 ## 4. Release gate
 
 The repository's own gate is one command, and it must pass on the exact commit being built:
