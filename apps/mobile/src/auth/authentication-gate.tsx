@@ -167,14 +167,18 @@ export function AuthenticationGate({ children }: { children: ReactNode }) {
           />
         ) : null}
         {/*
-          A blocked gate is the one screen with no way to see why. Development
-          builds show what the application actually resolved, so a wrong API
-          address or an unexpected build profile is readable from the device
-          instead of inferred from an empty server log.
+          A blocked gate is the one screen with no way to see why, and it is
+          the screen a tester or a reviewer is most likely to be stuck on.
+          Showing this only in development meant the builds that actually get
+          stuck — TestFlight and App Review — were the ones that said nothing,
+          and diagnosing them turned into guesswork against an empty server
+          log. Nothing here is a secret: the environment and the API address
+          are compiled into the binary already, and `failureDetail` carries a
+          scrubbed reason rather than a response body.
         */}
-        {publicEnvironment.appEnvironment === 'development' ? (
+        {copy.retry ? (
           <Surface>
-            <AppText variant="label">Development diagnostics</AppText>
+            <AppText variant="label">Diagnostics</AppText>
             <AppText color="textMuted" variant="caption">
               {`phase ${authentication.phase}\nenv ${publicEnvironment.appEnvironment}\napi ${publicEnvironment.apiUrl}\nwhy ${authentication.failureDetail ?? '(no failure recorded)'}`}
             </AppText>
