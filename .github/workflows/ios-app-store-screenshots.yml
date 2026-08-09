@@ -110,20 +110,19 @@ jobs:
               --wifiBars 3 \
               --cellularBars 4
             xcrun simctl install "$udid" "$APP_PATH"
-            xcrun simctl launch "$udid" fortuness.app
-
-            # Capture mode renders the preview and advances to the next
-            # screen every ten seconds. This avoids iOS's custom-URL consent
-            # alert, which would otherwise contaminate App Store screenshots.
-            sleep 5
 
             local index=1
             for screen in oracle reveal collection shop; do
+              # React Native's Settings module reads this app-domain default.
+              # Relaunching for each frame makes selection deterministic and
+              # avoids both custom-URL consent alerts and timer races.
+              xcrun simctl terminate "$udid" fortuness.app 2>/dev/null || true
+              xcrun simctl spawn "$udid" defaults write fortuness.app \
+                ReleaseCaptureScreen -string "$screen"
+              xcrun simctl launch "$udid" fortuness.app
+              sleep 4
               xcrun simctl io "$udid" screenshot \
                 "build/app-store-screenshots/en-US/${prefix}-${index}-${screen}.png"
-              if [[ "$screen" != "shop" ]]; then
-                sleep 10
-              fi
               index=$((index + 1))
             done
             xcrun simctl shutdown "$udid"

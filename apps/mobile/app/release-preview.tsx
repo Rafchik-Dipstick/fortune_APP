@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
 import { Redirect, useLocalSearchParams } from 'expo-router';
-import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Settings, StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { AppButton } from '@/components/app-button';
 import { AppText } from '@/components/app-text';
@@ -17,7 +16,6 @@ const releaseCaptureMode = process.env.EXPO_PUBLIC_RELEASE_CAPTURE_MODE === 'tru
 const noOp = () => undefined;
 const previewNames = ['oracle', 'reveal', 'collection', 'shop'] as const;
 type PreviewName = (typeof previewNames)[number];
-const automaticPreviewIntervalMs = 10_000;
 
 function isPreviewName(value: string | undefined): value is PreviewName {
   return previewNames.some((name) => name === value);
@@ -207,26 +205,15 @@ function ShopPreview({ wide }: { wide: boolean }) {
 export default function ReleasePreviewScreen() {
   const { width } = useWindowDimensions();
   const params = useLocalSearchParams<{ screen?: string }>();
-  const [automaticPreviewIndex, setAutomaticPreviewIndex] = useState(0);
-  const requested = typeof params.screen === 'string' ? params.screen : undefined;
-  const preview = isPreviewName(requested)
-    ? requested
-    : (previewNames[automaticPreviewIndex] ?? 'oracle');
+  const routePreview = typeof params.screen === 'string' ? params.screen : undefined;
+  const configuredPreview: unknown = Settings.get('ReleaseCaptureScreen');
+  const requested = isPreviewName(routePreview)
+    ? routePreview
+    : typeof configuredPreview === 'string'
+      ? configuredPreview
+      : undefined;
+  const preview = isPreviewName(requested) ? requested : 'oracle';
   const wide = width >= 700;
-
-  useEffect(() => {
-    if (isPreviewName(requested)) {
-      return;
-    }
-
-    const interval = setInterval(() => {
-      setAutomaticPreviewIndex((current) => (current + 1) % previewNames.length);
-    }, automaticPreviewIntervalMs);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [requested]);
 
   if (!releaseCaptureMode) {
     return <Redirect href="/" />;
