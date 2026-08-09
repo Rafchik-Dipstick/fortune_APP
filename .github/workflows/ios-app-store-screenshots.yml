@@ -112,12 +112,18 @@ jobs:
             xcrun simctl install "$udid" "$APP_PATH"
             xcrun simctl launch "$udid" fortuness.app
 
+            # Capture mode renders the preview and advances to the next
+            # screen every ten seconds. This avoids iOS's custom-URL consent
+            # alert, which would otherwise contaminate App Store screenshots.
+            sleep 5
+
             local index=1
             for screen in oracle reveal collection shop; do
-              xcrun simctl openurl "$udid" "fortuneness://release-preview?screen=$screen"
-              sleep 3
               xcrun simctl io "$udid" screenshot \
                 "build/app-store-screenshots/en-US/${prefix}-${index}-${screen}.png"
+              if [[ "$screen" != "shop" ]]; then
+                sleep 10
+              fi
               index=$((index + 1))
             done
             xcrun simctl shutdown "$udid"

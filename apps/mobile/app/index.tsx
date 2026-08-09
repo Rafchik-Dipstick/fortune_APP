@@ -19,12 +19,16 @@ import { usePerformance } from '@/observability/performance-provider';
 import { useAdaptiveLayout } from '@/theme/adaptive';
 import { colors, spacing } from '@/theme/tokens';
 
+import ReleasePreviewScreen from './release-preview';
+
 const intentionLabels: Record<FortuneIntention, string> = {
   GENERAL: 'General',
   LOVE: 'Love',
   WORK: 'Work',
   GROWTH: 'Growth',
 };
+
+const releaseCaptureMode = process.env.EXPO_PUBLIC_RELEASE_CAPTURE_MODE === 'true';
 
 function formatNextReset(state: FortuneAllowanceState): string {
   try {
@@ -66,7 +70,7 @@ function drawFailureMessage(error: Error, retainedIntention: FortuneIntention | 
   return 'The draw could not be completed. Nothing new will be requested until you try again.';
 }
 
-export default function OracleScreen() {
+function OracleScreenContent() {
   const router = useRouter();
   const ritual = useFortuneRitual();
   const performance = usePerformance();
@@ -273,6 +277,14 @@ export default function OracleScreen() {
       ) : null}
     </Screen>
   );
+}
+
+export default function OracleScreen() {
+  if (releaseCaptureMode) {
+    return <ReleasePreviewScreen />;
+  }
+
+  return <OracleScreenContent />;
 }
 
 const styles = StyleSheet.create({
