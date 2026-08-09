@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  resolveConfiguredBuildProfile,
   resolveBuildProfile,
   resolveBundleIdentifier,
   supportedLocalesForProfile,
@@ -27,5 +28,12 @@ describe('mobile build profiles', () => {
   it('defaults unknown local invocations to development', () => {
     expect(resolveBuildProfile(undefined)).toBe('development');
     expect(resolveBuildProfile('unexpected')).toBe('development');
+  });
+
+  it('supports a production profile without depending on EAS', () => {
+    expect(resolveConfiguredBuildProfile('production', undefined)).toBe('production');
+    expect(resolveConfiguredBuildProfile('  production  ', 'development')).toBe('production');
+    expect(resolveConfiguredBuildProfile(undefined, 'preview')).toBe('preview');
+    expect(resolveConfiguredBuildProfile('', 'production')).toBe('production');
   });
 });

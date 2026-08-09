@@ -1,0 +1,157 @@
+name: iOS TestFlight
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: Optional numeric CFBundleVersion; blank chooses a collision-resistant CI number
+        required: false
+        type: string
+      changelog:
+        description: Optional TestFlight What to Test text
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-testflight
+  cancel-in-progress: false
+
+jobs:
+  build-and-upload:
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      CI: '1'
+      IOS_BUILD_PROFILE: production
+      APP_BUNDLE_ID: fortuness.app
+      EXPO_PUBLIC_APP_ENV: production
+      EXPO_PUBLIC_ENABLE_PSEUDO_LOCALE: 'false'
+      EXPO_PUBLIC_API_URL: https://fortuneapp-production.up.railway.app
+      EXPO_PUBLIC_PRIVACY_URL: https://fortuneapp-production.up.railway.app/privacy
+      EXPO_PUBLIC_TERMS_URL: https://fortuneapp-production.up.railway.app/terms
+      EXPO_PUBLIC_SUPPORT_URL: https://fortuneapp-production.up.railway.app/support
+      EXPO_NO_GIT_STATUS: '1'
+      APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+      IOS_DISTRIBUTION_CERTIFICATE_ID: ${{ vars.IOS_DISTRIBUTION_CERTIFICATE_ID }}
+      IOS_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
+      IOS_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+      ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      TESTFLIGHT_CHANGELOG: ${{ inputs.changelog }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Install JavaScript and iOS release tools
+        run: |
+          corepack npm ci
+          gem install fastlane -v 2.235.0 --no-document
+          gem install cocoapods -v 1.16.2 --no-document
+
+      - name: Select a unique iOS build number
+        env:
+          REQUESTED_BUILD_NUMBER: ${{ inputs.build_number }}
+        run: |
+          if [[ -n "$REQUESTED_BUILD_NUMBER" ]]; then
+            IOS_BUILD_NUMBER="$REQUESTED_BUILD_NUMBER"
+          else
+            IOS_BUILD_NUMBER=$((1000 + GITHUB_RUN_NUMBER * 10 + GITHUB_RUN_ATTEMPT))
+          fi
+
+          if [[ ! "$IOS_BUILD_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
+            echo "build_number must be a positive integer" >&2
+            exit 1
+          fi
+
+          echo "IOS_BUILD_NUMBER=$IOS_BUILD_NUMBER" >> "$GITHUB_ENV"
+          echo "Building Fortuneness 0.2.0 ($IOS_BUILD_NUMBER)"
+
+      - name: Validate encrypted signing inputs
+        run: |
+          for name in \
+            APPLE_TEAM_ID \
+            IOS_DISTRIBUTION_CERTIFICATE_ID \
+            IOS_DISTRIBUTION_CERTIFICATE_BASE64 \
+            IOS_DISTRIBUTION_CERTIFICATE_PASSWORD \
+            ASC_API_KEY_P8_BASE64 \
+            ASC_KEY_ID \
+            ASC_ISSUER_ID; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "Missing GitHub secret or variable: $name" >&2
+              exit 1
+            fi
+          done
+
+      - name: Generate the native iOS project
+        working-directory: apps/mobile
+        run: |
+          corepack npm run build --workspace @fortuneness/shared-types --workspace @fortuneness/api-contracts
+          npx expo prebuild --platform ios --clean --no-install
+          cd ios
+          pod install --repo-update
+
+      - name: Import the Apple Distribution certificate
+        run: |
+          CERTIFICATE_PATH="$RUNNER_TEMP/fortuneness-distribution.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/fortuneness-build.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -hex 24)"
+          echo "::add-mask::$KEYCHAIN_PASSWORD"
+
+          printf '%s' "$IOS_DISTRIBUTION_CERTIFICATE_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" \
+            -P "$IOS_DISTRIBUTION_CERTIFICATE_PASSWORD" \
+            -A \
+            -t cert \
+            -f pkcs12 \
+            -k "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH"
+          security default-keychain -s "$KEYCHAIN_PATH"
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: \
+            -s \
+            -k "$KEYCHAIN_PASSWORD" \
+            "$KEYCHAIN_PATH"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+
+          echo "IOS_KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+
+      - name: Archive, sign, and upload directly to TestFlight
+        working-directory: apps/mobile
+        run: fastlane ios testflight
+
+      - name: Preserve the IPA and symbols
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: fortuneness-ios-${{ env.IOS_BUILD_NUMBER }}
+          path: |
+            apps/mobile/build/ios/*.ipa
+            apps/mobile/build/ios/*.dSYM.zip
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Remove the temporary signing keychain
+        if: always()
+        run: |
+          if [[ -n "${IOS_KEYCHAIN_PATH:-}" && -f "$IOS_KEYCHAIN_PATH" ]]; then
+            security delete-keychain "$IOS_KEYCHAIN_PATH"
+          fi

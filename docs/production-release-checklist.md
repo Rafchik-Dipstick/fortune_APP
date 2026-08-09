@@ -129,7 +129,13 @@ corepack npm run build --workspace @fortuneness/api-contracts --workspace @fortu
 
 Export compliance is already answered in the binary: `app.config.ts` declares `ITSAppUsesNonExemptEncryption: false`, so App Store Connect stops asking on every upload.
 
-## 3. EAS production build
+## 3. Direct GitHub production build
+
+The primary iOS release path is `.github/workflows/ios-testflight.yml`, documented in `docs/ios-testflight-without-eas.md`. It runs Expo prebuild, CocoaPods, Xcode, Fastlane signing, and a direct Transporter upload on a standard GitHub macOS runner. It does not create an EAS cloud-build job.
+
+Trigger **Actions → iOS TestFlight → Run workflow** on `main`. Leave the build number blank to generate a collision-resistant number above 1000. The Apple Distribution certificate and Admin App Store Connect API key are stored as encrypted GitHub repository secrets; a fresh provisioning profile is requested from Apple on each run so enabled capabilities cannot be hidden by an obsolete profile.
+
+### EAS fallback
 
 `apps/mobile/eas.json` already pins the production profile to `EXPO_PUBLIC_APP_ENV=production`, `EXPO_PUBLIC_ENABLE_PSEUDO_LOCALE=false`, and `EXPO_PUBLIC_API_URL=https://fortuneapp-production.up.railway.app`. These are public values compiled into the binary, so they belong in the committed profile rather than in EAS secret storage. Set the rest as EAS environment variables in the `production` environment:
 
@@ -194,4 +200,5 @@ Each of these needs a person, a Mac, or a deployed environment. None may be mark
 - Railway now uses In-App Purchase key `VGX43768RV` from `SubscriptionKey_VGX43768RV.p8`. Apple's Sandbox test-notification request succeeds, proving both the key and Sandbox V2 notification URL work.
 - Apple's Production test-notification request still returns HTTP 401 with the same key and issuer. Production App Store Server API access remains a release gate even though TestFlight/Sandbox access is healthy.
 - Railway's dashboard-only custom config-file setting was unreliable and omitted from deployment manifests. The config now lives at repository-root `/railway.json`, which Railway auto-detects; verify `fileServiceManifest`, `/health`, overlap, draining, and restart policy on every release deployment.
-- A real non-interactive EAS production build stopped before upload because EAS has no App Store Connect API key for `fortuness.app`. The In-App Purchase `.p8` cannot satisfy this requirement. Configure a Team API key on EAS or run the first credential refresh interactively with an Apple Account.
+- The failed 2026-08-09 EAS command stopped during local credential preparation and never created a cloud-build job. Expo's build history still ends at production build 8, so that attempt advanced only the remote build-number counter and did not consume an EAS build slot.
+- The direct GitHub TestFlight workflow has the existing distribution certificate and Admin App Store Connect API key in encrypted repository secrets. It regenerates the App Store profile and uploads without EAS Build.

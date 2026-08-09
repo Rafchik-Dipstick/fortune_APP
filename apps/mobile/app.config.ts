@@ -13,6 +13,13 @@ export function resolveBuildProfile(value: string | undefined): BuildProfile {
   return 'development';
 }
 
+export function resolveConfiguredBuildProfile(
+  iosBuildProfile: string | undefined,
+  easBuildProfile: string | undefined,
+): BuildProfile {
+  return resolveBuildProfile(iosBuildProfile?.trim() || easBuildProfile);
+}
+
 export function supportedLocalesForProfile(profile: BuildProfile): readonly string[] {
   return profile === 'production' ? ['en'] : ['en', 'en-XA'];
 }
@@ -92,7 +99,10 @@ const privacyManifests: NonNullable<NonNullable<ExpoConfig['ios']>['privacyManif
 };
 
 export default ({ config }: ConfigContext): ExpoConfig => {
-  const profile = resolveBuildProfile(process.env.EAS_BUILD_PROFILE);
+  const profile = resolveConfiguredBuildProfile(
+    process.env.IOS_BUILD_PROFILE,
+    process.env.EAS_BUILD_PROFILE,
+  );
   const supportedLocales = supportedLocalesForProfile(profile);
   const bundleIdentifier = resolveBundleIdentifier(profile, process.env.APP_BUNDLE_ID);
 
