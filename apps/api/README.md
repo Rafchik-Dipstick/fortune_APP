@@ -9,7 +9,7 @@ corepack npm run build --workspace @fortuneness/api
 corepack npm run start --workspace @fortuneness/api
 ```
 
-The process listens on Railway's injected `PORT`, reports ready only after `SELECT 1` succeeds, stops reporting ready as soon as shutdown begins, and closes HTTP/database resources on `SIGTERM` or `SIGINT`. Railway must be configured to read `/apps/api/railway.json`; no service has been linked or deployed yet.
+The process listens on Railway's injected `PORT`, reports ready only after `SELECT 1` succeeds, stops reporting ready as soon as shutdown begins, and closes HTTP/database resources on `SIGTERM` or `SIGINT`. Railway auto-detects the repository-root `/railway.json`, so no hidden dashboard config-file setting is required.
 
 Planned source boundaries follow the canonical specification:
 

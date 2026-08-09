@@ -1,6 +1,6 @@
 # Production release checklist
 
-Status: **CODE VALIDATED — EXTERNAL CONFIGURATION BLOCKED**. The repository gates and an isolated PostgreSQL migration/IAP integration run pass. The 2026-08-08 live audit still found the Apple/Railway blockers listed below; do not merge this branch into the auto-deployed production branch until they are cleared.
+Status: **CODE VALIDATED AND DEPLOYED — EXTERNAL APPLE GATES REMAIN**. The repository gates and an isolated PostgreSQL migration/IAP integration run pass. Apple authentication was merged to `main` on 2026-08-09 after the required Railway identity secrets were installed. The remaining Apple/TestFlight gates are listed below.
 
 Owner: whoever holds the Railway project, the Expo account `infinityenglish`, and the Apple developer account.
 
@@ -72,13 +72,13 @@ Everything not listed — the four deadlines, the four rate-limit budgets, pool 
 
 ### Game Center to Apple ID Railway cutover
 
-The current production service still has `GAME_CENTER_IDENTITY_HMAC_KEYS_JSON` and `GAME_CENTER_IDENTITY_CURRENT_KEY_VERSION`. The new server intentionally refuses to boot until their Apple replacements exist. Before merging this branch:
+The production service still has `GAME_CENTER_IDENTITY_HMAC_KEYS_JSON` and `GAME_CENTER_IDENTITY_CURRENT_KEY_VERSION` for rollback only. The Apple replacements were installed before the 2026-08-09 deployment:
 
-1. Add `APPLE_IDENTITY_HMAC_KEYS_JSON` as a fresh production-only 32-byte base64 key ring, for example `{"v1":"<generated-base64>"}`.
-2. Add `APPLE_IDENTITY_CURRENT_KEY_VERSION=v1`.
-3. Optionally pin the audited defaults explicitly with `APPLE_IDENTITY_TOKEN_MAX_AGE_SECONDS=300` and `APPLE_IDENTITY_TOKEN_CLOCK_SKEW_SECONDS=60`.
+1. `APPLE_IDENTITY_HMAC_KEYS_JSON` contains a fresh production-only 32-byte base64 `v1` key.
+2. `APPLE_IDENTITY_CURRENT_KEY_VERSION=v1` selects that key.
+3. Token maximum age and clock skew intentionally use the audited code defaults; duplicate Railway variables are unnecessary.
 4. Keep every `GAME_CENTER_*` variable through the first healthy Apple-ID deployment. The new code ignores them; removing them only after health verification keeps rollback possible.
-5. Explicitly set `IAP_FORTUNE_PACK_10_PRODUCT_ID` and `IAP_ORACLE_PLUS_MONTHLY_PRODUCT_ID` to the exact identifiers shown in App Store Connect. The current Railway service relies on code defaults, and those identifiers have not yet been confirmed in App Store Connect.
+5. `IAP_FORTUNE_PACK_10_PRODUCT_ID` and `IAP_ORACLE_PLUS_MONTHLY_PRODUCT_ID` are explicitly set in Railway rather than relying on code defaults.
 
 The application field `identityAuthenticatedAt` deliberately maps to the existing PostgreSQL column `gameCenterAuthenticatedAt`. There is no auth-cutover database migration: retaining that physical name is what allows old and new Railway instances to overlap safely during deployment.
 
@@ -90,10 +90,10 @@ Error reporting is off. `SENTRY_DSN` is optional and left unset, so nothing is t
 
 This is a monorepo, and the API is a workspace inside it — not a standalone project directory.
 
-| Railway setting     | Value                   | Why                                                                                                                                                                 |
-| ------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Root Directory      | `/` (leave empty)       | The build and start commands are `npm --workspace` invocations, and workspaces are only defined in the root `package.json`. Setting this to `apps/api` breaks both. |
-| Railway Config File | `apps/api/railway.json` | Supplies the build command, start command, health check, and watch patterns as code                                                                                 |
+| Railway setting     | Value             | Why                                                                                                                                                                 |
+| ------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Root Directory      | `/` (leave empty) | The build and start commands are `npm --workspace` invocations, and workspaces are only defined in the root `package.json`. Setting this to `apps/api` breaks both. |
+| Railway Config File | `/railway.json`   | Auto-detected at the repository root; supplies the build command, start command, health check, and watch patterns without a dashboard-only setting                  |
 
 Everything else — builder, build command, start command, health check path — comes from that config file. Do not also set them in the dashboard; the file is the source of truth.
 
@@ -108,7 +108,7 @@ corepack npm run build --workspace @fortuneness/api-contracts --workspace @fortu
 ### Deploy sequence
 
 1. Provision the PostgreSQL service and confirm the backup plan meets the 24-hour RPO, 4-hour RTO, and 30-recovery-point policy.
-2. Set every variable above, then deploy. The service builds with `RAILPACK` per `apps/api/railway.json` and health-checks `/health`.
+2. Set every variable above, then deploy. The service builds with `RAILPACK` per `/railway.json` and health-checks `/health`.
 3. Run the production migration by hand, following the production section of `docs/database-operations-runbook.md`. Migrations are deliberately **not** part of the start command, so a bad migration cannot be applied by a restart loop.
 4. Seed content only with an explicitly approved production-safe seed.
 5. Run `corepack npm run db:invariants --workspace @fortuneness/api`.
@@ -182,13 +182,12 @@ Each of these needs a person, a Mac, or a deployed environment. None may be mark
 - [ ] App Privacy answers confirmed by a person against the worksheet.
 - [ ] Reviewer-access path rehearsed on a clean device.
 
-## 6. 2026-08-08 live external audit
+## 6. 2026-08-09 live external audit
 
 - Railway production is healthy at `/health`, and its privacy, terms, and support pages return HTTPS 200.
-- The current Railway variables match bundle `fortuness.app`, App Apple ID `6799167588`, and `APPLE_IAP_ENVIRONMENT=PRODUCTION`, but the two required `APPLE_IDENTITY_*` key variables are missing.
-- With the new variables supplied in-memory, the complete production environment parser passes and accepts both signed Production and Sandbox transactions.
+- Railway production contains the required `APPLE_IDENTITY_HMAC_KEYS_JSON` and `APPLE_IDENTITY_CURRENT_KEY_VERSION=v1`; the complete production environment parser accepts both signed Production and Sandbox transactions.
 - Apple's live identity JWKS endpoint returned six RSA/RS256 signing keys.
 - The latest signed production IPA uses application identifier `YGR53JLX36.fortuness.app` and team `YGR53JLX36`, but its embedded provisioning profile does **not** contain `com.apple.developer.applesignin`. Enable the capability and replace the production provisioning profile before building this branch.
-- An Apple App Store Server API test-notification request returned HTTP 401 in Production. Replace or repair the In-App Purchase key/issuer/key-ID combination before release.
-- The same request authenticated against Sandbox but returned Apple error `4040007` (`ServerNotificationURLNotFoundError`), proving the sandbox V2 notification URL is not configured.
-- The Railway service's latest deployment did not show the checked-in `apps/api/railway.json` as its active config file. Set the service's Railway Config File to `/apps/api/railway.json` before the next deploy so `/health`, overlap, draining, and restart policy come from source control.
+- Railway now uses In-App Purchase key `VGX43768RV` from `SubscriptionKey_VGX43768RV.p8`. Apple's Sandbox test-notification request succeeds, proving both the key and Sandbox V2 notification URL work.
+- Apple's Production test-notification request still returns HTTP 401 with the same key and issuer. Production App Store Server API access remains a release gate even though TestFlight/Sandbox access is healthy.
+- Railway's dashboard-only custom config-file setting was unreliable and omitted from deployment manifests. The config now lives at repository-root `/railway.json`, which Railway auto-detects; verify `fileServiceManifest`, `/health`, overlap, draining, and restart policy on every release deployment.
