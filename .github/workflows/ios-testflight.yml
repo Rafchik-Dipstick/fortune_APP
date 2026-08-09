@@ -103,6 +103,19 @@ jobs:
         run: |
           corepack npm run build --workspace @fortuneness/shared-types --workspace @fortuneness/api-contracts
           npx expo prebuild --platform ios --clean --no-install
+
+          APP_INFO_PLIST="$(find ios -maxdepth 2 -name Info.plist -path '*/Fortuneness/*' -print -quit)"
+          if [[ -z "$APP_INFO_PLIST" ]]; then
+            echo "Expo prebuild did not generate the Fortuneness Info.plist" >&2
+            exit 1
+          fi
+
+          GENERATED_BUILD_NUMBER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_INFO_PLIST")"
+          if [[ "$GENERATED_BUILD_NUMBER" != "$IOS_BUILD_NUMBER" ]]; then
+            echo "Generated CFBundleVersion $GENERATED_BUILD_NUMBER does not match $IOS_BUILD_NUMBER" >&2
+            exit 1
+          fi
+
           cd ios
           pod install --repo-update
 

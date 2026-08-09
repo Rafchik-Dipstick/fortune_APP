@@ -4,6 +4,7 @@ import {
   resolveConfiguredBuildProfile,
   resolveBuildProfile,
   resolveBundleIdentifier,
+  resolveIosBuildNumber,
   supportedLocalesForProfile,
 } from '../../app.config';
 
@@ -35,5 +36,13 @@ describe('mobile build profiles', () => {
     expect(resolveConfiguredBuildProfile('  production  ', 'development')).toBe('production');
     expect(resolveConfiguredBuildProfile(undefined, 'preview')).toBe('preview');
     expect(resolveConfiguredBuildProfile('', 'production')).toBe('production');
+  });
+
+  it('validates build numbers supplied by direct iOS CI', () => {
+    expect(resolveIosBuildNumber(undefined)).toBeUndefined();
+    expect(resolveIosBuildNumber('')).toBeUndefined();
+    expect(resolveIosBuildNumber(' 1013 ')).toBe('1013');
+    expect(() => resolveIosBuildNumber('0')).toThrow('positive integer');
+    expect(() => resolveIosBuildNumber('1.2')).toThrow('positive integer');
   });
 });

@@ -20,6 +20,19 @@ export function resolveConfiguredBuildProfile(
   return resolveBuildProfile(iosBuildProfile?.trim() || easBuildProfile);
 }
 
+export function resolveIosBuildNumber(value: string | undefined): string | undefined {
+  const normalizedValue = value?.trim();
+  if (!normalizedValue) {
+    return undefined;
+  }
+
+  if (!/^[1-9][0-9]*$/.test(normalizedValue)) {
+    throw new Error('IOS_BUILD_NUMBER must be a positive integer when it is set.');
+  }
+
+  return normalizedValue;
+}
+
 export function supportedLocalesForProfile(profile: BuildProfile): readonly string[] {
   return profile === 'production' ? ['en'] : ['en', 'en-XA'];
 }
@@ -105,6 +118,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   );
   const supportedLocales = supportedLocalesForProfile(profile);
   const bundleIdentifier = resolveBundleIdentifier(profile, process.env.APP_BUNDLE_ID);
+  const buildNumber = resolveIosBuildNumber(process.env.IOS_BUILD_NUMBER);
 
   return {
     ...config,
@@ -124,6 +138,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ios: {
       ...config.ios,
       bundleIdentifier,
+      ...(buildNumber ? { buildNumber } : {}),
       usesAppleSignIn: true,
       supportsTablet: true,
       requireFullScreen: false,

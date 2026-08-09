@@ -40,6 +40,7 @@ After Transporter accepts the upload, App Store Connect still needs time to proc
 - Production profile selection does not depend on EAS CLI.
 - The production bundle identifier is `fortuness.app`.
 - Production API and legal URLs are compiled into the JavaScript bundle.
+- The generated `CFBundleVersion` exactly matches the selected CI build number before native compilation starts.
 - Expo prebuild generates a fresh iOS project from `app.config.ts` and its config plugins.
 - CocoaPods resolves the native dependency graph.
 - Fastlane requests a fresh App Store profile tied to distribution certificate `UB252MH78M`; this prevents the old Game Center-era profile from silently omitting the Sign in with Apple entitlement.
