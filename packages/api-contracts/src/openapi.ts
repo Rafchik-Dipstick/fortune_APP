@@ -650,6 +650,40 @@ export const generateOpenApiDocument = () => {
     },
   });
 
+  registry.registerPath({
+    method: 'post',
+    path: apiPaths.signInWithAppleWebhook,
+    description:
+      'Receives signed Sign in with Apple account-change notifications. Consent revocation invalidates every application session; permanent Apple Account deletion queues immediate account purge.',
+    summary: 'Receive Sign in with Apple account notifications',
+    tags: ['Authentication'],
+    request: {
+      body: {
+        content: {
+          'application/json': {
+            schema: z
+              .object({ payload: z.string().min(20).max(32_768) })
+              .strict()
+              .meta({ id: 'SignInWithAppleNotificationEnvelope' }),
+          },
+        },
+      },
+    },
+    responses: {
+      200: {
+        description: 'The verified account event was applied or idempotently acknowledged.',
+      },
+      400: {
+        description: 'The envelope is malformed or fails Apple signature validation.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+      503: {
+        description: 'Apple signing keys or durable persistence are temporarily unavailable.',
+        content: { 'application/json': { schema: apiErrorEnvelopeSchema } },
+      },
+    },
+  });
+
   return new OpenApiGeneratorV31(registry.definitions).generateDocument({
     openapi: '3.1.0',
     info: {

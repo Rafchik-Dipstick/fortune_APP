@@ -4,6 +4,10 @@ import { createApiApp } from './app.js';
 import { AccountBootstrapService } from './auth/account-bootstrap.js';
 import { AccessTokenService } from './auth/access-token.js';
 import { AppleIdentityTokenVerifier } from './auth/apple-identity-token.js';
+import {
+  AppleIdentityNotificationService,
+  AppleIdentityNotificationTokenVerifier,
+} from './auth/apple-identity-notification.js';
 import { AppleLoginService } from './auth/apple-login.js';
 import { LogoutSessionService } from './auth/logout-session.js';
 import { RefreshSessionService } from './auth/refresh-session.js';
@@ -69,6 +73,10 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
   const accessTokens = new AccessTokenService(environment.authentication);
   const deletionManagementTokens = new DeletionManagementTokenService(environment.authentication);
   const appleIdentityTokens = new AppleIdentityTokenVerifier(environment.authentication);
+  const appleIdentityNotifications = new AppleIdentityNotificationService(
+    database.client,
+    new AppleIdentityNotificationTokenVerifier(environment.authentication),
+  );
   const appleLogin = new AppleLoginService({
     deletionManagementTokens,
     accessTokens,
@@ -217,7 +225,10 @@ export const createApiRuntime = (source: NodeJS.ProcessEnv): ApiRuntime => {
       });
       registerCollectionRoutes(configuredApp, { authenticate, collection });
       registerIapRoutes(configuredApp, { authenticate, commerce });
-      registerWebhookRoutes(configuredApp, { appStoreNotifications: notificationIngest });
+      registerWebhookRoutes(configuredApp, {
+        appStoreNotifications: notificationIngest,
+        appleIdentityNotifications,
+      });
       registerAccountRoutes(configuredApp, {
         authenticate,
         authenticateDeletionManagement,

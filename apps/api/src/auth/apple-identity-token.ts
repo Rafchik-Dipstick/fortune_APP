@@ -17,6 +17,23 @@ const appleIssuer = 'https://appleid.apple.com';
 const appleJwksUrl = new URL(`${appleIssuer}/auth/keys`);
 const appleIdentityPrefix = 'sign-in-with-apple:';
 
+export function createAppleIdentityDigests(
+  subject: string,
+  environment: Pick<AuthenticationEnvironment, 'appleIdentityKeys'>,
+): {
+  currentIdentity: { digest: string; keyVersion: string };
+  identityCandidates: readonly { digest: string; keyVersion: string }[];
+} {
+  const normalizedSubject = `${appleIdentityPrefix}${subject}`;
+  return {
+    currentIdentity: createCurrentHmacDigest(normalizedSubject, environment.appleIdentityKeys),
+    identityCandidates: createHmacDigestCandidates(
+      normalizedSubject,
+      environment.appleIdentityKeys,
+    ),
+  };
+}
+
 export interface VerifiedAppleIdentity {
   authenticatedAt: Date;
   currentIdentity: { digest: string; keyVersion: string };
@@ -96,14 +113,10 @@ export class AppleIdentityTokenVerifier {
       throw new AppleIdentityVerificationError('TOKEN_EXPIRED');
     }
 
-    const identitySubject = `${appleIdentityPrefix}${payload.sub}`;
+    const identities = createAppleIdentityDigests(payload.sub, this.environment);
     return {
       authenticatedAt,
-      currentIdentity: createCurrentHmacDigest(identitySubject, this.environment.appleIdentityKeys),
-      identityCandidates: createHmacDigestCandidates(
-        identitySubject,
-        this.environment.appleIdentityKeys,
-      ),
+      ...identities,
       proofExpiresAt: new Date(payload.exp * 1_000),
       proofFingerprint: createHash('sha256').update(request.identityToken, 'utf8').digest('hex'),
     };

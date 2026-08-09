@@ -27,7 +27,7 @@ export type RateLimitTier = 'authentication' | 'default' | 'draw' | 'webhook';
 const tierPaths: Readonly<Record<Exclude<RateLimitTier, 'default'>, readonly string[]>> = {
   authentication: [apiPaths.authApple, apiPaths.authRefresh, apiPaths.authLogout],
   draw: [apiPaths.fortuneDraw],
-  webhook: [apiPaths.appStoreWebhook],
+  webhook: [apiPaths.appStoreWebhook, apiPaths.signInWithAppleWebhook],
 };
 
 export function resolveRateLimitTier(path: string): RateLimitTier {

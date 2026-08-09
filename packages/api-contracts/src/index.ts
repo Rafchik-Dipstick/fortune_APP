@@ -28,6 +28,7 @@ export const apiPaths = {
   meDeletionCancel: '/v1/me/deletion/cancel',
   meConsumptionConsent: '/v1/me/consumption-consent',
   appStoreWebhook: '/v1/webhooks/app-store',
+  signInWithAppleWebhook: '/v1/webhooks/sign-in-with-apple',
 } as const;
 
 export const fortuneViewedPath = (drawId: string): string =>

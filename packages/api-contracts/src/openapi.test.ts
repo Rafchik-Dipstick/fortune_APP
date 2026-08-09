@@ -26,6 +26,7 @@ describe('generated OpenAPI document', () => {
       apiPaths.iapReconcile,
       apiPaths.iapStatus,
       apiPaths.appStoreWebhook,
+      apiPaths.signInWithAppleWebhook,
     ]);
     expect(healthOperation?.responses).toHaveProperty('200');
     expect(healthOperation?.responses).toHaveProperty('503');

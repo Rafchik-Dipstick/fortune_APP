@@ -32,6 +32,7 @@ const createTieredApp = () => {
         apiPaths.fortuneDraw,
         apiPaths.fortuneState,
         apiPaths.appStoreWebhook,
+        apiPaths.signInWithAppleWebhook,
       ]) {
         app.all(path, (_request, response) => {
           response.status(200).json({});
@@ -48,6 +49,7 @@ describe('tiered rate limits', () => {
     [apiPaths.authLogout, 'authentication'],
     [apiPaths.fortuneDraw, 'draw'],
     [apiPaths.appStoreWebhook, 'webhook'],
+    [apiPaths.signInWithAppleWebhook, 'webhook'],
     [apiPaths.fortuneState, 'default'],
     [apiPaths.collection, 'default'],
     [apiPaths.iapTransactions, 'default'],

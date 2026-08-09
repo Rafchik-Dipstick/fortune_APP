@@ -122,9 +122,10 @@ corepack npm run build --workspace @fortuneness/api-contracts --workspace @fortu
 3. Create both in-app purchases with the confirmed product IDs. Configure the subscription as standard month-to-month pay-as-you-go, **not** a 12-month commitment plan, and record the exact `billingPlanType` Apple reports.
 4. Enable Billing Grace Period for Sandbox and Production.
 5. Set App Store Server Notifications **V2** production and sandbox URLs. For a TestFlight build compiled against the production API, both must be `https://fortuneapp-production.up.railway.app/v1/webhooks/app-store`. Use a staging sandbox URL only when the beta binary itself targets staging.
-6. Create the App Store Connect API key for the App Store Server API; base64 the `.p8` for `APPLE_IAP_PRIVATE_KEY_BASE64`.
-7. Complete the App Privacy answers from `docs/app-privacy-worksheet.md`. The declared answers must stay true: no analytics SDK, no crash reporter, no tracking.
-8. Prepare the reviewer-access artifact. The review notes must explain Sign in with Apple auto-provisioning, the daily rules, the exact free draw, the Sandbox pack and subscription, **Restore Purchases**, local disconnect, and deletion.
+6. Set the Sign in with Apple **Server-to-Server Notification Endpoint** to `https://fortuneapp-production.up.railway.app/v1/webhooks/sign-in-with-apple`. This is separate from the App Store purchase webhook. The receiver verifies Apple's JWS, revokes sessions for `consent-revoked`, and queues immediate purge for `account-deleted` without storing the raw subject, email, or JWT.
+7. Create the In-App Purchase key for the App Store Server API; base64 the `SubscriptionKey_*.p8` for `APPLE_IAP_PRIVATE_KEY_BASE64`. This key is not an App Store Connect API key and cannot generate an iOS provisioning profile.
+8. Complete the App Privacy answers from `docs/app-privacy-worksheet.md`. The declared answers must stay true: no analytics SDK, no crash reporter, no tracking.
+9. Prepare the reviewer-access artifact. The review notes must explain Sign in with Apple auto-provisioning, the daily rules, the exact free draw, the Sandbox pack and subscription, **Restore Purchases**, local disconnect, and deletion.
 
 Export compliance is already answered in the binary: `app.config.ts` declares `ITSAppUsesNonExemptEncryption: false`, so App Store Connect stops asking on every upload.
 
@@ -141,7 +142,9 @@ Export compliance is already answered in the binary: `app.config.ts` declares `I
 
 All four URLs are validated at startup and must use HTTPS outside development, so a missing or `http://` value crashes the app on launch rather than silently pointing a shipped binary at localhost. The three legal pages must actually resolve — App Review follows them.
 
-EAS owns the iOS build number: `eas.json` sets `appVersionSource: "remote"` with `autoIncrement: true`, and `app.config.ts` does not claim a second value. The 2026-08-08 inspection advanced the remote counter from 8 to 9; the next queued production build will auto-increment from the remote value.
+EAS owns the iOS build number: `eas.json` sets `appVersionSource: "remote"` with `autoIncrement: true`, and `app.config.ts` does not claim a second value. The 2026-08-09 production attempt advanced the remote counter from 9 to 10 before credential setup stopped; the next successful production build will auto-increment from the remote value.
+
+Non-interactive EAS builds require a separate App Store Connect API key configured on EAS (or supplied as `EXPO_ASC_API_KEY_PATH`, `EXPO_ASC_KEY_ID`, and `EXPO_ASC_ISSUER_ID`). `SubscriptionKey_VGX43768RV.p8` is scoped to In-App Purchase and must not be reused for this purpose.
 
 Then:
 
@@ -191,3 +194,4 @@ Each of these needs a person, a Mac, or a deployed environment. None may be mark
 - Railway now uses In-App Purchase key `VGX43768RV` from `SubscriptionKey_VGX43768RV.p8`. Apple's Sandbox test-notification request succeeds, proving both the key and Sandbox V2 notification URL work.
 - Apple's Production test-notification request still returns HTTP 401 with the same key and issuer. Production App Store Server API access remains a release gate even though TestFlight/Sandbox access is healthy.
 - Railway's dashboard-only custom config-file setting was unreliable and omitted from deployment manifests. The config now lives at repository-root `/railway.json`, which Railway auto-detects; verify `fileServiceManifest`, `/health`, overlap, draining, and restart policy on every release deployment.
+- A real non-interactive EAS production build stopped before upload because EAS has no App Store Connect API key for `fortuness.app`. The In-App Purchase `.p8` cannot satisfy this requirement. Configure a Team API key on EAS or run the first credential refresh interactively with an Apple Account.

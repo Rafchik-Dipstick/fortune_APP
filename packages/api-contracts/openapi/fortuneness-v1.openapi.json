@@ -988,6 +988,12 @@
         },
         "required": ["signedPayload"],
         "additionalProperties": false
+      },
+      "SignInWithAppleNotificationEnvelope": {
+        "type": "object",
+        "properties": { "payload": { "type": "string", "minLength": 20, "maxLength": 32768 } },
+        "required": ["payload"],
+        "additionalProperties": false
       }
     },
     "parameters": {}
@@ -1853,6 +1859,37 @@
           },
           "503": {
             "description": "Durable persistence is temporarily unavailable; Apple should retry.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          }
+        }
+      }
+    },
+    "/v1/webhooks/sign-in-with-apple": {
+      "post": {
+        "description": "Receives signed Sign in with Apple account-change notifications. Consent revocation invalidates every application session; permanent Apple Account deletion queues immediate account purge.",
+        "summary": "Receive Sign in with Apple account notifications",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SignInWithAppleNotificationEnvelope" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The verified account event was applied or idempotently acknowledged."
+          },
+          "400": {
+            "description": "The envelope is malformed or fails Apple signature validation.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
+            }
+          },
+          "503": {
+            "description": "Apple signing keys or durable persistence are temporarily unavailable.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/ApiErrorEnvelope" } }
             }
