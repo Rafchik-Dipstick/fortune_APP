@@ -1,0 +1,176 @@
+name: iOS App Store Screenshots
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload_to_app_store:
+        description: Upload the generated screenshots to App Store Connect after capture
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-app-store-screenshots
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      CI: '1'
+      IOS_BUILD_PROFILE: production
+      APP_BUNDLE_ID: fortuness.app
+      EXPO_PUBLIC_APP_ENV: production
+      EXPO_PUBLIC_ENABLE_PSEUDO_LOCALE: 'false'
+      EXPO_PUBLIC_RELEASE_CAPTURE_MODE: 'true'
+      EXPO_PUBLIC_API_URL: https://fortuneapp-production.up.railway.app
+      EXPO_PUBLIC_PRIVACY_URL: https://fortuneapp-production.up.railway.app/privacy
+      EXPO_PUBLIC_TERMS_URL: https://fortuneapp-production.up.railway.app/terms
+      EXPO_PUBLIC_SUPPORT_URL: https://fortuneapp-production.up.railway.app/support
+      EXPO_NO_GIT_STATUS: '1'
+      ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install JavaScript and iOS tools
+        run: |
+          corepack npm ci
+          gem install cocoapods -v 1.16.2 --no-document
+
+      - name: Generate the simulator app
+        working-directory: apps/mobile
+        run: |
+          corepack npm run build --workspace @fortuneness/shared-types --workspace @fortuneness/api-contracts
+          npx expo prebuild --platform ios --clean --no-install
+          cd ios
+          pod install --repo-update
+          xcodebuild \
+            -workspace Fortuneness.xcworkspace \
+            -scheme Fortuneness \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -derivedDataPath ../build/screenshot-derived \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Capture iPhone and iPad screenshots
+        working-directory: apps/mobile
+        run: |
+          APP_PATH="$(find build/screenshot-derived/Build/Products/Release-iphonesimulator -maxdepth 1 -name '*.app' -print -quit)"
+          if [[ -z "$APP_PATH" ]]; then
+            echo "Simulator app was not produced" >&2
+            exit 1
+          fi
+
+          RUNTIME_ID="$(xcrun simctl list runtimes available -j | jq -r '[.runtimes[] | select(.name | startswith("iOS "))] | sort_by(.version) | last | .identifier')"
+          if [[ -z "$RUNTIME_ID" || "$RUNTIME_ID" == "null" ]]; then
+            echo "No available iOS simulator runtime" >&2
+            exit 1
+          fi
+
+          DEVICE_TYPES="$(xcrun simctl list devicetypes -j)"
+          IPHONE_TYPE="$(printf '%s' "$DEVICE_TYPES" | jq -r '.devicetypes[] | select(.name == "iPhone 16 Pro Max") | .identifier' | head -1)"
+          IPAD_TYPE="$(printf '%s' "$DEVICE_TYPES" | jq -r '.devicetypes[] | select(.name == "iPad Pro 13-inch (M4)") | .identifier' | head -1)"
+          if [[ -z "$IPHONE_TYPE" || -z "$IPAD_TYPE" ]]; then
+            echo "Required App Store simulator device types are unavailable" >&2
+            xcrun simctl list devicetypes
+            exit 1
+          fi
+
+          mkdir -p build/app-store-screenshots/en-US
+          capture_device() {
+            local device_name="$1"
+            local device_type="$2"
+            local prefix="$3"
+            local udid
+            udid="$(xcrun simctl create "$device_name" "$device_type" "$RUNTIME_ID")"
+            xcrun simctl boot "$udid"
+            xcrun simctl bootstatus "$udid" -b
+            xcrun simctl status_bar "$udid" override \
+              --time '9:41' \
+              --batteryLevel 100 \
+              --batteryState charged \
+              --wifiBars 3 \
+              --cellularBars 4
+            xcrun simctl install "$udid" "$APP_PATH"
+            xcrun simctl launch "$udid" fortuness.app
+
+            local index=1
+            for screen in oracle reveal collection shop; do
+              xcrun simctl openurl "$udid" "fortuneness://release-preview?screen=$screen"
+              sleep 3
+              xcrun simctl io "$udid" screenshot \
+                "build/app-store-screenshots/en-US/${prefix}-${index}-${screen}.png"
+              index=$((index + 1))
+            done
+            xcrun simctl shutdown "$udid"
+            xcrun simctl delete "$udid"
+          }
+
+          capture_device 'Fortuneness App Store iPhone' "$IPHONE_TYPE" 'iphone-6.9'
+          capture_device 'Fortuneness App Store iPad' "$IPAD_TYPE" 'ipad-13'
+
+      - name: Normalize and validate screenshot files
+        working-directory: apps/mobile
+        run: |
+          python3 -m pip install --quiet Pillow
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+
+          root = Path('build/app-store-screenshots/en-US')
+          accepted = {
+              'iphone': {(1320, 2868)},
+              'ipad': {(2064, 2752)},
+          }
+          files = sorted(root.glob('*.png'))
+          if len(files) != 8:
+              raise SystemExit(f'Expected 8 screenshots, found {len(files)}')
+
+          for path in files:
+              with Image.open(path) as image:
+                  family = 'iphone' if path.name.startswith('iphone-') else 'ipad'
+                  if image.size not in accepted[family]:
+                      raise SystemExit(f'{path.name}: unexpected size {image.size}')
+                  image.convert('RGB').save(path, format='PNG', optimize=True)
+              with Image.open(path) as normalized:
+                  if normalized.mode != 'RGB':
+                      raise SystemExit(f'{path.name}: alpha channel was not removed')
+                  print(f'{path.name}: {normalized.width}x{normalized.height}, RGB')
+          PY
+
+      - name: Upload screenshot artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: fortuneness-app-store-screenshots
+          path: apps/mobile/build/app-store-screenshots
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Set up Ruby for App Store upload
+        if: ${{ inputs.upload_to_app_store }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Upload screenshots to App Store Connect
+        if: ${{ inputs.upload_to_app_store }}
+        working-directory: apps/mobile
+        run: |
+          gem install fastlane -v 2.237.0 --no-document
+          fastlane ios screenshots

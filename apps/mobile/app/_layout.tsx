@@ -19,7 +19,21 @@ import { RemindersProvider } from '@/reminders/reminders';
 import { shouldReduceMotion } from '@/motion/reduce-motion';
 import { colors } from '@/theme/tokens';
 
+const releaseCaptureMode = process.env.EXPO_PUBLIC_RELEASE_CAPTURE_MODE === 'true';
+
 export default function RootLayout() {
+  if (releaseCaptureMode) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <QaLocaleProvider>
+            <AppNavigation />
+          </QaLocaleProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    );
+  }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

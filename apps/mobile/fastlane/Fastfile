@@ -9,6 +9,32 @@ def required_environment(name)
 end
 
 platform :ios do
+  desc "Upload validated App Store metadata and screenshots without changing the binary"
+  lane :screenshots do
+    api_key = app_store_connect_api_key(
+      key_id: required_environment("ASC_KEY_ID"),
+      issuer_id: required_environment("ASC_ISSUER_ID"),
+      key_content: required_environment("ASC_API_KEY_P8_BASE64"),
+      is_key_content_base64: true,
+      in_house: false
+    )
+
+    deliver(
+      api_key: api_key,
+      app_identifier: "fortuness.app",
+      app_version: "0.2.0",
+      platform: "ios",
+      screenshots_path: File.expand_path("../build/app-store-screenshots", __dir__),
+      skip_binary_upload: true,
+      metadata_path: File.expand_path("metadata", __dir__),
+      skip_metadata: false,
+      skip_app_version_update: true,
+      overwrite_screenshots: true,
+      submit_for_review: false,
+      force: true
+    )
+  end
+
   desc "Build Fortuneness and upload it directly to TestFlight"
   lane :testflight do
     bundle_identifier = "fortuness.app"
