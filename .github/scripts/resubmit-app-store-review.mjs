@@ -149,7 +149,63 @@ if (!submission) {
   );
 }
 
+const reviewItems = (
+  await request(
+    apiPath(`/v1/reviewSubmissions/${submission.id}/items`, {
+      'fields[reviewSubmissionItems]':
+        'state,appStoreVersion,inAppPurchaseVersion,subscriptionVersion,subscriptionGroupVersion',
+      include: 'appStoreVersion,inAppPurchaseVersion,subscriptionVersion,subscriptionGroupVersion',
+      limit: 200,
+    }),
+  )
+).data;
+const reviewTargetNames = [
+  'appStoreVersion',
+  'inAppPurchaseVersion',
+  'subscriptionVersion',
+  'subscriptionGroupVersion',
+];
+
+function reviewTarget(item) {
+  for (const name of reviewTargetNames) {
+    const target = item.relationships?.[name]?.data;
+    if (target) {
+      return { id: target.id, name, type: target.type };
+    }
+  }
+  return undefined;
+}
+
+for (const item of reviewItems) {
+  const target = reviewTarget(item);
+  console.log(
+    `Review item ${item.id}: ${item.attributes.state} (${target?.name ?? 'unknown'} ${target?.id ?? 'unknown'}).`,
+  );
+}
+
 if (['UNRESOLVED_ISSUES', 'READY_FOR_REVIEW'].includes(submission.attributes.state)) {
+  const rejectedItems = reviewItems.filter((item) => item.attributes.state === 'REJECTED');
+  if (submission.attributes.state === 'UNRESOLVED_ISSUES') {
+    const rejectedItem = one(rejectedItems, 'rejected review submission item');
+    const target = reviewTarget(rejectedItem);
+    if (target?.name !== 'appStoreVersion' || target.id !== version.id) {
+      throw new Error(
+        `Refusing to resolve an unexpected rejected item: ${target?.name ?? 'unknown'} ${target?.id ?? 'unknown'}`,
+      );
+    }
+    await request(`/v1/reviewSubmissionItems/${rejectedItem.id}`, {
+      method: 'PATCH',
+      body: {
+        data: {
+          type: 'reviewSubmissionItems',
+          id: rejectedItem.id,
+          attributes: { resolved: true },
+        },
+      },
+    });
+    console.log(`Resolved rejected App Store version item ${rejectedItem.id}.`);
+  }
+
   submission = (
     await request(`/v1/reviewSubmissions/${submission.id}`, {
       method: 'PATCH',
