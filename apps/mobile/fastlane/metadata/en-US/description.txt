@@ -18,3 +18,5 @@ OPTIONAL PURCHASES
 Fortuness remains usable with its included daily reading. If you want more, the 10-Reading Pack is a one-time purchase that adds credits until used. Oracle+ is an auto-renewing monthly subscription that grants up to 10 readings each day while active. Apple displays the localized price and confirms every purchase. Subscriptions can be managed or cancelled in your Apple Account settings.
 
 Fortuness offers tarot-inspired reflections for entertainment and personal contemplation. It does not predict certain outcomes or provide medical, legal, financial, or mental-health advice.
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/

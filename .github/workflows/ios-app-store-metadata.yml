@@ -1,0 +1,54 @@
+name: iOS App Store Metadata
+
+on:
+  workflow_dispatch:
+    inputs:
+      resubmit_after_upload:
+        description: Resubmit an unresolved App Review submission after validating metadata
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-app-store-metadata
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      APP_BUNDLE_ID: fortuness.app
+      APP_STORE_VERSION: 0.2.0
+      ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      FASTLANE_HIDE_CHANGELOG: '1'
+      FASTLANE_SKIP_UPDATE_CHECK: '1'
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Validate required EULA metadata
+        run: |
+          grep -Fqx 'Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/' \
+            apps/mobile/fastlane/metadata/en-US/description.txt
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Upload metadata without a new binary
+        working-directory: apps/mobile
+        run: |
+          gem install fastlane -v 2.237.0 --no-document
+          fastlane ios metadata
+
+      - name: Validate and resubmit App Review
+        if: ${{ inputs.resubmit_after_upload }}
+        run: node .github/scripts/resubmit-app-store-review.mjs
