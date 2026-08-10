@@ -30,6 +30,7 @@ platform :ios do
       skip_metadata: false,
       skip_app_version_update: true,
       submit_for_review: false,
+      run_precheck_before_submit: false,
       force: true
     )
   end
